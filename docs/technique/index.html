@@ -1,0 +1,666 @@
+<title>Carnet de calcul de la station</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Mise en page : sommaire collant à gauche (bureau), colonne de texte ~70 car., tableaux et figures en pleine largeur de colonne. */
+:root {
+  --bg: #f2f4f6;
+  --surface: #ffffff;
+  --ink: #12161c;
+  --ink-2: #47505c;
+  --muted: #6f7986;
+  --line: #d6dce3;
+  --accent: #d24b17;
+  --accent-soft: #fbe3d7;
+  --code-bg: #e8ecf0;
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #6250d6;
+  --good: #0ca30c; --warn: #fab219; --bad: #d03b3b;
+  --viz-bg: #0c1118; --viz-hull: #a4b2c4; --viz-floor: #ff6a2b; --viz-cable: #e3e8ef; --viz-grid: #2c3644; --viz-mass: #ffd23f; --viz-up: #5cc8ff;
+  --f-display: "Saira Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --f-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117; --surface: #151b23; --ink: #e8ecf1; --ink-2: #aab4c0; --muted: #808b99; --line: #26303d;
+    --accent: #ff7d47; --accent-soft: #3a2116; --code-bg: #1c232d;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #9085e9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1117; --surface: #151b23; --ink: #e8ecf1; --ink-2: #aab4c0; --muted: #808b99; --line: #26303d;
+  --accent: #ff7d47; --accent-soft: #3a2116; --code-bg: #1c232d;
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #9085e9;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 400 1rem/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+h1, h2, h3, h4 { font-family: var(--f-display); font-weight: 600; line-height: 1.15; letter-spacing: 0.01em; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); font-weight: 700; }
+h2 { font-size: 1.9rem; padding-top: 8px; border-top: 2px solid var(--ink); }
+h3 { font-size: 1.35rem; }
+h4 { font-size: 1.1rem; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.3em; display: grid; gap: 0.35em; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--f-mono); font-size: 0.9em; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 4px; overflow-x: auto; font: 400 0.85rem/1.5 var(--f-mono); margin: 0; }
+.eyebrow { font: 500 0.76rem/1.2 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+
+.layout { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; }
+@media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } .toc { position: static !important; } }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); align-self: start; padding-top: 40px; font: 400 0.85rem/1.4 var(--f-body); }
+.toc ol { list-style: none; padding: 0; gap: 6px; }
+.toc a { color: var(--ink-2); text-decoration: none; }
+.toc a:hover { color: var(--accent); }
+.toc .num { font-family: var(--f-mono); color: var(--muted); display: inline-block; width: 2em; }
+.doc { display: grid; gap: 56px; padding-top: 40px; min-width: 0; }
+.doc > section { display: grid; gap: 16px; min-width: 0; }
+.prose { max-width: 44rem; display: grid; gap: 0.9rem; }
+.meta { font: 400 0.82rem/1.5 var(--f-mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.lede { font-size: 1.12rem; color: var(--ink-2); max-width: 44rem; }
+
+.eq { font-family: "STIX Two Math", "Cambria Math", "Times New Roman", serif; font-size: 1.12rem; background: var(--surface); border-left: 3px solid var(--accent); padding: 10px 14px; overflow-x: auto; max-width: 44rem; }
+.eq var, var { font-style: italic; }
+.eq small { font-family: var(--f-body); font-size: 0.82rem; color: var(--muted); }
+
+.findings { list-style: none; padding: 0; display: grid; gap: 10px; max-width: 46rem; }
+.findings li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.findings .k { font: 500 0.78rem/1.4 var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+@media (max-width: 560px) { .findings li { grid-template-columns: 1fr; gap: 2px; } }
+
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.74rem/1.3 var(--f-mono); text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); background: var(--surface); white-space: nowrap; }
+td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+.pill { display: inline-flex; align-items: center; gap: 5px; font: 500 0.75rem/1 var(--f-mono); padding: 4px 7px; border-radius: 3px; border: 1px solid var(--line); white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.pill.ok::before { background: var(--good); }
+.pill.warn::before { background: var(--warn); }
+.pill.bad::before { background: var(--bad); }
+caption { caption-side: bottom; text-align: left; padding: 8px 10px; font-size: 0.82rem; color: var(--muted); }
+
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figcaption { font-size: 0.86rem; color: var(--ink-2); max-width: 46rem; }
+figcaption b { color: var(--ink); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 900px) { .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+.chartbox { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-width: 0; }
+.chartbox h4 { margin-bottom: 6px; }
+
+/* Schémas */
+.sc { display: grid; gap: 6px; }
+.sc-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.sc-svg { width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.sc-orbit { fill: none; stroke: var(--line); stroke-dasharray: 4 5; }
+.sc-center { fill: var(--muted); }
+.sc-spin, .sc-g { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.sc-arrowhead { fill: var(--muted); }
+.sc-cable { stroke: var(--ink); stroke-width: 1.4; }
+.sc-spreader { stroke: var(--ink); stroke-width: 3; }
+.sc-module { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.sc-attach { fill: var(--ink); }
+.sc-floor { stroke: var(--accent); stroke-width: 3; }
+.sc-axis { stroke: var(--muted); stroke-dasharray: 6 4; }
+.sc-break { stroke: var(--muted); fill: none; }
+.sc-title { font: 600 13px var(--f-display); fill: var(--ink); }
+.sc-small { font: 400 10.5px var(--f-mono); fill: var(--muted); }
+.sc-caption { font-size: 0.84rem; color: var(--ink-2); }
+.sc-caption b { font-family: var(--f-mono); color: var(--accent); }
+
+/* Graphiques */
+.lc { display: grid; gap: 6px; }
+.lc-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 400 0.76rem/1.3 var(--f-mono); color: var(--ink-2); }
+.lc-key { display: inline-flex; align-items: center; gap: 6px; }
+.lc-key i, .lc-tkey i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+.lc-ylabel { font: 400 0.74rem/1.2 var(--f-mono); color: var(--muted); }
+.lc-plot { position: relative; width: 100%; }
+.lc-plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.lc-grid { stroke: var(--line); stroke-width: 1; }
+.lc-base { stroke: var(--muted); stroke-width: 1; }
+.lc-tick, .lc-label, .lc-reflabel { font: 400 10.5px var(--f-mono); fill: var(--muted); }
+.lc-ref { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 3 3; }
+.lc-line { stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.lc-cross { stroke: var(--muted); stroke-width: 1; }
+.lc-dot { stroke: var(--surface); stroke-width: 2; }
+.lc-tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; font: 400 0.74rem/1.5 var(--f-mono); color: var(--ink); display: grid; grid-template-columns: auto auto; gap: 2px 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 2; }
+.lc-tip .lc-thead { grid-column: 1 / -1; color: var(--muted); }
+.lc-tkey { display: inline-flex; gap: 6px; align-items: center; color: var(--ink-2); }
+
+/* Visualiseur */
+.viewer { position: relative; background: var(--viz-bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; aspect-ratio: 16 / 9; max-width: 100%; }
+.viewer canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.viewer .poster { position: absolute; inset: 0; display: grid; place-items: center; color: #c8d0da; font: 400 0.85rem var(--f-mono); padding: 16px; text-align: center; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font: 400 0.78rem/1.3 var(--f-mono); color: var(--ink-2); }
+.ctrl input[type=range] { flex: 1 1 180px; min-width: 0; accent-color: var(--accent); }
+.ctrl select, .ctrl button { font: inherit; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; }
+.ctrl button { cursor: pointer; }
+.ctrl label { display: inline-flex; gap: 6px; align-items: center; }
+.readout { font: 400 0.78rem/1.4 var(--f-mono); color: var(--ink-2); }
+.callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); background: var(--surface); padding: 12px 14px; border-radius: 4px; max-width: 46rem; display: grid; gap: 6px; }
+.callout b { font-family: var(--f-display); font-size: 1.05rem; letter-spacing: 0.01em; }
+</style>
+
+<div class="layout">
+<nav class="toc" aria-label="Sommaire">
+  <ol>
+    <li><a href="#synthese"><span class="num">1</span>Synthèse</a></li>
+    <li><a href="#dimensionnement"><span class="num">2</span>Dimensionnement</a></li>
+    <li><a href="#modele"><span class="num">3</span>Modèle numérique</a></li>
+    <li><a href="#validation"><span class="num">4</span>Validation</a></li>
+    <li><a href="#configurations"><span class="num">5</span>Configurations</a></li>
+    <li><a href="#stabilite"><span class="num">6</span>Stabilité en rotation</a></li>
+    <li><a href="#dissipation"><span class="num">7</span>Dissipation interne</a></li>
+    <li><a href="#modes"><span class="num">8</span>Modes propres</a></li>
+    <li><a href="#internes"><span class="num">9</span>Mouvements internes</a></li>
+    <li><a href="#final"><span class="num">10</span>Configuration retenue</a></li>
+    <li><a href="#non-simule"><span class="num">11</span>Effets estimés</a></li>
+    <li><a href="#limites"><span class="num">12</span>Limites et suite</a></li>
+    <li><a href="#reproduire"><span class="num">13</span>Reproduire</a></li>
+  </ol>
+</nav>
+
+<main class="doc">
+
+<header style="display:grid;gap:14px">
+  <span class="eyebrow">tethered-station · carnet de calcul</span>
+  <h1>Carnet de calcul de la station</h1>
+  <p class="lede">Station à gravité artificielle de 0,38 g à 1 tr/min : trois modules de 1 600 t reliés par des câbles en Dyneema, en orbite à 1 600 km. Ce carnet donne les hypothèses, le dimensionnement, le modèle numérique et sa validation, puis chaque problème de dynamique examiné, avec la théorie et le résultat des simulations.</p>
+  <div class="meta"><span>25 octobre 2026</span><span>modèle : tether_sim.py (NumPy)</span><span>validation : Project Chrono 10.0</span><span id="meta-count"></span><span><a href="https://claude.ai/artifact/AhFHVxf86G4P5S4H4s9cXx" target="_blank" rel="noopener">version grand public</a></span></div>
+</header>
+
+<section id="synthese">
+  <h2>1 · Synthèse</h2>
+  <ul class="findings">
+    <li><span class="k">Géométrie</span><span>0,38 g à 1 tr/min impose <b>R = a/ω² = 339,8 m</b> au centre de masse des modules : câbles de 665 m (haltère) ou 576 m (triangle). Vitesse tangentielle 35,6 m/s. Avec le même rayon, 1 g demanderait 1,62 tr/min.</span></li>
+    <li><span class="k">Câbles</span><span>Dimensionnés pour 1 g avec un facteur 3 : Dyneema de 157 cm² (haltère, Ø 14,1 cm) ou 90,6 cm² (triangle, Ø 10,7 cm). Déformation en service 0,38 %. Masse : 10 à 15 t au total.</span></li>
+    <li><span class="k">Roulis</span><span>Un câble sans raideur en torsion laisse chaque module libre de tourner autour de lui. Le roulis obéit à <var>φ̈</var> = ω²(<var>I<sub>t</sub></var> − <var>I<sub>z</sub></var>)/<var>I<sub>r</sub></var> · <var>φ</var> : un module dont l'axe long est parallèle à l'axe de rotation est <b>instable, temps de doublement 7,1 s</b>.</span></li>
+    <li><span class="k">Djanibekov</span><span>Dans l'haltère, I<sub>Y</sub> et I<sub>Z</sub> ne diffèrent que de 0,1 % : l'inertie propre des modules décide de l'ordre des axes. Avec deux câbles parallèles et des modules mal orientés, la station entière se retourne périodiquement (toutes les ~150 s). Le triangle, plan, a I<sub>Z</sub> = I<sub>X</sub> + I<sub>Y</sub> et n'y est pas sujet.</span></li>
+    <li><span class="k">Parade</span><span>Deux points d'attache écartés de ±20 m par module (palonnier) donnent un couple de rappel 2,3 fois supérieur au couple déstabilisant : même un module mal orienté reste à 0,2°.</span></li>
+    <li><span class="k">Cargaison</span><span>Déplacer 50 t de 15 m incline le plancher de δ/h = 4,4° avec une attache unique, 1,6° avec le palonnier, <span data-bind="final.Z_final_cargaison_patte_oie.tilt_max" data-fmt="deg">—</span> avec des attaches surélevées de 20 m.</span></li>
+    <li><span class="k">Résonances</span><span>Les balancements des modules (0,06 à 0,2 Hz) sont très peu amortis. 4 t oscillant à la fréquence la plus défavorable inclinent le plancher de 3,9° avec une attache unique (environ 30 fois la réponse statique), contre 0,68° pour Z+. La marche ordinaire donne 0,3 à 0,6°, et 0,17° pour Z+.</span></li>
+    <li><span class="k">Validation</span><span>Conservation de l'énergie et du moment cinétique à 10⁻⁹ ; temps de doublement analytique retrouvé à 0,1 % ; Project Chrono, moteur indépendant, donne le même roulis (écart de temps de doublement <span data-bind="validation.B_haltere_axial.doubling_rel" data-fmt="pct">—</span>).</span></li>
+    <li><span class="k">Retenu</span><span>Z+ : triangle, modules tangentiels, deux attaches par module aux extrémités, surélevées de 20 m. Rotation dans le plan de l'orbite pour éviter la précession par gradient de gravité (sinon ~28°/jour à 1 600 km).</span></li>
+  </ul>
+</section>
+
+<section id="dimensionnement">
+  <h2>2 · Cahier des charges et dimensionnement</h2>
+  <div class="prose">
+    <p>La gravité ressentie au centre de masse d'un module est l'accélération centripète <var>a</var> = ω²<var>R</var>. Le cahier des charges fixe <var>a</var> = 0,38 g = 3,727 m/s² (gravité martienne) et ω = 1 tr/min = 0,1047 rad/s :</p>
+  </div>
+  <div class="eq"><var>R</var> = <var>a</var> / ω² = 3,727 / 0,010966 = <b>339,8 m</b> &nbsp;&nbsp; <var>v</var> = ω<var>R</var> = 35,6 m/s &nbsp;&nbsp; <small>(1 g au même rayon : ω = √(g/R) → 1,62 tr/min)</small></div>
+  <div class="prose">
+    <p>Chaque module exige une force centripète <var>M a</var>. Dans l'haltère, un câble la fournit seul : <var>T</var> = <var>M a</var>. Dans le triangle, deux câbles inclinés de 30° sur la direction radiale la partagent : 2<var>T</var> cos 30° = <var>M a</var>, soit <var>T</var> = <var>M a</var>/√3. La section est dimensionnée pour la gravité de conception (1 g) avec un facteur de sécurité <var>S</var> = 3 sur la résistance du Dyneema (σ = 3 GPa) : <var>A</var> = <var>S</var>·<var>T</var><sub>1g</sub>/σ. En service, la déformation vaut ε = 0,38·σ/(<var>S</var>·<var>E</var>) = 0,38 %, indépendamment de la topologie.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Grandeur</th><th>Haltère</th><th>Triangle</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr><td>Tension de service (0,38 g)</td><td class="n">5,96 MN</td><td class="n">3,44 MN</td><td>par câble</td></tr>
+      <tr><td>Tension de conception (1 g)</td><td class="n">15,7 MN</td><td class="n">9,06 MN</td><td>× 3 pour la section</td></tr>
+      <tr><td>Section</td><td class="n">156,9 cm²</td><td class="n">90,6 cm²</td><td>Ø équivalent 14,1 / 10,7 cm</td></tr>
+      <tr><td>Raideur <var>EA</var></td><td class="n">1,57 GN</td><td class="n">0,906 GN</td><td><var>E</var> = 100 GPa</td></tr>
+      <tr><td>Masse linéique</td><td class="n">15,2 kg/m</td><td class="n">8,79 kg/m</td><td>ρ = 970 kg/m³</td></tr>
+      <tr><td>Longueur à vide (sous charge)</td><td class="n">665,1 (667,6) m</td><td class="n">576,0 (578,2) m</td><td>entre points d'attache</td></tr>
+      <tr><td>Masse totale de câble</td><td class="n">10,1 t</td><td class="n">15,2 t</td><td>vs 3 200 / 4 800 t de modules</td></tr>
+      <tr><td>Marge en service</td><td class="n">7,9</td><td class="n">7,9</td><td>= 3 × 1 g / 0,38 g</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p><b>Gravité terrestre.</b> En chute libre orbitale, seule la marée (gradient de gravité) subsiste, d'ordre 3<var>n</var>²<var>R</var>, avec <var>n</var> le mouvement moyen orbital. Rapportée à la centrifuge ω²<var>R</var> : <var>n</var>²/ω² = 7,2·10⁻⁵ à 1 600 km (1,2·10⁻⁴ à 400 km). Elle est négligée dans les simulations ; son effet cumulé sur l'axe de rotation est estimé au § 11.</p>
+    <p><b>Modules.</b> Cylindres pleins équivalents de 1 600 t, Ø 12 m × 40 m : <var>I</var><sub>axe long</sub> = <var>M a</var>²/2 = 18·<var>M</var> m², <var>I</var><sub>transverse</sub> = <var>M</var>(3<var>a</var>² + ℓ²)/12 = 142,3·<var>M</var> m². Point d'attache sur la coque, à <var>h</var> = 6 m du centre de masse (20 m pour un module en tour, attaché par son extrémité).</p>
+  </div>
+</section>
+
+<section id="modele">
+  <h2>3 · Modèle numérique</h2>
+  <div class="prose">
+    <p>Le modèle (<code>tether_sim.py</code>, ~800 lignes, NumPy) intègre la dynamique complète dans un repère inertiel centré sur le centre de masse :</p>
+    <ul>
+      <li><b>Modules</b> : corps rigides à 6 degrés de liberté, inertie diagonale dans leurs axes principaux, points d'attache décalés du centre de masse.</li>
+      <li><b>Câbles</b> : 16 segments par câble, masses ponctuelles reliées par des ressorts <b>unilatéraux</b> (force nulle en compression). Pas de raideur en flexion ni en torsion, ce qui correspond à un câble tressé ou à un émerillon à l'attache.</li>
+      <li><b>Amortissement des câbles</b> : Kelvin-Voigt, calibré pour ζ = 2 % sur le mode longitudinal de l'haltère (<var>c</var><sub>seg</sub> = <var>N</var> · 2ζ√(<var>k</var><sub>câble</sub> <var>μ</var>)). En explicite, <var>c</var>/<var>m</var> ≈ 2·10³ s⁻¹ imposerait dt &lt; 10 µs ; l'amortissement est donc appliqué à part, de façon exacte : la vitesse relative le long de chaque segment tendu décroît en exp(−<var>c</var> dt/<var>μ</var>), avec la masse effective du corps rigide au point d'attache. Inconditionnellement stable, conserve quantité de mouvement et moment cinétique, et l'énergie dissipée est mesurée exactement.</li>
+      <li><b>Intégration</b> : saute-mouton « kick-drift-kick » ; rotation libre des corps par décomposition symétrique du hamiltonien en trois rotations autour des axes principaux (Dullweber, Leimkuhler, McLachlan, 1997), symplectique et conservant |<var>L</var>| exactement. Pas de temps 0,3 × 2/ω<sub>max</sub> ≈ 1,0 à 1,2 ms.</li>
+      <li><b>Équilibre initial</b> : relaxation dynamique dans le repère tournant, masses fictives et amortissement fort. La translation d'ensemble y est instable (centrifuge sur le centre de masse décalé, sans rappel), d'où un recentrage à chaque pas. La longueur à vide est ensuite ajustée itérativement pour placer les modules exactement à <var>R</var>.</li>
+      <li><b>Masses internes</b> (équipage, cargaison) : masses ponctuelles asservies à une trajectoire imposée dans le repère du module, par un ressort-amortisseur à 2 Hz, ζ = 0,7. Les forces sont internes : réaction appliquée au module au point d'ancrage.</li>
+      <li><b>Amortisseur interne</b> (ballottement) : sphère isotrope d'inertie <var>J</var> = 5 % de l'inertie transverse, couplée visqueusement à la rotation du module (amortisseur de nutation de Kane), τ = 30 s.</li>
+    </ul>
+    <p><b>Grandeurs observées.</b> <i>Roulis</i> : angle de rotation du module autour de la direction du câble, c'est-à-dire autour de la verticale locale. <i>Inclinaison du plancher</i> : angle entre la normale au plancher et la force spécifique sur la structure (câbles + réaction des masses internes), c'est-à-dire la verticale apparente. <i>Rotation parasite</i> : |Ω<sub>module</sub> − ω·<var>e</var><sub>L</sub>|, la rotation de la pièce en plus de celle de la station.</p>
+  </div>
+</section>
+
+<section id="validation">
+  <h2>4 · Validation</h2>
+  <div class="prose">
+    <p>Quatre niveaux de contrôle :</p>
+    <ol>
+      <li><b>Invariants.</b> Sans forçage, énergie (cinétique + élastique + dissipée) et moment cinétique sont conservés à 10⁻⁹ ou mieux sur 30 min simulées (tableaux § 6). Avec masses internes asservies, l'énergie n'est plus un invariant (travail de l'asservissement). Le moment cinétique dérive de ~10⁻⁶, parce que la force d'amortissement de l'asservissement n'est pas colinéaire au ressort.</li>
+      <li><b>Solutions analytiques.</b> Temps de doublement du roulis (7,09 s mesuré, 7,09 s prédit), fréquence du mode longitudinal (0,274 Hz mesuré, 0,275 Hz prédit), inclinaison statique sous cargaison (4,41° mesuré, 4,47° prédit).</li>
+      <li><b>Convergence.</b> Doubler le nombre de segments ou diviser le pas de temps par deux ne change pas le résultat (tableau ci-dessous).</li>
+      <li><b>Moteur indépendant.</b> Les mêmes scénarios, partant du même état initial, sont intégrés par <b>Project Chrono 10</b> (PyChrono) : modules en <code>ChBody</code> (quaternions, couple gyroscopique), câble en chaîne de <code>ChBody</code> ponctuels reliés par des <code>ChLinkTSDA</code>, intégrateur implicite HHT (α = −0,02), solveur direct creux, pas de 2 ms.</li>
+    </ol>
+  </div>
+  <div class="tbl"><table id="t-chrono"><thead><tr><th>Scénario</th><th>Durée</th><th>Doublement NumPy</th><th>Doublement Chrono</th><th>Écart</th><th>Roulis max NumPy</th><th>Roulis max Chrono</th><th>Écart max de roulis</th><th>Dérive L (Chrono)</th></tr></thead><tbody></tbody>
+  <caption>Validation croisée tether_sim / Project Chrono, même état initial. Écart max de roulis : maximum sur toute la durée simulée, tous modules confondus. Les deux moteurs restent superposés même à travers les retournements de 177°.</caption></table></div>
+  <div class="grid2" id="chrono-charts"></div>
+  <div class="tbl"><table id="t-conv"><thead><tr><th>Cas B, 120 s</th><th>Segments</th><th>Pas de temps</th><th>Doublement</th><th>Roulis max</th><th>Dérive énergie</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="configurations">
+  <h2>5 · Configurations étudiées</h2>
+  <div class="prose"><p>Trois paramètres définissent une configuration : la topologie (haltère, haltère à deux câbles parallèles, triangle), le mode d'attache (un point ou deux points écartés) et l'orientation de l'axe long des modules (tangentiel, axial, radial). Les lettres A à H désignent les configurations de la campagne de stabilité, Z la configuration retenue.</p></div>
+  <div class="grid3" id="schemas"></div>
+</section>
+
+<section id="stabilite">
+  <h2>6 · Stabilité en rotation</h2>
+  <h3>6.1 Théorème de l'axe intermédiaire (effet Djanibekov)</h3>
+  <div class="prose">
+    <p>Pour un solide libre d'inerties <var>I</var><sub>1</sub> &lt; <var>I</var><sub>2</sub> &lt; <var>I</var><sub>3</sub>, la rotation autour de l'axe 1 ou 3 est stable et celle autour de l'axe 2 instable, avec un taux de croissance :</p>
+  </div>
+  <div class="eq">σ² = ω² (<var>I</var><sub>3</sub> − <var>I</var><sub>2</sub>)(<var>I</var><sub>2</sub> − <var>I</var><sub>1</sub>) / (<var>I</var><sub>1</sub><var>I</var><sub>3</sub>) &nbsp;&nbsp;<small>(axe 2 = axe de rotation)</small></div>
+  <div class="prose">
+    <p>Pour l'haltère supposé rigide, avec X le long du câble, Z l'axe de rotation et Y le troisième axe : <var>I</var><sub>X</sub> = 2<var>I</var><sub>r</sub>, <var>I</var><sub>Y</sub> = 2<var>MR</var>² + 2<var>I</var><sub>t</sub>, <var>I</var><sub>Z</sub> = 2<var>MR</var>² + 2<var>I</var><sub>z</sub>, où <var>I</var><sub>r,t,z</sub> sont les inerties propres d'un module selon les directions radiale, tangentielle et axiale. Le terme 2<var>MR</var>² = 3,7·10¹¹ kg·m² domine, et <var>I</var><sub>Y</sub> − <var>I</var><sub>Z</sub> ne vaut que 0,1 % de lui. Ce petit écart décide pourtant du signe. Si <var>I</var><sub>t</sub> &gt; <var>I</var><sub>z</sub> (modules couchés parallèlement à l'axe de rotation), Z devient l'axe intermédiaire et :</p>
+  </div>
+  <div class="eq">σ² ≈ ω² (<var>I</var><sub>t</sub> − <var>I</var><sub>z</sub>) / <var>I</var><sub>r</sub> = ω² × 124,3/142,3 &nbsp;⇒&nbsp; σ = 0,935 ω, &nbsp; ln2/σ = <b>7,1 s</b></div>
+  <div class="prose">
+    <p>Le taux est du même ordre que la rotation elle-même : ce n'est pas une dérive lente. Pour le triangle, plan, <var>I</var><sub>Z</sub> = <var>I</var><sub>X</sub> + <var>I</var><sub>Y</sub> ≈ 2<var>I</var><sub>X</sub> : l'axe de rotation est l'axe majeur avec une marge de 100 %, que l'inertie des modules ne peut pas renverser.</p>
+  </div>
+  <h3>6.2 Roulis d'un module autour de son câble</h3>
+  <div class="prose">
+    <p>Un câble sans raideur en torsion, attaché en un point situé sur l'axe radial du module, n'exerce aucun couple autour de cet axe. Le roulis φ d'un module n'est alors soumis qu'au couple centrifuge sur son inertie propre. Dans le modèle à tangage bloqué :</p>
+  </div>
+  <div class="eq"><var>I</var><sub>r</sub> φ̈ = ω² (<var>I</var><sub>t</sub> − <var>I</var><sub>z</sub>) φ</div>
+  <div class="tbl"><table>
+    <thead><tr><th>Orientation de l'axe long</th><th><var>I</var><sub>r</sub>/<var>M</var></th><th><var>I</var><sub>t</sub>/<var>M</var></th><th><var>I</var><sub>z</sub>/<var>M</var></th><th>Roulis</th><th>Prédiction</th></tr></thead>
+    <tbody>
+      <tr><td>Tangentielle (sens du mouvement)</td><td class="n">142,3</td><td class="n">18,0</td><td class="n">142,3</td><td><span class="pill ok">stable</span></td><td>oscillation, période 64,2 s</td></tr>
+      <tr><td>Axiale (parallèle à l'axe de rotation)</td><td class="n">142,3</td><td class="n">142,3</td><td class="n">18,0</td><td><span class="pill bad">instable</span></td><td>doublement 7,1 s</td></tr>
+      <tr><td>Radiale (tour)</td><td class="n">18,0</td><td class="n">142,3</td><td class="n">142,3</td><td><span class="pill warn">neutre</span></td><td>aucun rappel : dérive</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p>Le roulis instable est couplé gyroscopiquement au balancement hors plan, qui est, lui, stable (rappel pendulaire). Ce couplage ne peut pas stabiliser le roulis. D'après le théorème de Kelvin-Tait-Chetaev, une stabilisation gyroscopique exige un nombre <i>pair</i> de raideurs négatives ; ici il n'y en a qu'une.</p>
+  </div>
+  <h3>6.3 Points d'attache écartés (palonnier)</h3>
+  <div class="prose">
+    <p>Si chaque câble du triangle s'attache à un point différent, à ±<var>s</var> le long de <var>e</var><sub>t</sub>, un roulis φ déplace ces points de ±<var>s</var>φ hors du plan, transversalement aux câbles. Chaque câble tendu y oppose une raideur latérale <var>T</var>/<var>L</var>, d'où un couple de rappel 2<var>T s</var>²/<var>L</var>, à comparer au couple déstabilisant ω²(<var>I</var><sub>t</sub> − <var>I</var><sub>z</sub>). Pour <var>s</var> = 20 m : <b>4,95 MN·m/rad contre 2,18 MN·m/rad</b>. Le rapport de 2,3 suffit : le module axial de la configuration G reste à 0,2°. Avec <var>s</var> = 6 m, limité au rayon du module, le rappel ne vaudrait que 0,45 MN·m/rad.</p>
+  </div>
+  <h3>6.4 Résultats de la campagne de stabilité</h3>
+  <div class="prose"><p>Huit configurations, 30 min simulées chacune, perturbation initiale du module 0 : 2 cm/s radial, 2 cm/s hors plan, 0,11°/s en roulis.</p></div>
+  <div class="tbl"><table id="t-rotation"><thead><tr><th></th><th>Configuration</th><th>Prédiction roulis</th><th>Doublement mesuré</th><th>Roulis max</th><th>Plancher max</th><th>Rotation parasite max</th><th>g ressenti</th><th>Dérive E</th><th>Dérive L</th></tr></thead><tbody></tbody></table></div>
+  <div class="grid2">
+    <div class="chartbox"><h4>Configurations instables ou neutres</h4><div id="ch-rot-unstable"></div></div>
+    <div class="chartbox"><h4>Configurations stables</h4><div id="ch-rot-stable"></div></div>
+  </div>
+  <figure>
+    <div class="viewer" id="viewer"><div class="poster">Choisissez une simulation, puis « Charger ».</div></div>
+    <div class="ctrl" id="viewer-ctrl">
+      <label>simulation <select id="viewer-pick" aria-label="Simulation à afficher">
+        <option value="B_haltere_axial">B · haltère, modules axiaux</option>
+        <option value="D_echelle_axial">D · haltère à 2 câbles, modules axiaux (Djanibekov)</option>
+        <option value="F_triangle_axial">F · triangle, attache unique, modules axiaux</option>
+        <option value="B_amortisseur">B + amortisseur interne</option>
+        <option value="A_cargaison">A · haltère tangentiel, cargaison 50 t</option>
+        <option value="H_cargaison">H · triangle tangentiel, cargaison 50 t</option>
+        <option value="G_cargaison">G · triangle palonnier axial, cargaison 50 t</option>
+        <option value="Z_final_cargaison">Z · cargaison 50 t</option>
+        <option value="Z_final_cargaison_patte_oie">Z+ · retenue, cargaison 50 t</option>
+        <option value="Z_final_perturbation">Z · perturbation</option>
+        <option value="Zp_perturbation">Z+ · retenue, perturbation</option>
+      </select></label>
+      <label><input type="checkbox" id="viewer-follow" checked> suivre M0</label>
+      <button type="button" id="viewer-load">Charger</button>
+    </div>
+    <div class="ctrl" id="viewer-play" hidden></div>
+    <figcaption><b>Visualiseur des trajectoires simulées.</b> Repère tournant par défaut ; modules agrandis (×1,6 en suivi, ×3 en vue d'ensemble). Plaque orange : plancher ; flèche bleue : « haut » ressenti ; sphère jaune : masse interne mobile.</figcaption>
+  </figure>
+</section>
+
+<section id="dissipation">
+  <h2>7 · Dissipation interne et règle de l'axe majeur</h2>
+  <div class="prose">
+    <p>À moment cinétique <var>L</var> fixé, l'énergie de rotation <var>L</var>²/(2<var>I</var>) est minimale autour de l'axe d'inertie maximale. Un système qui dissipe de l'énergie migre donc vers cet axe. C'est ce qui a fait culbuter Explorer 1 en 1958 : il tournait autour de son axe mineur, et ses antennes souples dissipaient de l'énergie. Ici, la règle est favorable. Avec un amortisseur interne (sphère de Kane, <var>J</var> = 5 % de l'inertie transverse, τ = 30 s), le module axial instable culbute, puis se stabilise dans l'orientation tangentielle : roulis final <span data-bind="internes.B_amortisseur.roll_final" data-fmt="deg">—</span>, contre 90° attendu. Le bilan d'énergie (énergie + dissipée) reste fermé à <span data-bind="internes.B_amortisseur.dE_max" data-fmt="sci">—</span>.</p>
+    <p>La dissipation ne protège pas pour autant : la phase de culbute dure plusieurs minutes, avec des rotations parasites de 5,5°/s. Il faut concevoir l'orientation stable dès le départ.</p>
+  </div>
+  <div class="chartbox"><div id="ch-damper"></div></div>
+</section>
+
+<section id="modes">
+  <h2>8 · Modes propres</h2>
+  <div class="prose">
+    <p>Formules utilisées. Les balancements sont calculés dans le modèle du « câble long », où le point d'attache est libre latéralement et la direction du câble ne change presque pas :</p>
+  </div>
+  <div class="eq">longitudinal (bungee) : ω<sub>b</sub>² = <var>EA</var>/(<var>L</var>·<var>M</var>/2) + 3Ω² &nbsp;&nbsp; corde : <var>f</var><sub>1</sub> = √(<var>T</var>/λ)/(2<var>L</var>)<br>balancement dans le plan : ω<sub>p</sub>² = <var>M a h</var>/<var>I</var><sub>z</sub> &nbsp;&nbsp; hors plan : ω<sub>o</sub>² = (<var>M a h</var> + Ω²(<var>I</var><sub>z</sub> − <var>I</var><sub>r</sub>))/<var>I</var><sub>t</sub></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Mode</th><th>Configuration</th><th>Prédit</th><th>Mesuré</th><th>Source de la mesure</th></tr></thead>
+    <tbody>
+      <tr><td>Longitudinal (bungee)</td><td>haltère A</td><td class="n">0,275 Hz</td><td class="n" data-bind="rotation.A_haltere_tangentiel.f_bungee" data-fmt="hz">—</td><td>pic du spectre de g ressenti</td></tr>
+      <tr><td>Respiration symétrique</td><td>triangle G</td><td class="n">0,275 Hz</td><td class="n" data-bind="rotation.G_triangle_palonnier_axial.f_bungee" data-fmt="hz">—</td><td>idem (3<var>EA</var>/<var>L</var> par module)</td></tr>
+      <tr><td>Corde, 1ᵉʳ mode</td><td>haltère / triangle</td><td class="n">0,47 / 0,54 Hz</td><td class="n">—</td><td>non excité dans les mesures retenues</td></tr>
+      <tr><td>Balancement hors plan</td><td>A (tangentiel)</td><td class="n">0,177 Hz</td><td class="n" data-bind="rotation.A_haltere_tangentiel.f_tilt" data-fmt="hz">—</td><td>pic du spectre d'inclinaison</td></tr>
+      <tr><td>Balancement (tour)</td><td>C (radial)</td><td class="n">0,115 Hz</td><td class="n" data-bind="rotation.C_haltere_tour.f_tilt" data-fmt="hz">—</td><td>idem</td></tr>
+      <tr><td>Balancement dans le plan</td><td>A (tangentiel)</td><td class="n">0,063 Hz</td><td class="n">0,071 Hz</td><td>pic de réponse du balayage (§ 9.3)</td></tr>
+      <tr><td>Balancement hors plan</td><td>G (axial)</td><td class="n">0,061 Hz</td><td class="n">0,062 Hz</td><td>pic de réponse du balayage (§ 9.3)</td></tr>
+      <tr><td>Roulis</td><td>A (tangentiel)</td><td class="n">64,2 s</td><td class="n" id="roll-period">—</td><td>période d'oscillation du roulis</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose"><p>Le mode longitudinal fait varier la gravité ressentie de ±0,5 % pour une perturbation de 2 cm/s. Il est amorti à 2 % par construction (constante de temps ~30 s). Les balancements ne sont amortis que par leur couplage aux câbles : à concevoir avec soin (§ 9).</p></div>
+</section>
+
+<section id="internes">
+  <h2>9 · Mouvements internes</h2>
+  <h3>9.1 Inclinaison statique</h3>
+  <div class="prose">
+    <p>Déplacer une masse <var>m</var> de <var>d</var> dans un module de masse <var>M</var> décale son centre de masse de δ = <var>md</var>/<var>M</var>. Le module tourne jusqu'à ce que le couple de rappel des câbles équilibre le couple <var>M a</var>δ. Avec une attache unique à la hauteur <var>h</var>, le rappel vaut <var>T h</var> = <var>M a h</var>, d'où tan θ = δ/<var>h</var>. Avec le palonnier du triangle (attaches à ±<var>s</var>, câbles à 30° de la verticale), la raideur devient <var>k</var> = 2<var>T</var>(<var>s</var> cos 60° + <var>h</var> cos 30°) = <var>T</var>(<var>s</var> + √3<var>h</var>), d'où :</p>
+  </div>
+  <div class="eq">attache unique : θ = arctan(δ/<var>h</var>) &nbsp;&nbsp;&nbsp; palonnier : θ = √3 δ / (<var>s</var> + √3 <var>h</var>)</div>
+  <div class="prose"><p>Pour 50 t déplacées de 15 m dans un module de 1 600 t, δ = 47 cm : θ = 4,47° (attache unique, <var>h</var> = 6 m), 1,53° (palonnier, <var>s</var> = 20 m, <var>h</var> = 6 m), 0,72° (palonnier surélevé, <var>h</var> = 26 m). Pour un déplacement hors du plan (module axial de G), le palonnier n'aide pas et θ = δ/<var>h</var>.</p></div>
+  <h3>9.2 Cargaison et équipage</h3>
+  <div class="prose"><p><b>Cargaison</b> : 50 t, centre → +15 m → −15 m → centre, déplacements de 120 s. <b>Équipage</b> : 4 t (50 personnes) en allers-retours sur ±15 m le long de l'axe long, à 1,2 m/s, avec une accélération limitée à 0,5 m/s² au départ et à l'arrêt, soit une traversée toutes les 27,4 s. Mouvements appliqués au module 0 (aux trois modules dans le cas « 3 modules »).</p></div>
+  <div class="tbl"><table id="t-internes"><thead><tr><th>Scénario</th><th>Masse</th><th>Plancher prédit (statique)</th><th>Plancher max</th><th>Roulis max</th><th>Rotation parasite max</th><th>g ressenti</th><th>Dérive L</th></tr></thead><tbody></tbody></table></div>
+  <div class="grid2">
+    <div class="chartbox"><h4>Cargaison 50 t : attache unique</h4><div id="ch-cargo-1"></div></div>
+    <div class="chartbox"><h4>Cargaison 50 t : parades</h4><div id="ch-cargo-2"></div></div>
+  </div>
+  <div class="chartbox"><h4>Équipage 4 t en allers-retours</h4><div id="ch-walk"></div></div>
+  <div class="prose">
+    <p>Pour A et H, la marche donne 0,45° et 0,62°, proches de la réponse statique (0,36°). G se distingue avec 1,71° : la marche s'y fait parallèlement à l'axe de rotation et excite le balancement hors plan du module axial (0,061 Hz), proche de la troisième harmonique de la marche (période 54,8 s, harmoniques impaires à 0,018, 0,055, 0,091 Hz…). Z+ reste à 0,17°.</p>
+    <p><b>Artefact rencontré.</b> Une première version du programme faisait faire demi-tour aux marcheurs instantanément. Les 4 t passaient de +1,2 à −1,2 m/s en ~0,1 s, ce qui imposait à la structure une poussée horizontale de ~120 kN, soit une inclinaison apparente de la gravité de 1,2° indépendante de la configuration. Les programmes imposent désormais des accélérations bornées.</p>
+  </div>
+  <h3>9.3 Balayage en fréquence</h3>
+  <div class="prose"><p>Pour cartographier les résonances, 4 t oscillent le long de l'axe long avec une fréquence croissant linéairement de 0,004 à 0,25 Hz en une heure, avec des rampes de 60 s au début et à la fin. L'amplitude est limitée à ±15 m et à 1 m/s² d'accélération. La courbe donne l'inclinaison maximale du plancher dans une fenêtre d'une période et demie autour de chaque fréquence. Le balayage étant lent mais non quasi statique, les pics sont légèrement décalés vers les hautes fréquences et sous-estimés.</p></div>
+  <div class="chartbox"><div id="ch-sweep"></div></div>
+  <div class="tbl"><table id="t-sweep"><thead><tr><th>Balayage</th><th>Pic d'inclinaison</th><th>Fréquence du pic</th><th>Amplitude du mouvement</th><th>Mode prédit le plus proche</th></tr></thead><tbody></tbody></table></div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Les balancements ne sont amortis que par leur couplage aux câbles, avec ζ de l'ordre de 1 à 2 % d'après la largeur des pics. Des amortisseurs dédiés (masses accordées, amortisseurs aux points d'attache) sont à prévoir. Éviter les activités synchronisées, comme les exercices collectifs, aux fréquences des balancements (périodes de 5 à 16 s selon la configuration) ; déplacer les charges lourdes lentement, et si possible avec un ballast compensateur (transfert d'eau entre réservoirs avant et arrière) ; surélever les points d'attache.</span></div>
+</section>
+
+<section id="final">
+  <h2>10 · Configuration retenue</h2>
+  <div class="prose">
+    <p><b>Z</b> : triangle, modules tangentiels, chaque câble attaché à une extrémité de module (palonnier <var>s</var> = ±20 m, <var>h</var> = 6 m). <b>Z+</b> : idem avec points d'attache surélevés de 20 m (<var>h</var> = 26 m, mâts ou pattes d'oie), configuration retenue. Deux protections indépendantes contre le roulis : l'orientation (stable par inertie) et le palonnier (stable par rappel des câbles). L'axe de rotation est l'axe majeur avec 100 % de marge. Surélever les attaches multiplie la raideur en tangage par 2,1 (formule du § 9.1) et relève les fréquences de balancement : le pic de réponse du balayage passe à 0,16 Hz, contre 0,071 Hz pour A, et son amplitude est divisée par 3 à 6.</p>
+  </div>
+  <div class="tbl"><table id="t-final"><thead><tr><th>Scénario</th><th>Plancher prédit</th><th>Plancher max</th><th>Roulis max</th><th>Rotation parasite max</th><th>g ressenti</th><th>Tension</th><th>Dérive</th></tr></thead><tbody></tbody></table></div>
+  <div class="chartbox"><h4>Balayage en fréquence : configuration retenue contre attache unique</h4><div id="ch-sweep-final"></div></div>
+</section>
+
+<section id="non-simule">
+  <h2>11 · Effets estimés, non simulés</h2>
+  <div class="prose">
+    <p><b>Précession par gradient de gravité.</b> Moyenné sur la rotation, l'haltère comme le triangle se comporte comme un rotor axisymétrique avec (<var>C</var> − <var>A</var>)/<var>C</var> = 1/2. Le couple de gradient de gravité moyenné sur l'orbite fait précesser l'axe de rotation autour de la normale à l'orbite :</p>
+  </div>
+  <div class="eq">Ω<sub>p</sub> = (3/2)(<var>n</var>²/ω) · ((<var>C</var> − <var>A</var>)/<var>C</var>) · cos β = (3/4)(<var>n</var>²/ω) cos β</div>
+  <div class="prose">
+    <p>Soit <b>27,9°/jour</b> à 1 600 km (période 12,9 jours) et 45,5°/jour à 400 km, pour β petit. Le moment cinétique de la station (3,9·10¹⁰ kg·m²/s pour l'haltère) rend coûteux tout pilotage de l'axe : 7,8 kN·m en permanence pour seulement 1°/jour. Recommandation : axe de rotation aligné sur la normale à l'orbite (β = 0, couple nul). La précession nodale de l'orbite due à J2 entraîne alors l'axe à suivre lentement : à étudier.</p>
+    <p><b>Confort de l'équipage.</b> Coriolis : 2ω<var>v</var>/<var>a</var> = ±5,6 % du poids à 1 m/s. Gradient tête-pieds : 1,8/340 = 0,5 %. À 1 tr/min, les deux restent sous les seuils usuels de confort, qui se situent vers 2 tr/min sans adaptation.</p>
+    <p><b>Masse propre des câbles.</b> La centrifuge sur le câble ajoute λω²<var>R</var>²/2 ≈ 10 kN de tension au centre, négligeable devant 3,4 à 6 MN.</p>
+  </div>
+</section>
+
+<section id="limites">
+  <h2>12 · Limites et suite</h2>
+  <div class="prose">
+    <ul>
+      <li>Modules rigides : pas de flexibilité de structure, pas de ballottement réel, seulement le modèle de Kane.</li>
+      <li>Câbles sans raideur en flexion ni en torsion, discrétisés en 16 segments : suffisant pour les modes bas, pas pour les ondes rapides. Un câble réel a une raideur en torsion qui ajouterait un faible rappel au roulis ; ce rappel est négligé, ce qui va dans le sens de la sécurité.</li>
+      <li>Pas de gravité terrestre dans les simulations : précession estimée analytiquement (§ 11).</li>
+      <li>Pas de contrôle actif, d'amarrage ni de mise en rotation.</li>
+      <li>À simuler ensuite : rupture d'un câble du triangle (énergie élastique stockée ≈ 1/2 · <var>T</var>·ε·<var>L</var> ≈ 3,8 MJ par câble en service), déploiement et mise en rotation, amarrage d'un véhicule de 50 t, gradient de gravité complet (repère de Hill), câbles ANCF continus dans Chrono.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="reproduire">
+  <h2>13 · Reproduire</h2>
+  <div class="prose"><p>Projet <code>~/Workspace/perso/tethered-station</code>. Environnement Python : <code>.venv</code> (NumPy, Matplotlib). Chrono : <code>tools/chrono-env</code> (PyChrono 10.0.0, installé par micromamba).</p></div>
+<pre>.venv/bin/python run_scenarios.py rotation      # 8 scénarios de stabilité, ~8 min (M1 Max)
+.venv/bin/python run_scenarios.py internes      # 11 scénarios de mouvements internes, ~30 min
+.venv/bin/python run_scenarios.py final         # configuration retenue
+tools/chrono-env/bin/python chrono_validation.py --name B --module axial --duration 300
+.venv/bin/python make_web_data.py               # exporte docs/data/ pour ce carnet</pre>
+</section>
+
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="shared/station3d.js"></script>
+<script src="shared/charts.js"></script>
+<script src="shared/schema.js"></script>
+<script>
+(function () {
+  "use strict";
+  const fr = (v, d = 0) => v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const sci = (v) => v === null || v === undefined ? "—" : v.toExponential(0).replace("e", "·10^").replace(/\^\+?(-?\d+)/, (m, e) => toSup(e));
+  const toSup = (e) => e.split("").map((c) => "⁰¹²³⁴⁵⁶⁷⁸⁹"["0123456789".indexOf(c)] || (c === "-" ? "⁻" : c)).join("");
+  const deg = (v) => v === null || v === undefined ? "—" : fr(v, v < 1 ? 2 : 1) + "°";
+  const fmt = { deg, sci, hz: (v) => fr(v, 3) + " Hz", pct: (v) => fr(v * 100, 2) + " %", g: (v) => fr(v, 3) };
+  const cache = {};
+  const getJSON = (p) => cache[p] || (cache[p] = fetch(p).then((r) => { if (!r.ok) throw new Error(p); return r.json(); }));
+  const series = (n) => getJSON(`data/series/${n}.json`);
+
+  /* Schémas */
+  const CONFIGS = [
+    ["A", "dumbbell", "tangential", "Haltère, modules tangentiels."],
+    ["B", "dumbbell", "axial", "Haltère, modules axiaux."],
+    ["C", "dumbbell", "radial", "Haltère, modules en tour."],
+    ["D", "ladder", "axial", "Haltère à 2 câbles (±15 m), modules axiaux."],
+    ["E", "ladder", "tangential", "Haltère à 2 câbles (±5 m), modules tangentiels."],
+    ["F", "triangle", "axial", "Triangle, attache unique, modules axiaux."],
+    ["G", "triangle2", "axial", "Triangle, palonnier ±20 m, modules axiaux."],
+    ["H", "triangle", "tangential", "Triangle, attache unique, modules tangentiels."],
+    ["Z", "triangle2", "tangential", "Triangle, attaches aux extrémités (±20 m), modules tangentiels."],
+    ["Z+", "triangle2", "tangential", "Retenue : Z avec attaches surélevées de 20 m."],
+  ];
+  const sch = document.getElementById("schemas");
+  CONFIGS.forEach(([k, topo, mod, cap]) => {
+    const d = document.createElement("div");
+    sch.appendChild(d);
+    drawSchema(d, { topology: topo, module: mod, spread: k === "E" ? 5 : undefined, bridle: k === "Z+" ? 20 : 0, caption: `<b>${k}</b> · ${cap}` });
+  });
+
+  /* Tableaux et graphiques pilotés par les données */
+  const ROT = [
+    ["A", "A_haltere_tangentiel", "Haltère, tangentiel"], ["B", "B_haltere_axial", "Haltère, axial"],
+    ["C", "C_haltere_tour", "Haltère, tour"], ["D", "D_echelle_axial", "2 câbles, axial"],
+    ["E", "E_echelle_tangentiel", "2 câbles, tangentiel"], ["F", "F_triangle_axial", "Triangle, axial"],
+    ["G", "G_triangle_palonnier_axial", "Triangle palonnier, axial"], ["H", "H_triangle_tangentiel", "Triangle, tangentiel"],
+  ];
+  const verdict = (r, info) => {
+    if (r.roll_max > 45) return '<span class="pill bad">instable</span>';
+    if (r.roll_max > 5) return '<span class="pill warn">dérive</span>';
+    return '<span class="pill ok">stable</span>';
+  };
+  const gRange = (r) => `${fr(r.g_min, 3)}–${fr(r.g_max, 3)}`;
+  getJSON("data/summary.json").then((S) => {
+    const all = S;
+    let count = 0;
+    for (const c in S) count += Object.keys(S[c]).length;
+    document.getElementById("meta-count").textContent = `${count} simulations`;
+    // Liaisons simples
+    document.querySelectorAll("[data-bind]").forEach((n) => {
+      const parts = n.dataset.bind.split(".");
+      if (parts[0] === "validation") return;
+      const info = all[parts[0]] && all[parts[0]][parts[1]];
+      if (!info) return;
+      const v = info.results[parts[2]];
+      if (v === undefined || v === null) return;
+      n.textContent = (fmt[n.dataset.fmt] || ((x) => fr(x, 2)))(v);
+    });
+    // Rotation
+    const tb = document.querySelector("#t-rotation tbody");
+    ROT.forEach(([k, name, lab]) => {
+      const info = S.rotation && S.rotation[name];
+      if (!info) return;
+      const r = info.results;
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${verdict(r, info)}</td><td><b class="mono">${k}</b> · ${lab}</td><td>${info.roll_prediction}</td>
+        <td class="n">${r.doubling_time ? fr(r.doubling_time, 1) + " s" : "—"}</td><td class="n">${deg(r.roll_max)}</td><td class="n">${deg(r.tilt_max)}</td>
+        <td class="n">${fr(r.wrel_max, 2)} °/s</td><td class="n">${gRange(r)}</td><td class="n">${sci(r.dE_max)}</td><td class="n">${sci(r.dL_max)}</td></tr>`);
+    });
+    // Internes
+    const INT = [
+      ["A_cargaison", "A · cargaison"], ["H_cargaison", "H · cargaison"], ["G_cargaison", "G · cargaison (déplacement hors plan)"],
+      ["A_cargaison_patte_oie", "A · cargaison, attache surélevée de 20 m"],
+      ["A_equipage", "A · équipage"], ["H_equipage", "H · équipage"], ["G_equipage", "G · équipage"],
+    ];
+    const ti = document.querySelector("#t-internes tbody");
+    INT.forEach(([name, lab]) => {
+      const info = S.internes && S.internes[name];
+      if (!info) return;
+      const r = info.results;
+      ti.insertAdjacentHTML("beforeend", `<tr><td>${lab}</td><td class="n">${fr(info.motion_mass_t)} t</td><td class="n">${deg(info.tilt_static_pred)}</td>
+        <td class="n"><b>${deg(r.tilt_max)}</b></td><td class="n">${deg(r.roll_max)}</td><td class="n">${fr(r.wrel_max, 2)} °/s</td><td class="n">${gRange(r)}</td><td class="n">${sci(r.dL_max)}</td></tr>`);
+    });
+    // Final
+    const FIN = [
+      ["Z_final_perturbation", "Perturbation (sans masse mobile)"], ["Z_final_cargaison", "Cargaison 50 t, module 0"],
+      ["Z_final_cargaison_3modules", "Cargaison 50 t, dans les 3 modules à la fois"], ["Z_final_cargaison_patte_oie", "Cargaison 50 t, attaches surélevées de 20 m"],
+      ["Z_final_equipage", "Équipage 4 t"], ["Z_final_balayage", "Balayage en fréquence"],
+      ["Zp_perturbation", "Z+ · perturbation"], ["Zp_equipage", "Z+ · équipage 4 t"], ["Zp_balayage", "Z+ · balayage en fréquence"],
+    ];
+    const tf = document.querySelector("#t-final tbody");
+    FIN.forEach(([name, lab]) => {
+      const info = S.final && S.final[name];
+      if (!info) return;
+      const r = info.results;
+      tf.insertAdjacentHTML("beforeend", `<tr><td>${lab}</td><td class="n">${deg(info.tilt_static_pred)}</td><td class="n"><b>${deg(r.tilt_max)}</b></td>
+        <td class="n">${deg(r.roll_max)}</td><td class="n">${fr(r.wrel_max, 2)} °/s</td><td class="n">${gRange(r)}</td>
+        <td class="n">${fr(r.T_min_MN, 2)}–${fr(r.T_max_MN, 2)} MN</td><td class="n">${r.dE_max !== null ? "E " + sci(r.dE_max) : "L " + sci(r.dL_max)}</td></tr>`);
+    });
+  }).catch(() => {});
+
+  const absMax = (rows) => rows[0].map((_, i) => Math.max(...rows.map((r) => Math.abs(r[i]))));
+  const minutes = (t) => t.map((v) => v / 60);
+  const chartT = (el, list, o = {}) => Promise.all(list.map(([n]) => series(n))).then((ds) => {
+    lineChart(document.getElementById(el), Object.assign({
+      x: minutes(ds[0].t), xLabel: "minutes", xName: "t =", xUnit: " min",
+      series: ds.map((d, i) => ({ name: list[i][1], x: minutes(d.t), y: list[i][2](d) })),
+    }, o));
+  }).catch(() => {});
+
+  chartT("ch-rot-unstable", [
+    ["B_haltere_axial", "B", (d) => absMax(d.roll)], ["C_haltere_tour", "C", (d) => absMax(d.roll)],
+    ["D_echelle_axial", "D", (d) => absMax(d.roll)], ["F_triangle_axial", "F", (d) => absMax(d.roll)],
+  ], { yLabel: "|roulis| max des modules (°)", yUnit: "°" });
+  chartT("ch-rot-stable", [
+    ["A_haltere_tangentiel", "A", (d) => absMax(d.roll)], ["E_echelle_tangentiel", "E", (d) => absMax(d.roll)],
+    ["G_triangle_palonnier_axial", "G", (d) => absMax(d.roll)], ["H_triangle_tangentiel", "H", (d) => absMax(d.roll)],
+  ], { yLabel: "|roulis| max des modules (°)", yUnit: "°" });
+  chartT("ch-damper", [
+    ["B_haltere_axial", "B, sans amortisseur", (d) => d.roll[0]], ["B_amortisseur", "B, avec amortisseur interne", (d) => d.roll[0]],
+  ], { yLabel: "roulis du module 0 (°)", yUnit: "°", refs: [{ y: 90, label: "orientation tangentielle (90°)" }] });
+  chartT("ch-cargo-1", [
+    ["A_cargaison", "A haltère", (d) => d.tilt[0]], ["H_cargaison", "H triangle", (d) => d.tilt[0]], ["G_cargaison", "G palonnier axial", (d) => d.tilt[0]],
+  ], { yLabel: "inclinaison du plancher, module 0 (°)", yUnit: "°", refs: [{ y: 4.47, label: "δ/h = 4,47°" }] });
+  chartT("ch-cargo-2", [
+    ["A_cargaison_patte_oie", "A, attache +20 m", (d) => d.tilt[0]], ["Z_final_cargaison", "Z", (d) => d.tilt[0]],
+    ["Z_final_cargaison_patte_oie", "Z+ retenue", (d) => d.tilt[0]],
+  ], { yLabel: "inclinaison du plancher, module 0 (°)", yUnit: "°", yMin: 0 });
+  chartT("ch-walk", [
+    ["A_equipage", "A haltère", (d) => d.tilt[0]], ["H_equipage", "H triangle", (d) => d.tilt[0]],
+    ["G_equipage", "G palonnier axial", (d) => d.tilt[0]], ["Zp_equipage", "Z+ retenue", (d) => d.tilt[0]],
+  ], { yLabel: "inclinaison du plancher, module 0 (°)", yUnit: "°", refs: [{ y: 0.36, label: "statique 0,36° (attache unique)" }] });
+
+  const sweepChart = (el, list) => Promise.all(list.map(([n]) => series(n))).then((ds) => {
+    lineChart(document.getElementById(el), {
+      xLog: true, yLog: true, xLabel: "fréquence d'excitation (Hz)", xName: "f =", xUnit: " Hz", yLabel: "demi-amplitude d'inclinaison du plancher (°)", yUnit: "°",
+      xFmt: (v) => fr(v, v < 0.01 ? 3 : 2),
+      series: ds.map((d, i) => ({ name: list[i][1], x: d.sweep.map((p) => p[0]), y: d.sweep.map((p) => p[1]) })),
+      vrefs: [{ x: 1 / 64.2, label: "roulis" }, { x: 0.063, label: "plan" }, { x: 0.177, label: "hors plan" }],
+    });
+  }).catch(() => {});
+  sweepChart("ch-sweep", [["A_balayage", "A haltère"], ["H_balayage", "H triangle"], ["G_balayage", "G palonnier axial"]]);
+  const SWEEPS = [["A_balayage", "A haltère", "balancement dans le plan, 0,063 Hz"], ["H_balayage", "H triangle", "modes couplés du triangle"],
+    ["G_balayage", "G palonnier axial", "balancement hors plan (module axial), 0,061 Hz"], ["Z_final_balayage", "Z", "modes de l'hexagone attaches-modules"],
+    ["Zp_balayage", "Z+ retenue", "idem, raidis par les attaches surélevées"]];
+  Promise.all(SWEEPS.map(([n]) => series(n))).then((ds) => {
+    const tb = document.querySelector("#t-sweep tbody");
+    ds.forEach((d, i) => {
+      const pk = d.sweep.reduce((a, b) => (b[1] > a[1] ? b : a));
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${SWEEPS[i][1]}</td><td class="n"><b>${deg(pk[1])}</b></td><td class="n">${fr(pk[0], 3)} Hz</td><td class="n">±${fr(pk[3], 1)} m</td><td>${SWEEPS[i][2]}</td></tr>`);
+    });
+  }).catch(() => {});
+  sweepChart("ch-sweep-final", [["A_balayage", "A haltère"], ["Z_final_balayage", "Z"], ["Zp_balayage", "Z+ retenue"]]);
+
+  /* Période du roulis stable (A) : passages par zéro */
+  series("A_haltere_tangentiel").then((d) => {
+    const r = d.roll[0], t = d.t, z = [];
+    const m = r.reduce((a, b) => a + b, 0) / r.length;
+    for (let i = 1; i < r.length; i++) if ((r[i - 1] - m) < 0 && (r[i] - m) >= 0) z.push(t[i]);
+    if (z.length > 3) document.getElementById("roll-period").textContent = fr((z[z.length - 1] - z[1]) / (z.length - 2), 1) + " s";
+  }).catch(() => {});
+
+  /* Validation */
+  getJSON("data/validation.json").then((V) => {
+    const tb = document.querySelector("#t-chrono tbody");
+    const box = document.getElementById("chrono-charts");
+    Object.values(V.chrono).forEach((v) => {
+      const rel = v.doubling_numpy && v.doubling_chrono ? Math.abs(v.doubling_chrono - v.doubling_numpy) / v.doubling_numpy : null;
+      if (v.name === "B_haltere_axial" && rel !== null) document.querySelectorAll('[data-bind="validation.B_haltere_axial.doubling_rel"]').forEach((n) => n.textContent = fmt.pct(rel));
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${v.name}</td><td class="n">${fr(v.duration)} s</td>
+        <td class="n">${v.doubling_numpy ? fr(v.doubling_numpy, 3) + " s" : "—"}</td><td class="n">${v.doubling_chrono ? fr(v.doubling_chrono, 3) + " s" : "—"}</td>
+        <td class="n">${rel !== null ? fmt.pct(rel) : "—"}</td><td class="n">${deg(v.roll_max_numpy)}</td><td class="n">${deg(v.roll_max_chrono)}</td>
+        <td class="n">${deg(v.max_abs_diff_deg)}</td><td class="n">${sci(v.dL_chrono)}</td></tr>`);
+      const d = document.createElement("div");
+      d.className = "chartbox";
+      d.innerHTML = `<h4>${v.name}</h4><div></div>`;
+      box.appendChild(d);
+      lineChart(d.querySelector("div"), {
+        xLabel: "secondes", xName: "t =", xUnit: " s", yLabel: "roulis du module 0 (°)", yUnit: "°",
+        series: [{ name: "tether_sim (NumPy)", x: v.numpy.t, y: v.numpy.roll[0] }, { name: "Project Chrono", x: v.chrono.t, y: v.chrono.roll[0], dash: true }],
+      });
+    });
+    const tc = document.querySelector("#t-conv tbody");
+    const C = V.convergence || {};
+    [["B_conv_ref", "16", "0,3 × critique"], ["B_conv_seg32", "32", "0,3 × critique"], ["B_conv_cfl015", "16", "0,15 × critique"]].forEach(([k, seg, dt]) => {
+      const r = C[k];
+      if (!r) return;
+      tc.insertAdjacentHTML("beforeend", `<tr><td>${k}</td><td class="n">${seg}</td><td class="n">${dt}</td><td class="n">${fr(r.doubling_time, 3)} s</td><td class="n">${deg(r.roll_max)}</td><td class="n">${sci(r.dE_max)}</td></tr>`);
+    });
+  }).catch(() => {});
+
+  /* Visualiseur unique */
+  let viewer = null;
+  document.getElementById("viewer-load").addEventListener("click", async () => {
+    const name = document.getElementById("viewer-pick").value;
+    const follow = document.getElementById("viewer-follow").checked;
+    const box = document.getElementById("viewer");
+    if (viewer) { viewer.dispose(); viewer = null; }
+    const poster = box.querySelector(".poster");
+    poster.textContent = "Chargement…";
+    poster.hidden = false;
+    try {
+      const [anim, ser] = await Promise.all([getJSON(`data/anim/${name}.json`), series(name).catch(() => null)]);
+      poster.hidden = true;
+      viewer = new StationViewer(box, { exaggeration: follow ? 1.6 : 3, speed: 10 });
+      viewer.load(anim, ser);
+      if (follow) viewer.setFollow(true);
+      const ctrl = document.getElementById("viewer-play");
+      ctrl.innerHTML = `<button type="button" data-play>Pause</button><input type="range" data-time aria-label="Temps simulé"><span data-clock></span>
+        <label>vitesse <select data-speed aria-label="Vitesse"><option value="2">×2</option><option value="6">×6</option><option value="10" selected>×10</option><option value="30">×30</option><option value="60">×60</option></select></label>
+        <label>repère <select data-frame aria-label="Repère"><option value="rot">tournant</option><option value="in">inertiel</option></select></label>
+        <span class="readout" data-readout></span>`;
+      ctrl.hidden = false;
+      attachStationControls(viewer, ctrl, { mass: !!(anim.bi && anim.bi.length) });
+    } catch (e) {
+      poster.textContent = "Trajectoire indisponible pour cette simulation.";
+    }
+  });
+})();
+</script>

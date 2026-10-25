@@ -1,0 +1,510 @@
+<title>Gravité au bout du fil</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Saira+Condensed:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Mise en page : colonne de lecture (~66 car.) + figures plus larges ; bandeau d'ouverture en deux colonnes. */
+:root {
+  --bg: #f2f4f6;          /* papier froid */
+  --surface: #ffffff;
+  --ink: #12161c;
+  --ink-2: #47505c;
+  --muted: #6f7986;
+  --line: #d6dce3;
+  --accent: #d24b17;      /* orange signal, version texte */
+  --accent-soft: #fbe3d7;
+  --steel: #2c5d8a;
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a;
+  --viz-bg: #0c1118; --viz-hull: #a4b2c4; --viz-floor: #ff6a2b; --viz-cable: #e3e8ef; --viz-grid: #2c3644; --viz-mass: #ffd23f; --viz-up: #5cc8ff;
+  --f-display: "Saira Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117; --surface: #151b23; --ink: #e8ecf1; --ink-2: #aab4c0; --muted: #808b99; --line: #26303d;
+    --accent: #ff7d47; --accent-soft: #3a2116; --steel: #74abdf;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1117; --surface: #151b23; --ink: #e8ecf1; --ink-2: #aab4c0; --muted: #808b99; --line: #26303d;
+  --accent: #ff7d47; --accent-soft: #3a2116; --steel: #74abdf;
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 400 1.08rem/1.65 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; letter-spacing: 0.01em; line-height: 1.1; text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); }
+h3 { font-size: 1.45rem; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font: 500 0.78rem/1.2 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+.page { max-width: 1120px; margin: 0 auto; display: grid; gap: 72px; }
+.col { max-width: 40rem; margin: 0 auto; display: grid; gap: 1.1rem; width: 100%; }
+.wide { width: 100%; display: grid; gap: 14px; }
+
+/* Ouverture */
+.hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 32px; align-items: center; padding-top: 40px; }
+.hero h1 { font-size: clamp(2.8rem, 7vw, 5rem); font-weight: 700; letter-spacing: -0.005em; }
+.hero .lede { font-size: 1.22rem; color: var(--ink-2); }
+.hero-text { display: grid; gap: 18px; min-width: 0; }
+@media (max-width: 820px) { .hero { grid-template-columns: 1fr; } }
+
+.figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.figures div { padding: 14px 14px 12px 0; display: grid; gap: 2px; }
+.figures b { font: 600 1.9rem/1 var(--f-display); }
+.figures span { font: 400 0.8rem/1.3 var(--f-mono); color: var(--muted); }
+
+/* Visualiseur 3D (fond spatial dans les deux thèmes) */
+.viewer { position: relative; background: var(--viz-bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; aspect-ratio: 16 / 10; max-width: 100%; }
+.viewer canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.viewer .poster { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; color: #e3e8ef; }
+.viewer .poster .sc-row { width: min(100%, 620px); }
+.viewer .poster .sc-svg { width: 100%; height: auto; }
+.viewer .start { position: absolute; right: 14px; bottom: 14px; }
+.viewer .poster { padding-bottom: 56px; }
+.btn { font: 500 0.85rem/1 var(--f-mono); padding: 10px 14px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.viewer .start.btn { background: #ff6a2b; border-color: #ff6a2b; color: #10141a; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font: 400 0.8rem/1.3 var(--f-mono); color: var(--ink-2); }
+.ctrl input[type=range] { flex: 1 1 180px; min-width: 0; accent-color: var(--accent); }
+.ctrl select { font: inherit; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px; }
+.ctrl label { display: inline-flex; gap: 6px; align-items: center; }
+.readout { font: 400 0.8rem/1.4 var(--f-mono); color: var(--ink-2); min-height: 1.4em; }
+figcaption { font: 400 0.92rem/1.5 var(--f-body); color: var(--ink-2); max-width: 46rem; }
+figcaption b { color: var(--ink); }
+figure { margin: 0; display: grid; gap: 10px; }
+
+/* Schémas */
+.sc-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .sc-row { grid-template-columns: 1fr; } }
+.sc-svg { width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+.sc-orbit { fill: none; stroke: var(--line); stroke-dasharray: 4 5; }
+.sc-center { fill: var(--muted); }
+.sc-spin, .sc-g { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.sc-arrowhead { fill: var(--muted); }
+.sc-cable { stroke: var(--ink); stroke-width: 1.4; }
+.sc-spreader { stroke: var(--ink); stroke-width: 3; }
+.sc-module { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.sc-attach { fill: var(--ink); }
+.sc-floor { stroke: var(--accent); stroke-width: 3; }
+.sc-axis { stroke: var(--muted); stroke-dasharray: 6 4; }
+.sc-break { stroke: var(--muted); fill: none; }
+.sc-title { font: 600 13px var(--f-display); fill: var(--ink); letter-spacing: 0.02em; }
+.sc-small { font: 400 10.5px var(--f-mono); fill: var(--muted); }
+.viewer .poster .sc-svg { background: transparent; border: none; }
+.viewer .poster .sc-cable, .viewer .poster .sc-spreader { stroke: #e3e8ef; }
+.viewer .poster .sc-attach { fill: #e3e8ef; }
+.viewer .poster .sc-title { fill: #e3e8ef; }
+.viewer .poster .sc-small { fill: #9aa7b8; }
+.viewer .poster .sc-module { fill: #3a2116; stroke: #ff6a2b; }
+.viewer .poster .sc-floor { stroke: #ff6a2b; }
+.viewer .poster .sc-orbit { stroke: #3a4656; }
+
+/* Calculateur */
+.calc { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 16px; }
+.calc-in { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 24px; }
+.calc-in label { display: grid; gap: 6px; font: 500 0.82rem/1.3 var(--f-mono); color: var(--ink-2); }
+.calc-in input { accent-color: var(--accent); width: 100%; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { font: 500 0.8rem/1 var(--f-mono); padding: 8px 10px; border-radius: 4px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.calc-out { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.calc-out div { display: grid; gap: 2px; }
+.calc-out b { font: 600 1.6rem/1.05 var(--f-display); }
+.calc-out span { font: 400 0.76rem/1.3 var(--f-mono); color: var(--muted); }
+.comfort { font: 400 0.85rem/1.4 var(--f-mono); padding: 8px 10px; border-radius: 4px; border: 1px solid var(--line); }
+.comfort[data-level="ok"] { border-color: #0ca30c; }
+.comfort[data-level="warn"] { border-color: #fab219; }
+.comfort[data-level="bad"] { border-color: #d03b3b; }
+.comfort i { font-style: normal; font-weight: 600; }
+
+/* Pièges */
+.trap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 28px; align-items: start; }
+.trap .txt { display: grid; gap: 0.9rem; min-width: 0; }
+.trap .tag { font: 500 0.75rem/1.2 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.trap .verdict { font: 500 0.88rem/1.45 var(--f-mono); padding-left: 12px; border-left: 3px solid var(--accent); color: var(--ink); }
+@media (max-width: 860px) { .trap { grid-template-columns: 1fr; } }
+.stack { display: grid; gap: 18px; }
+.sc-caption { font-size: 0.88rem; color: var(--ink-2); margin-top: 6px; }
+
+/* Graphiques */
+.lc { display: grid; gap: 6px; }
+.lc-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 400 0.78rem/1.3 var(--f-mono); color: var(--ink-2); }
+.lc-key { display: inline-flex; align-items: center; gap: 6px; }
+.lc-key i, .lc-tkey i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+.lc-ylabel { font: 400 0.76rem/1.2 var(--f-mono); color: var(--muted); }
+.lc-plot { position: relative; width: 100%; }
+.lc-plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.lc-grid { stroke: var(--line); stroke-width: 1; }
+.lc-base { stroke: var(--muted); stroke-width: 1; }
+.lc-tick, .lc-label, .lc-reflabel { font: 400 11px var(--f-mono); fill: var(--muted); }
+.lc-ref { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 3 3; }
+.lc-line { stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.lc-cross { stroke: var(--muted); stroke-width: 1; }
+.lc-dot { stroke: var(--surface); stroke-width: 2; }
+.lc-tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; font: 400 0.75rem/1.5 var(--f-mono); color: var(--ink); display: grid; grid-template-columns: auto auto; gap: 2px 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 2; }
+.lc-tip .lc-thead { grid-column: 1 / -1; color: var(--muted); }
+.lc-tkey { display: inline-flex; gap: 6px; align-items: center; color: var(--ink-2); }
+.chartbox { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+
+.final { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: clamp(16px, 3vw, 32px); display: grid; gap: 22px; }
+.checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 28px; list-style: none; padding: 0; margin: 0; }
+.checks li { display: grid; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.checks b { font: 600 1.05rem/1.25 var(--f-display); letter-spacing: 0.01em; }
+.checks span { font-size: 0.95rem; color: var(--ink-2); }
+.todo { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.todo li { padding-left: 18px; position: relative; }
+.todo li::before { content: ""; position: absolute; left: 0; top: 0.7em; width: 8px; height: 2px; background: var(--accent); }
+footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem/1.5 var(--f-mono); color: var(--muted); display: grid; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<main class="page">
+
+<header class="hero">
+  <div class="hero-text">
+    <span class="eyebrow">Étude de faisabilité · simulation numérique</span>
+    <h1>Gravité au bout du fil</h1>
+    <p class="lede">Trois modules habités de 1 600 tonnes, reliés par des câbles d'un demi-kilomètre, font un tour par minute. À bord, on pèse 38 % de son poids terrestre : la gravité de Mars, sans poutre géante, avec des câbles de 11 cm de diamètre.</p>
+  </div>
+  <figure class="wide">
+    <div class="viewer" id="hero-viewer" data-anim="Zp_perturbation" data-autostart data-inertial data-speed="15">
+      <div class="poster" data-schema='{"topology":"triangle2","module":"tangential","bridle":20}'></div>
+    </div>
+    <figcaption>La configuration retenue, simulée. Les modules sont dessinés trois fois plus gros que nature pour rester visibles : à l'échelle, chacun ferait 40 m de long sur un cercle de 680 m de diamètre. Faites glisser pour tourner autour.</figcaption>
+  </figure>
+</header>
+
+<section class="wide">
+  <div class="figures">
+    <div><b class="num">340 m</b><span>rayon de rotation</span></div>
+    <div><b class="num">1 tr/min</b><span>vitesse de rotation</span></div>
+    <div><b class="num">0,38 g</b><span>gravité ressentie (Mars)</span></div>
+    <div><b class="num">3 × 1 600 t</b><span>modules habités</span></div>
+    <div><b class="num">Ø 11 cm</b><span>câbles en Dyneema</span></div>
+    <div><b class="num">1 600 km</b><span>altitude de l'orbite</span></div>
+  </div>
+</section>
+
+<section class="col">
+  <span class="eyebrow">1 · Le principe</span>
+  <h2>Pourquoi faire tourner une station&nbsp;?</h2>
+  <p>En orbite, tout tombe en même temps : c'est l'apesanteur. Elle fait fondre les os et les muscles des astronautes : environ 1 % de masse osseuse perdue par mois. Pour recréer une pesanteur, on fait tourner l'habitat. Le plancher pousse alors en permanence les occupants vers le centre, et ils ressentent cette poussée comme un poids, dirigé vers l'extérieur.</p>
+  <p>La gravité ressentie vaut <span class="num">a = ω² × R</span> : elle dépend de la vitesse de rotation et de la distance au centre. On peut tourner vite près du centre ou lentement loin du centre. Le corps humain préfère la lenteur : au-delà de 2 à 4 tours par minute, chaque mouvement de tête provoque des vertiges et le mal des transports. À 1 tour par minute, il faut s'éloigner de <b>340 m</b> du centre pour peser comme sur Mars.</p>
+</section>
+
+<section class="wide">
+  <div class="calc" id="calc">
+    <div class="calc-in">
+      <div class="seg" role="group" aria-label="Gravité visée">
+        <button type="button" id="g-moon" data-g="0.165" aria-pressed="false">Lune 0,17 g</button>
+        <button type="button" id="g-mars" data-g="0.38" aria-pressed="true">Mars 0,38 g</button>
+        <button type="button" id="g-earth" data-g="1" aria-pressed="false">Terre 1 g</button>
+      </div>
+      <label for="rpm">Vitesse de rotation : <span id="rpm-val" class="num">1,0 tr/min</span>
+        <input id="rpm" type="range" min="0.5" max="6" step="0.1" value="1">
+      </label>
+    </div>
+    <div class="calc-out">
+      <div><b id="o-r" class="num">340 m</b><span>rayon nécessaire</span></div>
+      <div><b id="o-l" class="num">589 m</b><span>câble (triangle)</span></div>
+      <div><b id="o-v" class="num">36 m/s</b><span>vitesse du module</span></div>
+      <div><b id="o-c" class="num">±5,6 %</b><span>poids en marchant à 1 m/s</span></div>
+    </div>
+    <p class="comfort" id="comfort" data-level="ok"><i>Confortable.</i> En dessous de 2 tr/min, la plupart des gens s'adaptent sans symptômes.</p>
+  </div>
+</section>
+
+<section class="col">
+  <span class="eyebrow">2 · La structure</span>
+  <h2>Des câbles plutôt qu'une poutre</h2>
+  <p>Une poutre rigide de 680 m serait énorme. Un câble ne travaille qu'en traction, et la rotation le tend en permanence. C'est exactement ce qu'il faut. Chaque module tire sur ses câbles avec une force égale à son poids martien, soit environ <b>350 tonnes-force</b> par câble dans le triangle.</p>
+  <p>Les câbles sont dimensionnés pour supporter la rotation à <b>1 g</b>, au cas où l'on voudrait un jour la gravité terrestre (il suffirait de tourner à 1,6 tr/min), avec un facteur de sécurité de 3. En Dyneema, une fibre plus résistante que l'acier à poids égal, cela donne un câble de 11 cm de diamètre. Les trois câbles pèsent ensemble 15 tonnes, soit 0,3 % de la masse de la station. Sous la charge, chacun s'allonge d'environ 2 m.</p>
+</section>
+
+<section class="col">
+  <span class="eyebrow">3 · Les pièges</span>
+  <h2>Ce qui peut mal tourner</h2>
+  <p>Un objet qui tourne n'est pas toujours stable. Nous avons simulé la station sur ordinateur, avec les vraies masses, les vraies inerties et des câbles élastiques, pour chercher ce qui pouvait dérailler. Les résultats principaux ont été recalculés avec un second logiciel indépendant, Project Chrono, qui donne les mêmes chiffres à 0,1 % près.</p>
+</section>
+
+<section class="trap wide" id="piege-raquette">
+  <div class="txt">
+    <span class="tag">Piège n° 1</span>
+    <h3>L'effet raquette de tennis</h3>
+    <p>Lancez une raquette en la faisant tourner autour de son axe « intermédiaire » : elle fait systématiquement un demi-tour sur elle-même. C'est le théorème de l'axe intermédiaire, rendu célèbre en 1985 par le cosmonaute Vladimir Djanibekov avec un écrou papillon dans la station Saliout 7.</p>
+    <p>Une station en haltère (deux modules, un seul lien) est presque sur la ligne de crête : ses deux axes d'inertie perpendiculaires au câble sont quasiment égaux. La forme des modules suffit à faire basculer le côté. Avec des modules couchés parallèlement à l'axe de rotation et reliés par deux câbles parallèles, la station entière se retourne d'un demi-tour toutes les deux à trois minutes.</p>
+    <p class="verdict">Le « bas » reste le bas, mais la pièce pivote autour de la verticale jusqu'à 6°/s, aussi vite que la station elle-même tourne.</p>
+  </div>
+  <figure>
+    <div class="viewer" data-anim="D_echelle_axial" data-speed="10">
+      <div class="poster" data-schema='{"topology":"ladder","module":"axial"}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : haltère à deux câbles parallèles, modules parallèles à l'axe de rotation.</b> Vue dans le repère qui tourne avec la station. Le demi-tour d'ensemble se répète indéfiniment.</figcaption>
+  </figure>
+</section>
+
+<section class="trap wide" id="piege-pivot">
+  <div class="txt">
+    <span class="tag">Piège n° 2</span>
+    <h3>Le module qui pivote autour de son câble</h3>
+    <p>Un câble ne transmet aucun couple : on peut faire tourner un objet suspendu à une corde sans que la corde résiste. Un module accroché par un seul point peut donc pivoter librement autour de son câble, c'est-à-dire autour de sa propre verticale.</p>
+    <p>Ce qui décide, c'est la répartition de sa masse. Dans un champ de gravité artificielle, un objet allongé cherche à se coucher dans le sens du mouvement. Si on l'accroche parallèlement à l'axe de rotation, il bascule : l'écart initial double toutes les 7 secondes et le module se met à tourner sur lui-même sans fin.</p>
+    <p class="verdict">Règle de conception : l'axe long des modules doit être orienté dans le sens du mouvement.</p>
+  </div>
+  <figure>
+    <div class="viewer" data-anim="B_haltere_axial" data-speed="6" data-follow>
+      <div class="poster" data-schema='{"topology":"dumbbell","module":"axial"}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : haltère, modules parallèles à l'axe de rotation.</b> La caméra suit le module 0. La plaque orange est le plancher, la flèche bleue le « haut » ressenti par l'équipage.</figcaption>
+  </figure>
+</section>
+
+<section class="trap wide" id="piege-triangle">
+  <div class="txt">
+    <span class="tag">La parade</span>
+    <h3>Le triangle et les deux points d'attache</h3>
+    <p>Passer à trois modules en triangle ne suffit pas : si chaque module est tenu par un seul point, il pivote exactement comme dans l'haltère. Ce qui change tout, c'est d'accrocher chaque câble à une extrémité différente du module, à 20 m de part et d'autre de son centre. Pour pivoter, le module devrait alors tirer sur les câbles, qui le ramènent.</p>
+    <p>Dans les simulations, cette double attache maintient même un module mal orienté à moins de 0,2° de sa position. Le triangle a un autre avantage : son axe de rotation a deux fois plus d'inertie que les autres axes, si bien que l'effet raquette de tennis ne peut pas se produire.</p>
+    <p class="verdict">Configuration retenue : triangle, modules dans le sens du mouvement, chacun tenu par ses deux extrémités. Deux protections indépendantes valent mieux qu'une.</p>
+  </div>
+  <figure>
+    <div class="stack">
+      <div id="schema-F"></div>
+      <div id="schema-Z"></div>
+    </div>
+    <figcaption><b>À gauche</b>, le triangle à attache unique : instable avec des modules mal orientés. <b>À droite</b>, la configuration retenue : modules dans le sens du mouvement, deux points d'attache par module.</figcaption>
+  </figure>
+</section>
+
+<section class="trap wide" id="piege-cargaison">
+  <div class="txt">
+    <span class="tag">Piège n° 3</span>
+    <h3>Quand on déplace la cargaison</h3>
+    <p>Un module suspendu se comporte comme un pendule : son centre de gravité se place toujours dans l'alignement du câble. Si l'on déplace 50 tonnes de matériel de 15 m vers l'avant, le centre de gravité bouge de 47 cm et le module s'incline jusqu'à ce qu'il soit de nouveau aligné. Accroché par un seul point placé à 6 m au-dessus du centre, le plancher penche alors de <b>4,4°</b>. C'est l'équivalent d'une pente de 8 %, et chaque balle posée par terre se met à rouler.</p>
+    <p>Avec la double attache, les deux câbles tiennent le module par ses deux bouts, et l'inclinaison tombe à <b>1,6°</b>. Les câbles du triangle arrivent presque à la verticale du module, si bien que l'écartement des attaches ne joue qu'à moitié. Surélever les points d'attache de 20 m, sur des mâts ou des pattes d'oie, allonge le bras de levier : l'inclinaison n'est plus que de <b>0,7°</b>.</p>
+    <p class="verdict">Pour les déplacements les plus lourds, un ballast d'eau transféré entre réservoirs avant et arrière peut compenser le décalage et ramener le sol à l'horizontale.</p>
+  </div>
+  <figure>
+    <div class="chartbox"><div id="chart-cargo"></div></div>
+    <figcaption><b>Inclinaison du plancher pendant que 50 t de cargaison font l'aller-retour (+15 m, puis −15 m, puis retour au centre).</b> Haltère à attache unique, double attache, double attache surélevée.</figcaption>
+  </figure>
+</section>
+
+<section class="trap wide" id="piege-marche">
+  <div class="txt">
+    <span class="tag">Piège n° 4</span>
+    <h3>Marcher dans une station qui tourne</h3>
+    <p>Dans une station en rotation, marcher dans le sens de la rotation rend plus lourd, et marcher en sens inverse rend plus léger. C'est la force de Coriolis : à 1 m/s, l'écart est de ±5,6 % du poids. Monter une échelle pousse latéralement. À 1 tour par minute, ces effets restent faibles. À 4 tours par minute, ils seraient quatre fois plus forts.</p>
+    <p>Les déplacements de l'équipage ont un autre effet, plus sournois. Chaque module suspendu a ses propres balancements naturels, avec des périodes de 5 à 16 secondes, et presque rien ne les freine. Un groupe qui bouge en cadence à ce rythme les entretient, comme un enfant qui pousse sa balançoire au bon moment. Nous avons fait osciller 4 tonnes (une cinquantaine de personnes) à toutes les cadences possibles : avec une attache unique, le plancher penche jusqu'à <b>3,9°</b> au rythme le plus défavorable, une réponse trente fois plus forte qu'à l'arrêt. Des allers-retours ordinaires sur 30 m l'inclinent de 0,5°.</p>
+    <p class="verdict">Configuration retenue : <span data-bind="Zp_equipage.tilt_max">0,17°</span> pour la marche ordinaire et 0,7° au rythme le plus défavorable. Les attaches surélevées raidissent les balancements, qui deviennent plus rapides et plus difficiles à entretenir.</p>
+  </div>
+  <figure>
+    <div class="chartbox"><div id="chart-walk"></div></div>
+    <figcaption><b>Inclinaison du plancher quand l'équipage (4 t) marche en allers-retours sur 30 m à 1,2 m/s.</b> Haltère à attache unique contre configuration retenue.</figcaption>
+  </figure>
+</section>
+
+<section class="trap wide" id="piege-amortir">
+  <div class="txt">
+    <span class="tag">Bon à savoir</span>
+    <h3>Ce qui frotte finit par se stabiliser</h3>
+    <p>En 1958, le premier satellite américain, Explorer 1, s'est mis à culbuter peu après son lancement. Ses antennes souples dissipaient de l'énergie, et un objet qui perd de l'énergie finit toujours par tourner autour de son axe de plus grande inertie, même s'il ne tournait pas autour au départ.</p>
+    <p>Ici, cette loi joue en notre faveur. Avec un peu de frottement interne (de l'eau qui clapote dans les réservoirs, par exemple), un module mal orienté finit après ses culbutes par se coucher de lui-même dans le sens du mouvement, à 89,8° de sa position initiale.</p>
+  </div>
+  <figure>
+    <div class="viewer" data-anim="B_amortisseur" data-speed="30" data-follow>
+      <div class="poster" data-schema='{"topology":"dumbbell","module":"axial"}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : même module mal orienté qu'au piège n° 2, avec un amortisseur interne.</b> Après quelques culbutes, il se stabilise couché dans le sens du mouvement.</figcaption>
+  </figure>
+</section>
+
+<section class="col">
+  <span class="eyebrow">Autres effets vérifiés</span>
+  <h3>Le rebond et la lente valse de l'axe</h3>
+  <p><b>Le rebond.</b> Les câbles sont élastiques : la station peut « respirer », les modules s'éloignant et se rapprochant du centre de quelques centimètres, environ toutes les 4 secondes. Pour une perturbation réaliste, le poids ressenti varie de ±0,5 %, ce qui est imperceptible.</p>
+  <p><b>La valse de l'axe.</b> La station ne tourne pas dans le vide absolu : la Terre attire un peu plus le module le plus proche que le plus éloigné. Sur un objet de 680 m, cet écart est minuscule, mais il agit en continu. Si l'axe de rotation est incliné par rapport à l'orbite, il décrit un cône complet en une douzaine de jours à 1 600 km d'altitude. La parade est simple : faire tourner la station dans le plan de son orbite.</p>
+</section>
+
+<section class="wide final" id="final">
+  <div class="col" style="margin:0;max-width:46rem">
+    <span class="eyebrow">4 · Le résultat</span>
+    <h2>La configuration retenue</h2>
+    <p>Trois modules cylindriques de 1 600 t (12 m de diamètre, 40 m de long), couchés dans le sens du mouvement, forment un triangle. Chaque module est tenu par ses deux extrémités, à des points d'attache surélevés de 20 m. Les câbles mesurent <span class="num" data-bind="Zp_perturbation.L0" data-fmt="m">—</span> entre points d'attache. L'ensemble tourne à 1 tour par minute, avec le centre des modules à 340 m de l'axe.</p>
+  </div>
+  <ul class="checks" id="final-checks">
+    <li><b>Pas de basculement</b><span>Le module perturbé ne pivote que de <span class="num" data-bind="Zp_perturbation.roll_max">—</span> autour de son câble.</span></li>
+    <li><b>Plancher stable</b><span><span class="num" data-bind="Z_final_cargaison_patte_oie.tilt_max">—</span> d'inclinaison au pire quand 50 t de cargaison traversent le module, <span class="num" data-bind="Zp_equipage.tilt_max">—</span> quand l'équipage marche.</span></li>
+    <li><b>Gravité stable</b><span>Entre <span class="num" data-bind="Zp_perturbation.g_min">—</span> et <span class="num" data-bind="Zp_perturbation.g_max">—</span>, pour 0,38 g visé.</span></li>
+    <li><b>Marge de résistance</b><span>Câbles dimensionnés pour 1 g avec un facteur de sécurité de 3, soit 7,9 fois la charge de service.</span></li>
+  </ul>
+  <figure>
+    <div class="viewer" data-anim="Z_final_cargaison_patte_oie" data-speed="20" data-follow>
+      <div class="poster" data-schema='{"topology":"triangle2","module":"tangential","bridle":20}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : configuration retenue, 50 t de cargaison (sphère jaune) déplacées dans le module 0.</b> Le module reste d'aplomb.</figcaption>
+  </figure>
+</section>
+
+<section class="col">
+  <span class="eyebrow">5 · La suite</span>
+  <h2>Ce qu'il reste à étudier</h2>
+  <ul class="todo">
+    <li>La mise en rotation : partir de modules immobiles et dérouler les câbles en accélérant, sans jamais les laisser se détendre.</li>
+    <li>La rupture d'un câble : un câble tendu stocke l'énergie de plusieurs kilos d'explosif. Le triangle doit survivre à la perte d'un côté.</li>
+    <li>L'amarrage des vaisseaux : chaque arrivée est un choc et un déplacement de masse.</li>
+    <li>Le contrôle actif : des moteurs pour corriger l'axe de rotation et amortir les balancements.</li>
+    <li>Le vieillissement des câbles : rayonnement, micrométéorites, fluage du Dyneema sous charge permanente.</li>
+  </ul>
+</section>
+
+<footer>
+  <p>Simulations : modèle multicorps écrit pour l'étude (Python, NumPy), validé par comparaison avec <a href="https://projectchrono.org/" target="_blank" rel="noopener">Project Chrono</a>. Les modules sont des cylindres rigides et les câbles des chaînes de ressorts élastiques. Orbite à 1 600 km, gravité terrestre négligée sauf mention.</p>
+  <p id="tech-link">Le détail des calculs, des hypothèses et de tous les résultats est dans le <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi" target="_blank" rel="noopener">carnet de calcul technique</a>.</p>
+</footer>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="shared/station3d.js"></script>
+<script src="shared/charts.js"></script>
+<script src="shared/schema.js"></script>
+<script>
+(function () {
+  "use strict";
+  const G0 = 9.80665;
+  const fr = (v, d = 0) => v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+  /* Calculateur */
+  let gSel = 0.38;
+  const rpm = document.getElementById("rpm");
+  function calc() {
+    const n = parseFloat(rpm.value), w = n * 2 * Math.PI / 60, a = gSel * G0;
+    const R = a / (w * w);
+    document.getElementById("rpm-val").textContent = fr(n, 1) + " tr/min";
+    document.getElementById("o-r").textContent = R >= 1000 ? fr(R / 1000, 2) + " km" : fr(R) + " m";
+    const L = Math.sqrt(3) * R;
+    document.getElementById("o-l").textContent = L >= 1000 ? fr(L / 1000, 2) + " km" : fr(L) + " m";
+    document.getElementById("o-v").textContent = fr(w * R) + " m/s";
+    document.getElementById("o-c").textContent = "±" + fr(200 * w / a, 1) + " %";
+    const c = document.getElementById("comfort");
+    if (n <= 2) { c.dataset.level = "ok"; c.innerHTML = "<i>Confortable.</i> En dessous de 2 tr/min, la plupart des gens s'adaptent sans symptômes."; }
+    else if (n <= 4) { c.dataset.level = "warn"; c.innerHTML = "<i>Adaptation nécessaire.</i> Entre 2 et 4 tr/min, les mouvements de tête provoquent des vertiges pendant quelques jours."; }
+    else { c.dataset.level = "bad"; c.innerHTML = "<i>Inconfortable.</i> Au-delà de 4 tr/min, le mal des transports devient la règle pour beaucoup de gens."; }
+  }
+  rpm.addEventListener("input", calc);
+  document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
+    gSel = parseFloat(b.dataset.g);
+    document.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    calc();
+  }));
+  calc();
+
+  /* Schémas (posters des visualiseurs + figures) */
+  document.querySelectorAll("[data-schema]").forEach((p) => drawSchema(p, JSON.parse(p.dataset.schema)));
+  drawSchema(document.getElementById("schema-F"), { topology: "triangle", module: "axial", caption: "Triangle, attache unique, modules parallèles à l'axe." });
+  drawSchema(document.getElementById("schema-Z"), { topology: "triangle2", module: "tangential", bridle: 20, caption: "Configuration retenue (attaches surélevées de 20 m)." });
+
+  /* Données */
+  const cache = {};
+  const getJSON = (p) => cache[p] || (cache[p] = fetch(p).then((r) => { if (!r.ok) throw new Error(p); return r.json(); }));
+
+  /* Visualiseurs 3D : un seul actif à la fois (en plus de l'ouverture) */
+  let active = null;
+  function stopActive() {
+    if (!active) return;
+    active.viewer.dispose();
+    active.box.querySelector(".poster").hidden = false;
+    active.box.querySelector(".start").hidden = false;
+    if (active.ctrl) active.ctrl.hidden = true;
+    active = null;
+  }
+  async function startViewer(box, keep) {
+    if (!keep) stopActive();
+    box.querySelector(".poster").hidden = true;
+    const st = box.querySelector(".start");
+    if (st) st.hidden = true;
+    const name = box.dataset.anim;
+    let viewer;
+    try {
+      const [anim, ser] = await Promise.all([getJSON(`data/anim/${name}.json`), getJSON(`data/series/${name}.json`).catch(() => null)]);
+      viewer = new StationViewer(box, { exaggeration: box.dataset.follow !== undefined ? 1.6 : 3, speed: parseFloat(box.dataset.speed || 20), rotating: box.dataset.inertial === undefined });
+      viewer.load(anim, ser);
+      if (box.dataset.follow !== undefined) viewer.setFollow(true);
+    } catch (e) {
+      box.querySelector(".poster").hidden = false;
+      if (st) st.hidden = false;
+      return;
+    }
+    const ctrl = box.parentElement.querySelector(".ctrl");
+    if (ctrl) {
+      ctrl.innerHTML = `<button type="button" class="btn ghost" data-play>Pause</button>
+        <input type="range" data-time aria-label="Temps simulé">
+        <span data-clock></span>
+        <label>vitesse <select data-speed aria-label="Vitesse de lecture"><option value="2">×2</option><option value="6">×6</option><option value="10">×10</option><option value="20">×20</option><option value="30">×30</option><option value="60">×60</option></select></label>
+        <label>repère <select data-frame aria-label="Repère"><option value="rot">tournant</option><option value="in">inertiel</option></select></label>
+        <span class="readout" data-readout></span>`;
+      ctrl.querySelector("[data-speed]").value = box.dataset.speed || "20";
+      if (box.dataset.inertial !== undefined) ctrl.querySelector("[data-frame]").value = "in";
+      ctrl.hidden = false;
+      attachStationControls(viewer, ctrl, { mass: !!(viewer.anim.bi && viewer.anim.bi.length) });
+    }
+    if (!keep) active = { viewer, box, ctrl };
+  }
+  document.querySelectorAll(".viewer[data-anim]").forEach((box) => {
+    if (box.dataset.autostart !== undefined) { startViewer(box, true); return; }
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn start";
+    b.textContent = "Lancer la simulation";
+    b.addEventListener("click", () => startViewer(box, false));
+    box.appendChild(b);
+  });
+
+  /* Graphiques et chiffres de la configuration retenue */
+  const fmtDeg = (v) => fr(v, v < 1 ? 2 : 1) + "°";
+  Promise.all(["A_cargaison", "Z_final_cargaison", "A_equipage", "Zp_equipage", "Z_final_cargaison_patte_oie"].map((n) => getJSON(`data/series/${n}.json`)))
+    .then(([a, z, aw, zw, zp]) => {
+      lineChart(document.getElementById("chart-cargo"), {
+        x: a.t.map((t) => t / 60), xLabel: "minutes", xName: "t =", xUnit: " min", yLabel: "inclinaison du plancher (°)", yUnit: "°",
+        series: [{ name: "Haltère, attache unique", y: a.tilt[0] }, { name: "Triangle, double attache", y: z.tilt[0], x: z.t.map((t) => t / 60) },
+                 { name: "Double attache surélevée (retenue)", y: zp.tilt[0], x: zp.t.map((t) => t / 60) }],
+      });
+      lineChart(document.getElementById("chart-walk"), {
+        x: aw.t.map((t) => t / 60), xLabel: "minutes", xName: "t =", xUnit: " min", yLabel: "inclinaison du plancher (°)", yUnit: "°",
+        series: [{ name: "Haltère, attache unique", y: aw.tilt[0] }, { name: "Configuration retenue", y: zw.tilt[0], x: zw.t.map((t) => t / 60) }],
+      });
+    }).catch(() => {});
+  getJSON("data/summary.json").then((s) => {
+    const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {});
+    document.querySelectorAll("[data-bind]").forEach((n) => {
+      const [name, key] = n.dataset.bind.split(".");
+      const info = all[name];
+      if (!info) return;
+      const v = key in info.results ? info.results[key] : info[key];
+      if (v === undefined || v === null) return;
+      n.textContent = n.dataset.fmt === "m" ? fr(v) + " m" : key.startsWith("g_") ? fr(v, 3) + " g" : fmtDeg(v);
+    });
+  }).catch(() => {});
+})();
+</script>
