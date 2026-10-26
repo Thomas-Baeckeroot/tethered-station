@@ -183,10 +183,10 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <p class="lede">Trois Starships en route vers Mars, reliés par des câbles d'un demi-kilomètre, font un tour par minute. À bord, l'équipage pèse ce qu'il pèsera sur Mars, pendant les neuf mois du voyage, sans poutre géante, avec des câbles de 11 cm de diamètre.</p>
   </div>
   <figure class="wide">
-    <div class="viewer" id="hero-viewer" data-anim="R_perturbation" data-autostart data-inertial data-speed="1">
-      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50}'></div>
+    <div class="viewer" id="hero-viewer" data-anim="R_perturbation" data-autostart data-inertial data-speed="1" data-exag="1">
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50,"exag":1}'></div>
     </div>
-    <figcaption>La station simulée, affichée en temps réel : un tour par minute. Les vaisseaux sont dessinés trois fois plus gros que nature pour rester visibles : à l'échelle, chacun mesure 50 m de haut, sur un cercle de 680 m de diamètre. Faites glisser pour tourner autour.</figcaption>
+    <figcaption>La station simulée, affichée en temps réel : un tour par minute. Tout est à l'échelle : chaque vaisseau mesure 50 m de haut, sur un cercle de 680 m de diamètre ; la règle au centre mesure 200 m. Faites glisser pour tourner autour.</figcaption>
   </figure>
 </header>
 
@@ -581,7 +581,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     let viewer;
     try {
       const [anim, ser] = await Promise.all([getJSON(`data/anim/${name}.json`), getJSON(`data/series/${name}.json`).catch(() => null)]);
-      viewer = new StationViewer(box, { exaggeration: box.dataset.follow !== undefined ? 1.6 : 3, speed: parseFloat(box.dataset.speed || 20), rotating: box.dataset.inertial === undefined });
+      viewer = new StationViewer(box, { exaggeration: box.dataset.exag ? parseFloat(box.dataset.exag) : box.dataset.follow !== undefined ? 1.6 : 3, scaleBar: box.dataset.exag === "1", speed: parseFloat(box.dataset.speed || 20), rotating: box.dataset.inertial === undefined });
       viewer.load(anim, ser);
       if (box.dataset.follow !== undefined) viewer.setFollow(true);
     } catch (e) {

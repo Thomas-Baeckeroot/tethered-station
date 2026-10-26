@@ -43,7 +43,7 @@
 
   function topView(cfg) {
     const W = 300, H = 290, cx = 150, cy = 148, Rpx = 100;
-    const s = Rpx / R, ex = 3.4;
+    const s = Rpx / R, ex = cfg.exag || 3.4;
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "sc-svg", role: "img", "aria-label": "Vue de dessus" });
     const aid = "a" + Math.random().toString(36).slice(2);
     arrowDefs(svg, aid);
@@ -95,7 +95,14 @@
       el("text", { x: lab[0], y: lab[1] + 4, class: "sc-small", "text-anchor": "middle" }, svg, `M${b}`);
     });
     el("text", { x: 8, y: 16, class: "sc-title" }, svg, "Vue de dessus");
-    el("text", { x: 8, y: H - 8, class: "sc-small" }, svg, "modules agrandis ×3,4");
+    if (ex === 1) {
+      // Barre d'échelle de 200 m, graduée tous les 100 m
+      const x0 = 8, y0 = H - 22, w = 200 * s;
+      el("line", { x1: x0, y1: y0, x2: x0 + w, y2: y0, class: "sc-cable" }, svg);
+      [0, 0.5, 1].forEach((f) => el("line", { x1: x0 + f * w, y1: y0 - 4, x2: x0 + f * w, y2: y0 + 4, class: "sc-cable" }, svg));
+      el("text", { x: x0 + w / 2, y: H - 6, class: "sc-small", "text-anchor": "middle" }, svg, "100 m");
+      el("text", { x: x0 + w, y: H - 6, class: "sc-small", "text-anchor": "middle" }, svg, "200 m");
+    } else el("text", { x: 8, y: H - 8, class: "sc-small" }, svg, `modules agrandis ×${String(ex).replace(".", ",")}`);
     return svg;
   }
 

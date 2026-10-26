@@ -169,8 +169,40 @@
       this.controls.target.set(0, 0, 0);
     }
 
+    // Règle graduée de 200 m, fixe, centrée sur l'axe de rotation (option scaleBar)
+    _buildRuler() {
+      if (this.ruler) this.scene.remove(this.ruler);
+      this.ruler = null;
+      if (!this.opts.scaleBar) return;
+      const g = new THREE.Group(), col = this.c.hull;
+      const mat = new THREE.LineBasicMaterial({ color: col });
+      const pts = [new THREE.Vector3(-100, 0, 0), new THREE.Vector3(100, 0, 0)];
+      [-100, -50, 0, 50, 100].forEach((x) => {
+        const h = x % 100 === 0 ? 8 : 4;
+        pts.push(new THREE.Vector3(x, -h, 0), new THREE.Vector3(x, h, 0));
+      });
+      g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), mat));
+      const label = (txt, x) => {
+        const cv = document.createElement("canvas");
+        cv.width = 256; cv.height = 64;
+        const ctx = cv.getContext("2d");
+        ctx.font = "500 40px ui-monospace, Menlo, monospace";
+        ctx.fillStyle = "#" + new THREE.Color(col).getHexString();
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(txt, 128, 32);
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), depthWrite: false }));
+        sp.scale.set(110, 27.5, 1);
+        sp.position.set(x, -30, 0);
+        g.add(sp);
+      };
+      label("0", -100); label("100 m", 0); label("200 m", 100);
+      this.ruler = g;
+      this.scene.add(g);
+    }
+
     _buildObjects() {
       this.world.clear();
+      this._buildRuler();
       const a = this.anim, c = this.c;
       const n = a.frames[0].xb.length;
       const ex = this.exag;
