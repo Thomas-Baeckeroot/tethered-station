@@ -31,6 +31,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python run_scenarios.py internes     # mouvements internes (~30 min)
 .venv/bin/python run_scenarios.py final        # configuration retenue
 .venv/bin/python run_scenarios.py starship     # Starships (Ø9 × 50 m) : vertical ou horizontal, 2 ou 3 vaisseaux (~30 min)
+.venv/bin/python mission_mass.py               # masse d'un Starship après l'injection vers Mars
+.venv/bin/python run_scenarios.py mission      # mission Terre–Mars : 610 t, 3,711 m/s², câbles pour 1 600 t (~30 min)
 .venv/bin/python make_web_data.py              # met à jour docs/data/
 ```
 
@@ -55,4 +57,5 @@ Prévisualisation locale des pages : `docs/_preview/build.sh`, puis `python3 -m 
 - Les balancements des modules sont très peu amortis : 4 t oscillant à la fréquence la plus défavorable inclinent le plancher de 3,9° avec une attache unique, 0,7° avec deux attaches surélevées ; la marche ordinaire donne 0,2 à 0,6°.
 - Configuration retenue : triangle, modules tangentiels, deux attaches surélevées par module ; rotation dans le plan de l'orbite (sinon précession par gradient de gravité, ~28°/jour à 1 600 km).
 - Starships (Ø9 × 50 m, 1 600 t) : vertical (nez vers le centre, câbles aux points d'ancrage du nez) en triangle, chaque câble attaché du côté de son voisin. Roulis ≤ 0,1° ; 50 t déplacées de 3,5 m sur un pont : 0,23° ; changer de pont : aucun effet ; pire résonance 0,54° (contre 0,85° à l'horizontale avec mâts, 2,3° sans). À deux vaisseaux verticaux, rien ne fixe l'orientation autour du câble : dérive libre (205° en 30 min après une poussée de 0,11°/s).
+- Mission Terre–Mars : trois Starships pleins (1 600 t) en orbite basse ; après l'injection vers Mars (Hohmann, 3,6 km/s), ≈ 610 t chacun (560 à 650 t selon l'orbite, l'Isp et la fenêtre). Gravité de Mars 3,711 m/s² → R = 338,4 m. Câbles pour 1 600 t à 1 g : 4,8 % de leur résistance en route. Roulis 0,14° ; 50 t sur un pont : 0,58° ; changement de pont et marche : sans effet mesurable ; pire résonance 1,44° hors du plan de rotation (période 8 s), 2,7° si le centre de masse remonte (h = 15 m). Prochaine étape : ballottement des ergols (≈ 0,2 Hz, 400 t de liquide sur 610 t).
 - Validation : énergie et moment cinétique conservés à 10⁻⁸ ou mieux ; Project Chrono reproduit les mêmes trajectoires (écart de temps de doublement 0,03 à 0,13 %).
