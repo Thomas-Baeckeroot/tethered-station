@@ -532,9 +532,13 @@ def static_tilt_prediction(args, h):
     - attache unique (ou déplacement hors du plan) : tan θ = δ/h ;
     - palonnier du triangle (attaches à ±s le long de e_t, câbles à 30° de la
       verticale) avec déplacement tangentiel : raideur k = T(s + √3·h),
-      T = M·a/√3, d'où θ = √3·δ/(s + √3·h)."""
+      T = M·a/√3, d'où θ = √3·δ/(s + √3·h) ;
+    - déplacement radial (entre les ponts d'un module vertical) : aucune
+      inclinaison, le centre de masse reste sous l'attache."""
     if args.motion == "none":
         return None
+    if args.motion_axis == "r" or (args.motion_axis == "long" and args.module == "radial"):
+        return 0.0
     delta = args.motion_mass_t * args.motion_amp / args.mass_t
     tangential_move = (args.motion_axis == "t") or (args.motion_axis == "long" and args.module == "tangential")
     if args.topology == "triangle2" and tangential_move:
@@ -549,10 +553,15 @@ def apply_perturbation(st, args):
     er0 = st.xb[0] * np.array([1.0, 1.0, 0.0])
     er0 /= np.linalg.norm(er0)
     ez = np.array([0.0, 0.0, 1.0])
-    st.vb[0] += args.dv_radial * er0 + args.dv_z * ez
+    dv = args.dv_radial * er0 + args.dv_z * ez
+    st.vb[0] += dv
     Iw0 = st.R[0] @ np.diag(st.Ib) @ st.R[0].T
     Lw0 = st.R[0] @ st.pi[0] + Iw0 @ (args.droll * er0)
     st.pi[0] = st.R[0].T @ Lw0
+    # Les masses internes du module 0 suivent sa coque (sinon l'asservissement
+    # encaisse l'écart de vitesse : secousse parasite au démarrage)
+    k0 = st.bi == 0
+    st.vi[k0] += dv + np.cross(args.droll * er0, st.xi[k0] - st.xb[0])
     st.vn[st.cable_mid_node[0]] += args.dv_lateral * ez
     vcm = (st.mn @ st.vn + st.Mb @ st.vb + st.mi @ st.vi) / st.m_total
     st.vn -= vcm

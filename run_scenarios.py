@@ -28,6 +28,20 @@ CARGO = ["--motion", "cargo", "--motion-mass-t", "50", "--motion-amp", "15", "--
 WALK = ["--motion", "walk", "--motion-mass-t", "4", "--motion-amp", "15", "--motion-speed", "1.2", "--duration", "1800"]
 SWEEP = ["--motion", "sweep", "--motion-mass-t", "4", "--motion-amp", "15", "--duration", "3660"]
 TRAJ = ["--traj-dt", "0.5"]
+PERT = ["--duration", "1800", "--dv-lateral", "0.2"]
+
+# Modules au gabarit du Starship (Ø9 m, 50 m), 1 600 t (vaisseau plein)
+SS = ["--module-radius", "4.5", "--module-length", "50"]
+# Vertical : axe long radial, câbles aux points d'ancrage du nez (±3,5 m)
+SV3 = ["--topology", "triangle2", "--module", "radial", "--spread", "3.5"] + SS
+SV2 = ["--topology", "dumbbell", "--module", "radial"] + SS
+SV2L = ["--topology", "ladder", "--module", "radial", "--spread", "3.5"] + SS
+# Horizontal : axe long tangentiel, attaches aux deux extrémités, avec ou sans mâts de 20 m
+SH3 = ["--topology", "triangle2", "--module", "tangential", "--spread", "20", "--bridle", "20"] + SS
+SH3n = ["--topology", "triangle2", "--module", "tangential", "--spread", "20"] + SS
+# Déplacements latéraux limités au rayon d'un pont (Ø9 m)
+LAT = ["--motion-amp", "3.5", "--motion-axis", "t"]
+LATZ = ["--motion-amp", "3.5", "--motion-axis", "z"]
 
 CAMPAIGNS = {
     "rotation": [
@@ -67,6 +81,30 @@ CAMPAIGNS = {
         ("Zp_perturbation", FINAL + ["--bridle", "20", "--duration", "1800", "--dv-lateral", "0.2"] + TRAJ),
         ("Zp_equipage", FINAL + WALK + ["--bridle", "20"]),
         ("Zp_balayage", FINAL + SWEEP + ["--bridle", "20"]),
+    ],
+    # Stations de Starships : vertical (axe radial) ou horizontal, 2 ou 3 vaisseaux
+    "starship": [
+        ("SV3_perturbation", SV3 + PERT + TRAJ),
+        ("SV3_cargaison_laterale", SV3 + CARGO + LAT + TRAJ),
+        ("SV3_cargaison_verticale", SV3 + CARGO),
+        ("SV3_equipage", SV3 + WALK + LAT),
+        ("SV3_balayage_t", SV3 + SWEEP + LAT),
+        ("SV3_balayage_z", SV3 + SWEEP + LATZ),
+        ("SV3_h15_balayage_t", SV3 + SWEEP + LAT + ["--bridle", "-10"]),
+        ("SV3_250t_equipage", SV3 + WALK + LAT + ["--mass-t", "250"]),
+        ("SV3_250t_balayage_t", SV3 + SWEEP + LAT + ["--mass-t", "250"]),
+        ("SV2_perturbation", SV2 + PERT + TRAJ),
+        ("SV2_cargaison_laterale", SV2 + CARGO + LAT),
+        ("SV2_equipage", SV2 + WALK + LAT),
+        ("SV2_balayage_t", SV2 + SWEEP + LAT),
+        ("SV2L_perturbation", SV2L + PERT),
+        ("SH3_perturbation", SH3 + PERT),
+        ("SH3_cargaison", SH3 + CARGO),
+        ("SH3_equipage", SH3 + WALK),
+        ("SH3_balayage", SH3 + SWEEP),
+        ("SH3n_perturbation", SH3n + PERT),
+        ("SH3n_cargaison", SH3n + CARGO),
+        ("SH3n_balayage", SH3n + SWEEP),
     ],
 }
 

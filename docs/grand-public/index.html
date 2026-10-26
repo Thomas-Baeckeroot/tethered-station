@@ -182,10 +182,10 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <p class="lede">Trois modules habités de 1 600 tonnes, reliés par des câbles d'un demi-kilomètre, font un tour par minute. À bord, on pèse 38 % de son poids terrestre : la gravité de Mars, sans poutre géante, avec des câbles de 11 cm de diamètre.</p>
   </div>
   <figure class="wide">
-    <div class="viewer" id="hero-viewer" data-anim="Zp_perturbation" data-autostart data-inertial data-speed="15">
+    <div class="viewer" id="hero-viewer" data-anim="Zp_perturbation" data-autostart data-inertial data-speed="1">
       <div class="poster" data-schema='{"topology":"triangle2","module":"tangential","bridle":20}'></div>
     </div>
-    <figcaption>La configuration retenue, simulée. Les modules sont dessinés trois fois plus gros que nature pour rester visibles : à l'échelle, chacun ferait 40 m de long sur un cercle de 680 m de diamètre. Faites glisser pour tourner autour.</figcaption>
+    <figcaption>La configuration retenue, simulée et affichée en temps réel : un tour par minute. Les modules sont dessinés trois fois plus gros que nature pour rester visibles : à l'échelle, chacun ferait 40 m de long sur un cercle de 680 m de diamètre. Faites glisser pour tourner autour.</figcaption>
   </figure>
 </header>
 
@@ -461,7 +461,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
       ctrl.innerHTML = `<button type="button" class="btn ghost" data-play>Pause</button>
         <input type="range" data-time aria-label="Temps simulé">
         <span data-clock></span>
-        <label>vitesse <select data-speed aria-label="Vitesse de lecture"><option value="2">×2</option><option value="6">×6</option><option value="10">×10</option><option value="20">×20</option><option value="30">×30</option><option value="60">×60</option></select></label>
+        <label>vitesse <select data-speed aria-label="Vitesse de lecture"><option value="1">temps réel</option><option value="2">×2</option><option value="6">×6</option><option value="10">×10</option><option value="20">×20</option><option value="30">×30</option><option value="60">×60</option></select></label>
         <label>repère <select data-frame aria-label="Repère"><option value="rot">tournant</option><option value="in">inertiel</option></select></label>
         <span class="readout" data-readout></span>`;
       ctrl.querySelector("[data-speed]").value = box.dataset.speed || "20";

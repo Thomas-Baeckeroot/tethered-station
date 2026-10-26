@@ -653,7 +653,7 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
       if (follow) viewer.setFollow(true);
       const ctrl = document.getElementById("viewer-play");
       ctrl.innerHTML = `<button type="button" data-play>Pause</button><input type="range" data-time aria-label="Temps simulé"><span data-clock></span>
-        <label>vitesse <select data-speed aria-label="Vitesse"><option value="2">×2</option><option value="6">×6</option><option value="10" selected>×10</option><option value="30">×30</option><option value="60">×60</option></select></label>
+        <label>vitesse <select data-speed aria-label="Vitesse"><option value="1">temps réel</option><option value="2">×2</option><option value="6">×6</option><option value="10" selected>×10</option><option value="30">×30</option><option value="60">×60</option></select></label>
         <label>repère <select data-frame aria-label="Repère"><option value="rot">tournant</option><option value="in">inertiel</option></select></label>
         <span class="readout" data-readout></span>`;
       ctrl.hidden = false;

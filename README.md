@@ -30,6 +30,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python run_scenarios.py rotation     # 8 scénarios de stabilité (~8 min sur M1 Max)
 .venv/bin/python run_scenarios.py internes     # mouvements internes (~30 min)
 .venv/bin/python run_scenarios.py final        # configuration retenue
+.venv/bin/python run_scenarios.py starship     # Starships (Ø9 × 50 m) : vertical ou horizontal, 2 ou 3 vaisseaux (~30 min)
 .venv/bin/python make_web_data.py              # met à jour docs/data/
 ```
 
@@ -53,4 +54,5 @@ Prévisualisation locale des pages : `docs/_preview/build.sh`, puis `python3 -m 
 - 50 t de cargaison déplacées de 15 m inclinent le plancher de 4,4° (attache unique), 1,6° (deux attaches), 0,7° (deux attaches surélevées de 20 m).
 - Les balancements des modules sont très peu amortis : 4 t oscillant à la fréquence la plus défavorable inclinent le plancher de 3,9° avec une attache unique, 0,7° avec deux attaches surélevées ; la marche ordinaire donne 0,2 à 0,6°.
 - Configuration retenue : triangle, modules tangentiels, deux attaches surélevées par module ; rotation dans le plan de l'orbite (sinon précession par gradient de gravité, ~28°/jour à 1 600 km).
+- Starships (Ø9 × 50 m, 1 600 t) : vertical (nez vers le centre, câbles aux points d'ancrage du nez) en triangle, chaque câble attaché du côté de son voisin. Roulis ≤ 0,1° ; 50 t déplacées de 3,5 m sur un pont : 0,23° ; changer de pont : aucun effet ; pire résonance 0,54° (contre 0,85° à l'horizontale avec mâts, 2,3° sans). À deux vaisseaux verticaux, rien ne fixe l'orientation autour du câble : dérive libre (205° en 30 min après une poussée de 0,11°/s).
 - Validation : énergie et moment cinétique conservés à 10⁻⁸ ou mieux ; Project Chrono reproduit les mêmes trajectoires (écart de temps de doublement 0,03 à 0,13 %).
