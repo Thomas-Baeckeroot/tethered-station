@@ -6,7 +6,7 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 
 - **Mise en rotation après l'injection vers Mars** : rapprochement des trois vaisseaux, déroulement des câbles sans détente, montée à 1 tr/min (poussée des moteurs ou du RCS, durée, ergols consommés, risque de mou dans les câbles).
 - **Rupture d'un câble** : énergie élastique stockée ≈ ½·T·ε·L (0,5 MJ par câble en route, 3,8 MJ à 1 600 t et 1 g). Trajectoire du brin libéré (fouet), survie du triangle réduit à deux câbles (le roulis redevient neutre ?), séparation sûre.
-- **Vaisseaux de masses inégales** (vaisseau d'équipage contre cargos) : triangle déséquilibré, centre de rotation décalé, gravité différente d'un vaisseau à l'autre.
+- **Vaisseaux de masses inégales** (vaisseau d'équipage contre cargos) : cas du transfert d'ergols vers les cargos (220 / 805 / 805 t, 0,87 tr/min, carnet § 14) ; triangle déséquilibré, centre de rotation décalé, gravité différente d'un vaisseau à l'autre.
 - **Pattes d'oie** : répartir chaque câble sur plusieurs points d'ancrage du nez, écartés aussi selon l'axe de rotation, pour raidir le balancement hors plan (complément ou alternative au bassin).
 - **Amortir davantage le mode couplé du LOX (≈ 0,26 Hz)** : avec le bassin, c'est lui qui fixe le pic restant (0,44 à 0,46°) ; chicanes plus efficaces ou second bassin accordé sur ce mode.
 - **Bassin d'eau en eau peu profonde, non linéaire** : au pire rythme, la masse équivalente se déplace de 25 à 31 cm pour 0,61 m de profondeur. Vérifier par un modèle d'écoulement en eau peu profonde (déferlement, ressaut, efficacité des grilles), et la tenue de l'accord quand le niveau baisse (l'eau sert aussi de réserve).
