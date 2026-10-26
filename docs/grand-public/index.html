@@ -418,6 +418,23 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </figure>
 </section>
 
+<section class="trap wide" id="starship-ergols">
+  <div class="txt">
+    <span class="tag">Troisième question</span>
+    <h3>Le clapotis des ergols</h3>
+    <p>En route, chaque vaisseau transporte encore près de 400 t d'oxygène et de méthane liquides, posés au fond des réservoirs par la gravité artificielle. Un liquide ne suit pas la coque : il clapote. Nous l'avons modélisé comme le font les ingénieurs des lanceurs, par des pendules : 139 t d'oxygène et 47 t de méthane se balancent au bout de pendules de moins de 3 m, à leur propre rythme, une oscillation toutes les 4 à 5 secondes.</p>
+    <p>Dans des réservoirs aux parois lisses, presque rien ne freine ce clapotis. Si l'équipage bouge en cadence à ce rythme pendant trois minutes, l'oxygène se balance de 23 cm et le plancher penche de 1,6° ; six minutes après l'arrêt, il penche encore de 0,8°. Au pire rythme, nous avons relevé jusqu'à 4,3°. Avec des chicanes, ces anneaux fixés à l'intérieur des réservoirs que les lanceurs utilisent déjà, le clapotis s'éteint en une vingtaine de secondes.</p>
+    <p class="verdict">La vie ordinaire n'est presque pas affectée : la cargaison et la marche donnent les mêmes inclinaisons qu'avant. Mais les réservoirs doivent avoir des chicanes, et même avec elles, le pire balancement entretenu par l'équipage double : 2,7° au lieu de 1,3°.</p>
+  </div>
+  <figure>
+    <div class="viewer" data-anim="L_libre_resonance" data-speed="6" data-follow>
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : 4 t oscillent pendant 3 minutes au rythme du clapotis, puis s'arrêtent.</b> Les sphères turquoise sont l'oxygène (en bas) et le méthane (au milieu), la jaune la masse qui oscille. Le balancement des liquides est amplifié 15 fois pour être visible : il se poursuit longtemps après l'arrêt. Lecture accélérée 6 fois.</figcaption>
+  </figure>
+</section>
+
 <section class="wide final" id="starship-mission">
   <div class="col" style="margin:0;max-width:46rem">
     <span class="eyebrow">Le résultat</span>
@@ -437,7 +454,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <div class="ctrl" hidden></div>
     <figcaption><b>Simulation : la station en route, 50 t de cargaison (sphère jaune) déplacées sur un pont du vaisseau 0.</b> Le vaisseau penche à peine. Les vaisseaux sont dessinés 1,6 fois plus gros que nature.</figcaption>
   </figure>
-  <p class="verdict">Le point sensible reste le balancement des vaisseaux, plus légers qu'au départ : si 4 t (une cinquantaine de personnes) se balancent en cadence toutes les 8 secondes, perpendiculairement au plan de rotation, le plancher finit par pencher de 1,4°. Les parades sans moteurs : garder le lest en bas des vaisseaux, répartir chaque câble sur plusieurs points d'ancrage, et laisser le clapotis des ergols, guidé par des chicanes, freiner les balancements.</p>
+  <p class="verdict">Le point sensible reste le balancement des vaisseaux, plus légers qu'au départ : si 4 t (une cinquantaine de personnes) se balancent en cadence toutes les 8 secondes, perpendiculairement au plan de rotation, le plancher finit par pencher de 1,4°, et de 2,7° une fois le clapotis des ergols pris en compte. Les parades sans moteurs : garder le lest en bas des vaisseaux, répartir chaque câble sur plusieurs points d'ancrage, munir les réservoirs de chicanes, et ajouter un « amortisseur à liquide » : un bassin d'eau peu profond dont le clapotis serait réglé sur le balancement, comme dans certains gratte-ciel.</p>
 </section>
 
 <section class="col">
@@ -445,7 +462,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <h2>Ce qu'il reste à étudier</h2>
   <ul class="todo">
     <li>La mise en rotation après l'injection vers Mars : rapprocher les trois vaisseaux, dérouler les câbles et accélérer sans jamais les laisser se détendre.</li>
-    <li>Le ballottement des ergols : en route, près des deux tiers de la masse de chaque vaisseau sont liquides. Leur clapotis peut freiner les balancements, ou les entretenir.</li>
+    <li>Un amortisseur à liquide accordé : environ 50 t d'eau sur 80 cm de profondeur, dont le clapotis serait réglé sur le balancement des vaisseaux. Cette eau servirait aussi de réserve et de protection contre les radiations.</li>
     <li>Des pattes d'oie sur plusieurs points d'ancrage du nez, pour raidir le balancement perpendiculaire au plan de rotation, aujourd'hui le plus sensible.</li>
     <li>La rupture d'un câble : un câble tendu stocke l'énergie de plusieurs kilos d'explosif. Le triangle doit survivre à la perte d'un côté.</li>
     <li>Des vaisseaux de masses différentes : le vaisseau d'équipage et les cargos ne seront pas forcément chargés à l'identique.</li>

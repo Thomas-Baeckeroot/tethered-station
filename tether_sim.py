@@ -154,7 +154,7 @@ def smooth(u):
     return 0.5 * (1 - math.cos(math.pi * u))
 
 
-def make_program(kind, amp, t0=60.0, speed=1.2, period=None, f0=0.004, f1=0.25, t1=None, a_max=1.0):
+def make_program(kind, amp, t0=60.0, speed=1.2, period=None, f0=0.004, f1=0.25, t1=None, a_max=1.0, stop=None):
     """Renvoie s(t) : déplacement (m) de la masse interne le long de son axe.
     - cargo : centre → +amp → −amp → centre, déplacements de 120 s, paliers ;
     - walk : allers-retours entre −amp et +amp à la vitesse de marche, accélération limitée (équipage) ;
@@ -205,9 +205,11 @@ def make_program(kind, amp, t0=60.0, speed=1.2, period=None, f0=0.004, f1=0.25, 
             return amp - leg(r) if int(k) % 2 == 0 else -amp + leg(r)
         return s
     if kind == "periodic":
+        # Sinusoïde démarrée et (si stop) arrêtée en douceur sur une période
         w = 2 * math.pi / period
         A = min(amp, a_max / w ** 2)
-        return lambda t: 0.0 if t < t0 else A * math.sin(w * (t - t0)) * smooth((t - t0) / period)
+        return lambda t: 0.0 if t < t0 or (stop and t > stop) else (
+            A * math.sin(w * (t - t0)) * smooth((t - t0) / period) * (smooth((stop - t) / period) if stop else 1.0))
     if kind == "sweep":
         def s(t):
             if t < t0 or t > t1:
@@ -328,7 +330,8 @@ class Station:
                 axes.append(self.R[b].T @ v)
         self.ai = np.array(axes).reshape(-1, 3)
         self.program = make_program(args.motion, args.motion_amp, speed=args.motion_speed, period=args.motion_period,
-                                    f1=getattr(args, "sweep_f1", 0.25), t1=args.duration - 60) if args.motion != "none" else None
+                                    f1=getattr(args, "sweep_f1", 0.25), t1=args.duration - 60,
+                                    stop=getattr(args, "motion_stop", None)) if args.motion != "none" else None
         self.ki = self.mi * (2 * math.pi * 2.0) ** 2  # asservissement à 2 Hz
         self.ci = 2 * 0.7 * self.mi * (2 * math.pi * 2.0)
         self.xi = np.zeros((len(self.mi), 3))
@@ -1106,6 +1109,7 @@ def make_parser():
     p.add_argument("--motion-speed", type=float, default=1.2, help="vitesse de marche (programme walk, m/s)")
     p.add_argument("--motion-period", type=float, default=60.0, help="période (programme periodic, s)")
     p.add_argument("--sweep-f1", type=float, default=0.25, help="fréquence finale du balayage (Hz)")
+    p.add_argument("--motion-stop", type=float, help="arrêt du programme periodic (s)")
     p.add_argument("--damper-frac", type=float, default=0.0, help="amortisseur interne : inertie de la sphère / inertie transverse du module")
     p.add_argument("--damper-tau", type=float, default=30.0, help="amortisseur interne : constante de temps (s)")
     p.add_argument("--slosh", choices=["off", "frozen", "free"], default="off",

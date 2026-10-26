@@ -51,7 +51,7 @@
   class StationViewer {
     constructor(container, opts = {}) {
       this.el = container;
-      this.opts = Object.assign({ exaggeration: 3, sloshExaggeration: 10, speed: 20, follow: false, autoplay: true, rotating: true }, opts);
+      this.opts = Object.assign({ exaggeration: 3, sloshExaggeration: 15, speed: 20, follow: false, autoplay: true, rotating: true }, opts);
       this.exag = this.opts.exaggeration;
       this.speed = this.opts.speed;
       this.follow = this.opts.follow;
@@ -193,7 +193,7 @@
         if (a.slosh) a.slosh.sb.forEach((sb, k) => {
           if (sb !== b) return;
           const sh = new THREE.Vector3(...a.slosh.sh[k]);
-          const ball = new THREE.Mesh(new THREE.SphereGeometry(0.9 * Math.cbrt(a.slosh.sm[k] / 100), 16, 12), new THREE.MeshStandardMaterial({ color: c.liquid }));
+          const ball = new THREE.Mesh(new THREE.SphereGeometry(1.3 * Math.cbrt(a.slosh.sm[k] / 100), 16, 12), new THREE.MeshStandardMaterial({ color: c.liquid }));
           const rod = new THREE.Line(new THREE.BufferGeometry().setFromPoints([sh, sh.clone()]), new THREE.LineBasicMaterial({ color: c.liquid }));
           g.add(ball);
           g.add(rod);

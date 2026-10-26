@@ -199,6 +199,7 @@ figcaption b { color: var(--ink); }
     <li><span class="k">Validation</span><span>Conservation de l'énergie et du moment cinétique à 10⁻⁹ ; temps de doublement analytique retrouvé à 0,1 % ; Project Chrono, moteur indépendant, donne le même roulis (écart de temps de doublement <span data-bind="validation.B_haltere_axial.doubling_rel" data-fmt="pct">—</span>).</span></li>
     <li><span class="k">Retenu</span><span>Z+ : triangle, modules tangentiels, deux attaches par module aux extrémités, surélevées de 20 m. Rotation dans le plan de l'orbite pour éviter la précession par gradient de gravité (sinon ~28°/jour à 1 600 km).</span></li>
     <li><span class="k">Starships</span><span>Trois Starships debout (pointe vers le centre), en triangle, attachés aux points d'ancrage de la coiffe. Après l'injection vers Mars, chacun pèse ≈ 610 t ; gravité de Mars (3,711 m/s²) à 338,4 m. Roulis <span data-bind="mission.M_perturbation.roll_max" data-fmt="deg">—</span>, cargaison de 50 t sur un pont <span data-bind="mission.M_cargaison_laterale.tilt_max" data-fmt="deg">—</span>, changement de pont sans effet. À deux vaisseaux, le roulis autour du câble est neutre et dérive sans limite.</span></li>
+    <li><span class="k">Ergols</span><span>186 t de liquide ballottent par vaisseau (30 % de la masse). Sans chicanes, le ballottement du LOX résonne vers 4 s de période et met des minutes à se calmer (jusqu'à 4,3° au pire). Avec chicanes (ζ = 3 %), il s'éteint en 20 s, mais le pire balancement double par rapport aux ergols figés (2,7° contre 1,3°). Piste : un amortisseur à liquide accordé.</span></li>
   </ul>
 </section>
 
@@ -336,6 +337,8 @@ figcaption b { color: var(--ink); }
         <option value="SV2_perturbation">SV2 · Starships, haltère vertical (dérive du roulis)</option>
         <option value="M_perturbation">Mission · 610 t, perturbation</option>
         <option value="M_cargaison_laterale">Mission · 610 t, cargaison 50 t latérale</option>
+        <option value="L_libre_resonance">Ergols libres · forçage au rythme du ballottement</option>
+        <option value="L_chicanes_resonance">Ergols avec chicanes · même forçage</option>
       </select></label>
       <label><input type="checkbox" id="viewer-follow" checked> suivre M0</label>
       <button type="button" id="viewer-load">Charger</button>
@@ -474,9 +477,46 @@ figcaption b { color: var(--ink); }
     <p><b>Mouvements lents.</b> 50 t déplacées de ±3,5 m sur un pont inclinent le plancher de <span data-bind="mission.M_cargaison_laterale.tilt_max" data-fmt="deg">—</span>, pour 0,61° prédit par la formule du palonnier (§ 9.1, <var>s</var> = 3,5 m, <var>h</var> = 25 m). C'est 2,6 fois plus qu'à 1 600 t, le rapport des masses. Le changement de pont (50 t sur ±15 m le long de l'axe) et la marche de l'équipage ne se distinguent pas de la réponse à la perturbation initiale (<span data-bind="mission.M_perturbation.tilt_max" data-fmt="deg">—</span>).</p>
     <p><b>Résonances.</b> Chaque vaisseau est un pendule de 25 m sous 3,7 m/s². Dans le plan de rotation, le palonnier raidit le balancement : pic de 0,58° à 0,15 Hz (période 6,6 s). Hors du plan, les attaches ne sont pas écartées et seul le rappel pendulaire agit : pic de <b>1,44° à 0,12 Hz</b> (période 8,1 s). C'est le point faible de la configuration. Les réponses varient comme 1/<var>M</var> : à 1 600 t, le même balayage donne 0,54°. La hauteur du centre de masse compte autant : avec <var>h</var> = 15 m, les pics montent à 1,53° (dans le plan, 5,0 s) et 2,71° (hors plan, 8,7 s). Au pic, la masse de 4 t oscille de ±1,7 m, l'amplitude étant limitée par l'accélération de 1 m/s² (§ 9.3).</p>
   </div>
-  <div class="callout"><b>Conséquences pratiques</b><span>Garder le centre de masse bas : ranger l'eau, les réserves et les ergols restants côté moteurs augmente <var>h</var> et raidit tous les balancements. Raidir le balancement hors plan : répartir chaque câble en patte d'oie sur plusieurs points d'ancrage du nez, écartés aussi selon l'axe de rotation. Éviter les activités collectives rythmées sur des périodes de 5 à 9 s. Le ballottement des ergols (0,18 à 0,20 Hz, § 12) tombe près des balancements : avec des chicanes, il pourrait servir d'amortisseur passif, ce qui reste à modéliser.</span></div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Garder le centre de masse bas : ranger l'eau, les réserves et les ergols restants côté moteurs augmente <var>h</var> et raidit tous les balancements. Raidir le balancement hors plan : répartir chaque câble en patte d'oie sur plusieurs points d'ancrage du nez, écartés aussi selon l'axe de rotation. Éviter les activités collectives rythmées sur des périodes de 5 à 9 s. Ces résultats supposent les ergols figés ; leur ballottement est traité au § 11.6.</span></div>
 
-  <h3>11.6 Corrections apportées en cours d'étude</h3>
+  <h3>11.6 Ballottement des ergols</h3>
+  <div class="prose">
+    <p>En route, environ 390 t des 610 t de chaque vaisseau sont liquides. Jusqu'ici, ils étaient figés dans un cylindre homogène. Cette section les laisse ballotter.</p>
+    <p><b>Modèle de masse.</b> Le cylindre homogène est remplacé par des éléments : coiffe 25 t, fût 55 t, moteurs et structure arrière 25 t, charge utile 115 t sous la coiffe, ergols posés au fond des réservoirs par la gravité artificielle. Le LOX (305 t) occupe 4,20 m au-dessus du fond de son réservoir (46 m sous la pointe), le CH4 (85 t) 3,16 m au-dessus du sien (35 m sous la pointe). Le centre de masse se trouve à 34,0 m de la pointe ; les points d'ancrage sont placés à 9,0 m de la pointe pour garder <var>h</var> = 25 m. Le liquide ne tourne pas avec le réservoir autour de l'axe : l'inertie axiale tombe à 3,8·<var>M</var> m², et la période de roulis prédite à 4,5 s (au lieu de 7,2 s).</p>
+    <p><b>Pendule équivalent.</b> Pour le premier mode latéral d'un réservoir cylindrique de rayon <var>a</var> rempli sur une hauteur <var>d</var>, sous une gravité <var>g</var> dirigée le long de son axe (Abramson 1966, NASA SP-106) :</p>
+  </div>
+  <div class="eq">ω<sub>s</sub>² = 1,841 (<var>g</var>/<var>a</var>) tanh(1,841 <var>d</var>/<var>a</var>) &nbsp;&nbsp; <var>m</var><sub>s</sub> = <var>m</var> · <var>a</var>/(2,199 <var>d</var>) · tanh(1,841 <var>d</var>/<var>a</var>) &nbsp;&nbsp; <var>L</var> = <var>g</var>/ω<sub>s</sub>²<br><var>H</var> = <var>d</var> − (<var>a</var>/1,841) [tanh(0,9205 <var>d</var>/<var>a</var>) − csch(1,841 <var>d</var>/<var>a</var>)] &nbsp;&nbsp;<small>(hauteur de l'articulation au-dessus du fond)</small></div>
+  <div class="prose">
+    <p><var>H</var> est la ligne d'action de la force de ballottement. On la retrouve en intégrant la pression du mode, ∝ J₁(1,841 <var>r</var>/<var>a</var>) cosh(1,841 <var>z</var>/<var>a</var>), sur la paroi et sur le fond. Une masse fixe complète le liquide en conservant son centre de masse.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Réservoir</th><th>Liquide</th><th>Profondeur</th><th>Masse ballottante</th><th>Pendule</th><th>Articulation (depuis la pointe)</th><th>Fréquence, réservoir fixe</th></tr></thead>
+    <tbody>
+      <tr><td>LOX</td><td class="n">305 t</td><td class="n">4,20 m</td><td class="n">139,3 t</td><td class="n">2,61 m</td><td class="n">42,6 m</td><td class="n">0,193 Hz</td></tr>
+      <tr><td>CH4</td><td class="n">85 t</td><td class="n">3,16 m</td><td class="n">47,2 t</td><td class="n">2,84 m</td><td class="n">31,8 m</td><td class="n">0,182 Hz</td></tr>
+    </tbody>
+    <caption>Vaisseau de 610 t en route. Gravité locale au bas du vaisseau ≈ 3,9 m/s². Au total, 186 t ballottent, soit 30 % de la masse.</caption>
+  </table></div>
+  <div class="prose">
+    <p><b>Mise en œuvre.</b> Chaque masse ballottante est une masse ponctuelle reliée à son articulation, sur l'axe du vaisseau, par une tige raide (ressort à 3 Hz). Dans le repère inertiel du simulateur, le pendule ressent naturellement la centrifuge et Coriolis. Un amortisseur relie la masse à la paroi (vitesse latérale relative), avec <var>c</var> = 2ζω<sub>s</sub><var>m</var><sub>s</sub>. Ordres de grandeur de ζ : parois lisses ≈ 1·10⁻⁴ (formule semi-empirique d'Abramson, ν<sub>LOX</sub> = 1,7·10⁻⁷ m²/s) ; parois raidies, quelques 10⁻³ ; chicanes annulaires, 2 à 5 %. Trois cas sont simulés : ergols <i>figés</i> (même modèle de masse, pendules bloqués), <i>libres</i> avec ζ = 0,1 %, et <i>chicanes</i> avec ζ = 3 %. La perturbation initiale est donnée au vaisseau entier, liquides compris.</p>
+    <p><b>Vérifications.</b> Sans amortissement, l'énergie est conservée à <span data-bind="ballottement.L_conservation.dE_max" data-fmt="sci">—</span>. Lancé seul dans la station, le ballottement du LOX oscille à 0,247 Hz et non à 0,193 Hz : le vaisseau (423 t, masse effective ≈ 250 t à l'articulation, rotation comprise) recule quand le liquide se balance. Le modèle linéaire hors plan de <code>slosh_modes.py</code> (attache, inclinaison, deux pendules) donne 0,250 Hz pour ce mode et 0,187 Hz pour le CH4. Il laisse le balancement principal à 0,113 Hz (0,114 Hz figé).</p>
+  </div>
+  <div class="tbl"><table id="t-slosh"><thead><tr><th>Scénario</th><th>Ergols</th><th>Plancher max</th><th>Roulis max</th><th>Ballottement max (LOX / CH4)</th><th>Gravité ressentie</th></tr></thead><tbody></tbody>
+  <caption>Vaisseaux de 610 t, modèle de masse par éléments. La gravité ressentie est mesurée au centre de masse de la partie rigide, 3,8 m plus près de l'axe que le centre de masse total lorsque les ergols sont libres.</caption></table></div>
+  <div class="grid2">
+    <div class="chartbox"><h4>Balayage dans le plan (4 t)</h4><div id="ch-slosh-t"></div></div>
+    <div class="chartbox"><h4>Balayage hors plan (4 t)</h4><div id="ch-slosh-z"></div></div>
+  </div>
+  <div class="chartbox"><h4>4 t oscillant 3 min au rythme du ballottement (4,05 s), puis arrêt</h4><div id="ch-slosh-ring"></div></div>
+  <div class="prose">
+    <p><b>Ce qui ne change pas.</b> Les mouvements lents et ordinaires : cargaison 0,61° (0,58° figé), marche et perturbation 0,19° (0,13°). Le ballottement reste alors de quelques centimètres.</p>
+    <p><b>Une résonance de plus.</b> Avec des parois simplement raidies, le mode couplé du LOX (≈ 0,25 Hz, période 4 s) n'est presque pas amorti. Un forçage de 3 min à ce rythme (4 t, ±0,38 m) décale la masse ballottante de 23 cm et incline le plancher de 1,6°. Six minutes après l'arrêt, l'inclinaison vaut encore 0,8° : la constante de temps est d'environ 7 min. Dans le balayage, ce mode et celui du CH4, excité vers 0,19 Hz et qui clapote encore des minutes plus tard, se superposent : 3,5° dans le plan, 4,3° hors plan, pour un ballottement de 0,34 m.</p>
+    <p><b>Les balancements eux-mêmes.</b> Au balancement principal (0,12 à 0,15 Hz), la réponse double, avec ou sans chicanes : 2,7 à 2,9° hors plan contre 1,33° pour les ergols figés. Un forçage périodique à 0,125 Hz montre que le vaisseau lui-même ne s'incline que 15 % de plus (0,268° contre 0,234°). Ce qui augmente, c'est la secousse latérale du plancher : l'inclinaison ressentie passe de 0,324° à 0,508°. Le liquide n'accompagne plus la coque, et la même poussée agite une structure de 424 t au lieu de 610 t.</p>
+    <p><b>Avec chicanes (ζ = 3 %).</b> Le pic de ballottement tombe à 1,5° et s'éteint en une vingtaine de secondes. Le pire cas redevient le balancement hors plan : 2,7°, contre 1,3° avec les ergols figés et 1,44° dans le modèle homogène du § 11.5.</p>
+  </div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Les chicanes sont indispensables : sans elles, le ballottement du LOX résonne vers 4 s de période et met des minutes à se calmer. Les ergols ne forment pas un amortisseur gratuit : leurs fréquences (0,19 et 0,25 Hz) sont trop éloignées du balancement principal (0,12 Hz). Piste passive : un amortisseur à liquide accordé, comme dans certains gratte-ciel, c'est-à-dire environ 50 t d'eau sur 0,8 m de profondeur dans un réservoir de 9 m. Il serait accordé à 0,115 Hz (Den Hartog : <var>f</var> = <var>f</var><sub>balancement</sub>/(1 + μ), μ ≈ 0,07) et amorti à ~15 % par des grilles. Cette eau servirait aussi de réserve et de protection contre les radiations. Reste à le simuler, avec un ballottement en eau peu profonde, non linéaire.</span></div>
+
+  <h3>11.7 Corrections apportées en cours d'étude</h3>
   <div class="prose">
     <ul>
       <li><b>Rappel du palonnier.</b> L'ancienne explication (2<var>T s</var>²/<var>L</var> seulement) sous-estimait le rappel d'un facteur 14 ; corrigée au § 6.3. La prédiction de roulis affichée par le simulateur et dans les tableaux est recalculée avec <var>T s</var> + 2<var>T s</var>²/<var>L</var>. Les trajectoires simulées n'étaient pas concernées.</li>
@@ -497,7 +537,7 @@ figcaption b { color: var(--ink); }
     <p><b>Confort de l'équipage.</b> Coriolis : 2ω<var>v</var>/<var>a</var> = ±5,6 % du poids à 1 m/s. Gradient tête-pieds : 1,8/340 = 0,5 %. À 1 tr/min, les deux restent sous les seuils usuels de confort, qui se situent vers 2 tr/min sans adaptation.</p>
     <p><b>Masse propre des câbles.</b> La centrifuge sur le câble ajoute λω²<var>R</var>²/2 ≈ 10 kN de tension au centre, négligeable devant 3,4 à 6 MN.</p>
     <p><b>En transit vers Mars.</b> Sur l'orbite héliocentrique, le mouvement moyen vaut <var>n</var> = 2,0·10⁻⁷ rad/s à 1 UA (1,1·10⁻⁷ rad/s à 1,52 UA) : <var>n</var>²/ω² ≈ 3,6·10⁻¹², vingt millions de fois moins qu'à 1 600 km d'altitude. La précession tombe à ~10⁻⁶ °/jour, soit 3·10⁻⁴ ° sur les 259 jours du transfert : l'axe de rotation reste fixe dans l'espace. La direction du Soleil, elle, tourne de 180° autour de la station pendant le transfert, ce qui compte pour l'orientation des panneaux et des radiateurs.</p>
-    <p><b>Ballottement des ergols (Starships).</b> Premier mode d'un réservoir cylindrique de rayon <var>a</var> rempli sur une hauteur <var>d</var>, sous une gravité <var>g</var><sub>loc</sub> : ω<sub>s</sub>² = 1,841 (<var>g</var><sub>loc</sub>/<var>a</var>) tanh(1,841 <var>d</var>/<var>a</var>). Pour l'oxygène liquide en route (<var>d</var> ≈ 4,2 m, <var>g</var><sub>loc</sub> ≈ 3,9 m/s² au bas du vaisseau) : 0,20 Hz ; pour le méthane (<var>d</var> ≈ 3,2 m) : 0,18 Hz. Ces fréquences tombent au milieu des balancements des vaisseaux (pics de réponse entre 0,1 et 0,23 Hz), avec environ 400 t de liquide sur 610 t. Les liquides ne sont pas modélisés ici (masse figée) : ils peuvent amortir les balancements, comme l'amortisseur du § 7, ou se coupler à eux. C'est la prochaine étape de modélisation pour ce scénario.</p>
+    <p><b>Ballottement des ergols (Starships).</b> Modélisé au § 11.6 (pendules d'Abramson).</p>
   </div>
 </section>
 
@@ -509,8 +549,8 @@ figcaption b { color: var(--ink); }
       <li>Câbles sans raideur en flexion ni en torsion, discrétisés en 16 segments : suffisant pour les modes bas, pas pour les ondes rapides. Un câble réel a une raideur en torsion qui ajouterait un faible rappel au roulis ; ce rappel est négligé, ce qui va dans le sens de la sécurité.</li>
       <li>Pas de gravité terrestre dans les simulations : précession estimée analytiquement (§ 12).</li>
       <li>Pas de contrôle actif ni de mise en rotation. L'amarrage d'un véhicule en route n'est pas prévu par le scénario Terre–Mars.</li>
-      <li>Starships : cylindres homogènes et rigides ; ergols figés (§ 12) ; ailerons absents de l'inertie (ils favorisent faiblement l'orientation ailerons dans le plan de rotation) ; capacité des points d'ancrage non publiée. En route, chaque câble tire 1,31 MN et chaque vaisseau 2,26 MN au total ; à 1 600 t et 1 g, ce serait 9,1 et 15,7 MN.</li>
-      <li>À simuler ensuite, par priorité pour le scénario Terre–Mars : mise en rotation après l'injection (rapprochement, déroulement des câbles sans détente) ; ballottement des ergols ; pattes d'oie sur plusieurs points d'ancrage du nez pour raidir le balancement hors plan ; rupture d'un câble (énergie élastique stockée ≈ 1/2 · <var>T</var>·ε·<var>L</var>, 3,8 MJ par câble à 1 600 t, 0,5 MJ en route) ; vaisseaux de masses inégales (équipage contre cargos). Moins prioritaires : gradient de gravité complet en orbite terrestre (repère de Hill), câbles ANCF continus dans Chrono.</li>
+      <li>Starships : structure rigide ; ergols réduits au premier mode de ballottement, linéaire, réservoirs équivalents à fond plat, partie fixe ponctuelle (§ 11.6) ; ailerons absents de l'inertie (ils favorisent faiblement l'orientation ailerons dans le plan de rotation) ; capacité des points d'ancrage non publiée. En route, chaque câble tire 1,31 MN et chaque vaisseau 2,26 MN au total ; à 1 600 t et 1 g, ce serait 9,1 et 15,7 MN.</li>
+      <li>À simuler ensuite, par priorité pour le scénario Terre–Mars : mise en rotation après l'injection (rapprochement, déroulement des câbles sans détente) ; amortisseur à liquide accordé (réservoir d'eau, § 11.6) ; pattes d'oie sur plusieurs points d'ancrage du nez pour raidir le balancement hors plan ; rupture d'un câble (énergie élastique stockée ≈ 1/2 · <var>T</var>·ε·<var>L</var>, 3,8 MJ par câble à 1 600 t, 0,5 MJ en route) ; vaisseaux de masses inégales (équipage contre cargos). Moins prioritaires : gradient de gravité complet en orbite terrestre (repère de Hill), câbles ANCF continus dans Chrono.</li>
     </ul>
   </div>
 </section>
@@ -524,6 +564,8 @@ figcaption b { color: var(--ink); }
 .venv/bin/python mission_mass.py                # masse après l'injection vers Mars
 .venv/bin/python run_scenarios.py starship      # Starships debout/couchés, 2 ou 3 (21 scénarios, ~30 min)
 .venv/bin/python run_scenarios.py mission       # mission Terre–Mars, 610 t, 3,711 m/s² (~30 min)
+.venv/bin/python run_scenarios.py ballottement  # ergols figés / libres / chicanes (15 scénarios, ~50 min)
+.venv/bin/python slosh_modes.py                 # modes couplés vaisseau + ergols (modèle linéaire)
 tools/chrono-env/bin/python chrono_validation.py --name B --module axial --duration 300
 .venv/bin/python make_web_data.py               # exporte docs/data/ pour ce carnet</pre>
 </section>
@@ -765,6 +807,43 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
   }).catch(() => {});
   sweepChartSS("ch-ss-sweep", [["M_balayage_t", "610 t, dans le plan"], ["M_balayage_z", "610 t, hors plan"],
     ["M_h15_balayage_z", "610 t, hors plan, h = 15 m"], ["SV3_balayage_z", "1 600 t, hors plan", true]]);
+  /* Ballottement (§ 11.6) */
+  getJSON("data/summary.json").then((S) => {
+    const L = S.ballottement || {};
+    const ROWS = [
+      ["L_fige_perturbation", "Perturbation", "figés"], ["L_libre_perturbation", "Perturbation", "libres"], ["L_chicanes_perturbation", "Perturbation", "chicanes"],
+      ["L_fige_cargaison", "Cargaison 50 t, ±3,5 m", "figés"], ["L_libre_cargaison", "Cargaison 50 t, ±3,5 m", "libres"],
+      ["L_libre_equipage", "Équipage 4 t", "libres"],
+      ["L_fige_balayage_t", "Balayage dans le plan", "figés"], ["L_libre_balayage_t", "Balayage dans le plan", "libres"], ["L_chicanes_balayage_t", "Balayage dans le plan", "chicanes"],
+      ["L_fige_balayage_z", "Balayage hors plan", "figés"], ["L_libre_balayage_z", "Balayage hors plan", "libres"], ["L_chicanes_balayage_z", "Balayage hors plan", "chicanes"],
+      ["L_libre_resonance", "Forçage 3 min à 4,05 s", "libres"], ["L_chicanes_resonance", "Forçage 3 min à 4,05 s", "chicanes"],
+    ];
+    const tb = document.querySelector("#t-slosh tbody");
+    ROWS.forEach(([name, lab, mode]) => {
+      const info = L[name];
+      if (!info) return;
+      const r = info.results;
+      const sl = r.slosh_max ? r.slosh_max.map((v) => fr(v * 100, v < 0.1 ? 1 : 0) + " cm").join(" / ") : "—";
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${lab}</td><td>${mode}</td><td class="n"><b>${deg(r.tilt_max)}</b></td><td class="n">${deg(r.roll_max)}</td>
+        <td class="n">${sl}</td><td class="n">${fr(r.g_min * 9.80665, 3)}–${fr(r.g_max * 9.80665, 3)} m/s²</td></tr>`);
+    });
+  }).catch(() => {});
+  const sweepSlosh = (el, list) => Promise.all(list.map(([n]) => series(n))).then((ds) => {
+    lineChart(document.getElementById(el), {
+      xLog: true, yLog: true, xLabel: "fréquence d'excitation (Hz)", xName: "f =", xUnit: " Hz", yLabel: "inclinaison du plancher (°)", yUnit: "°",
+      xFmt: (v) => fr(v, v < 0.01 ? 3 : 2),
+      series: ds.map((d, i) => ({ name: list[i][1], x: d.sweep.map((p) => p[0]), y: d.sweep.map((p) => p[1]) })),
+      vrefs: [{ x: 0.25, label: "LOX" }],
+    });
+  }).catch(() => {});
+  sweepSlosh("ch-slosh-t", [["L_fige_balayage_t", "ergols figés"], ["L_libre_balayage_t", "libres (ζ 0,1 %)"], ["L_chicanes_balayage_t", "chicanes (ζ 3 %)"]]);
+  sweepSlosh("ch-slosh-z", [["L_fige_balayage_z", "ergols figés"], ["L_libre_balayage_z", "libres (ζ 0,1 %)"], ["L_chicanes_balayage_z", "chicanes (ζ 3 %)"]]);
+  // Enveloppe : maximum glissant sur une période (séries échantillonnées à 1 s)
+  const envelope = (y, k = 2) => y.map((_, i) => Math.max(...y.slice(Math.max(0, i - k), i + k + 1)));
+  chartT("ch-slosh-ring", [
+    ["L_libre_resonance", "libres (ζ 0,1 %)", (d) => envelope(d.tilt[0])], ["L_chicanes_resonance", "chicanes (ζ 3 %)", (d) => envelope(d.tilt[0])],
+  ], { yLabel: "inclinaison du plancher, vaisseau 0, enveloppe (°)", yUnit: "°", vrefs: [{ x: 4, label: "arrêt du forçage" }] });
+
   getJSON("data/mission.json").then((M) => {
     const tb = document.querySelector("#t-tmi tbody");
     M.orbites.forEach((o) => tb.insertAdjacentHTML("beforeend", `<tr><td>${fr(o.alt_km)} km</td><td class="n">${fr(o.dv_impulsionnel)} m/s</td>

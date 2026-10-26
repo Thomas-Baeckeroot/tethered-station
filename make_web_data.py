@@ -35,8 +35,8 @@ ANIMATIONS = [
     ("starship", "SV3_perturbation", 0, 600, 1.0),
     ("mission", "M_perturbation", 0, 600, 1.0),
     ("mission", "M_cargaison_laterale", 0, 1500, 1.0),
-    ("ballottement", "L_libre_perturbation", 0, 600, 0.5),
-    ("ballottement", "L_libre_cargaison", 0, 1500, 1.0),
+    ("ballottement", "L_libre_resonance", 0, 600, 0.5),
+    ("ballottement", "L_chicanes_resonance", 0, 600, 0.5),
 ]
 
 
