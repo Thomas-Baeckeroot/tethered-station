@@ -46,6 +46,13 @@ LATZ = ["--motion-amp", "3.5", "--motion-axis", "z"]
 # (mission_mass.py : 610 t), câbles dimensionnés pour le vaisseau plein
 # (1 600 t à 1 g), gravité de Mars
 MISSION = SV3 + ["--mass-t", "610", "--design-mass-t", "1600", "--accel", "3.711"]
+# Ballottement des ergols : modèle de masse du Starship, ergols figés ou libres
+# (pendules d'Abramson), parois raidies (ζ = 0,1 %) ou chicanes (ζ = 3 %) ;
+# balayage prolongé jusqu'à 0,4 Hz pour couvrir le mode de ballottement
+FROZEN = MISSION + ["--slosh", "frozen"]
+FREE = MISSION + ["--slosh", "free", "--slosh-zeta", "0.001"]
+BAFFLED = MISSION + ["--slosh", "free", "--slosh-zeta", "0.03"]
+SWEEP_L = ["--motion", "sweep", "--motion-mass-t", "4", "--duration", "5460", "--sweep-f1", "0.4"]
 
 CAMPAIGNS = {
     "rotation": [
@@ -119,6 +126,21 @@ CAMPAIGNS = {
         ("M_balayage_z", MISSION + SWEEP + LATZ),
         ("M_h15_balayage_t", MISSION + SWEEP + LAT + ["--bridle", "-10"]),
         ("M_h15_balayage_z", MISSION + SWEEP + LATZ + ["--bridle", "-10"]),
+    ],
+    "ballottement": [
+        ("L_conservation", MISSION + ["--slosh", "free", "--slosh-zeta", "0", "--duration", "600", "--dv-lateral", "0.2"]),
+        ("L_fige_perturbation", FROZEN + PERT),
+        ("L_libre_perturbation", FREE + PERT + TRAJ),
+        ("L_chicanes_perturbation", BAFFLED + PERT),
+        ("L_fige_cargaison", FROZEN + CARGO + LAT),
+        ("L_libre_cargaison", FREE + CARGO + LAT + TRAJ),
+        ("L_libre_equipage", FREE + WALK + LAT),
+        ("L_fige_balayage_t", FROZEN + SWEEP_L + LAT),
+        ("L_fige_balayage_z", FROZEN + SWEEP_L + LATZ),
+        ("L_libre_balayage_t", FREE + SWEEP_L + LAT),
+        ("L_libre_balayage_z", FREE + SWEEP_L + LATZ),
+        ("L_chicanes_balayage_t", BAFFLED + SWEEP_L + LAT),
+        ("L_chicanes_balayage_z", BAFFLED + SWEEP_L + LATZ),
     ],
 }
 

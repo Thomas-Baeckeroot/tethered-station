@@ -86,8 +86,10 @@ def export_series(campaign, dest, step=1.0):
                    wrel=r(d["wrel"][::k].T, 3), g=r(d["g"][::k].T, 5))
         if "s" in d.files:
             ser["s"] = r(d["s"][::k], 2)
+        if "slosh" in d.files and d["slosh"].size:
+            ser["slosh"] = r(d["slosh"][::k].T, 3)
         if info.get("motion") == "sweep":
-            ser["sweep"] = sweep_response(d, info)
+            ser["sweep"] = sweep_response(d, info, f1=info["args"].get("sweep_f1", 0.25))
         with open(os.path.join(dest, "series", name + ".json"), "w") as fh:
             json.dump(ser, fh, separators=(",", ":"))
     return summary
