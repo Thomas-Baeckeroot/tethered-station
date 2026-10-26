@@ -35,6 +35,8 @@ ANIMATIONS = [
     ("starship", "SV3_perturbation", 0, 600, 1.0),
     ("mission", "M_perturbation", 0, 600, 1.0),
     ("mission", "M_cargaison_laterale", 0, 1500, 1.0),
+    ("ballottement", "L_libre_perturbation", 0, 600, 0.5),
+    ("ballottement", "L_libre_cargaison", 0, 1500, 1.0),
 ]
 
 
@@ -137,13 +139,20 @@ def export_anim(campaign, name, ta, tb, step, dest):
         fr = dict(t=round(float(t[i]), 1), xb=r(xb, 2), q=r(q, 5), xn=r(xn, 2), pa=r(pa, 2))
         if d["xi"].shape[1]:
             fr["xi"] = r(d["xi"][i] @ Rz.T, 2)
+        if "xs" in d.files and d["xs"].shape[1]:
+            # Ergols : écart de chaque masse ballottante à son articulation, repère du vaisseau
+            Rb = d["R"][i][d["sb"]]
+            off = d["xs"][i] - d["xb"][i][d["sb"]] - np.einsum("bij,bj->bi", Rb, d["sh"])
+            fr["sd"] = r(np.einsum("bji,bj->bi", Rb, off), 4)
         frames.append(fr)
     info = json.load(open(os.path.join(OUT, campaign, name + ".json")))
     radius, length = float(d["module_radius"]), float(d["module_length"])
     anim = dict(name=name, seg=d["seg"].tolist(), nf=int(d["nf"]), module=str(d["module"]),
                 radius=radius, length=length, omega=w,
                 shape="starship" if (radius, length) == (4.5, 50.0) else "cylinder",
-                bi=d["bi"].tolist(), info=dict(topology=info["topology"], module=info["module"], R=info["R"],
+                bi=d["bi"].tolist(),
+                slosh=dict(sb=d["sb"].tolist(), sh=r(d["sh"], 3), sm=r(d["sm"] / 1e3, 1)) if "sb" in d.files and len(d["sb"]) else None,
+                info=dict(topology=info["topology"], module=info["module"], R=info["R"],
                                                motion=info.get("motion"), motion_mass_t=info.get("motion_mass_t")),
                 frames=frames)
     os.makedirs(os.path.join(dest, "anim"), exist_ok=True)
@@ -179,7 +188,7 @@ def main():
     args = p.parse_args()
     os.makedirs(args.dest, exist_ok=True)
     summary = {}
-    for campaign in ("rotation", "internes", "final", "starship", "mission"):
+    for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement"):
         if os.path.isdir(os.path.join(OUT, campaign)):
             summary[campaign] = export_series(campaign, args.dest)
             print(f"séries : {campaign} ({len(summary[campaign])} scénarios)")

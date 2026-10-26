@@ -51,7 +51,7 @@
   class StationViewer {
     constructor(container, opts = {}) {
       this.el = container;
-      this.opts = Object.assign({ exaggeration: 3, speed: 20, follow: false, autoplay: true, rotating: true }, opts);
+      this.opts = Object.assign({ exaggeration: 3, sloshExaggeration: 10, speed: 20, follow: false, autoplay: true, rotating: true }, opts);
       this.exag = this.opts.exaggeration;
       this.speed = this.opts.speed;
       this.follow = this.opts.follow;
@@ -72,6 +72,7 @@
         grid: cssVar(e, "--viz-grid", "#2a313c"),
         mass: cssVar(e, "--viz-mass", "#ffd23f"),
         up: cssVar(e, "--viz-up", "#5cc8ff"),
+        liquid: cssVar(e, "--viz-liquid", "#3fd0c4"),
       };
     }
 
@@ -174,6 +175,7 @@
       const n = a.frames[0].xb.length;
       const ex = this.exag;
       this.modules = [];
+      this.slosh = [];
       const up = UP_BODY[a.module];
       const ship = a.shape === "starship";
       const hullMat = () => new THREE.MeshStandardMaterial({ color: c.hull, transparent: true, opacity: 0.35, metalness: 0.2, roughness: 0.6, depthWrite: false, side: ship ? THREE.DoubleSide : THREE.FrontSide });
@@ -187,6 +189,16 @@
           g.add(new THREE.Mesh(geo, hullMat()));
           g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), edgeMat()));
         }
+        // Ergols ballottants : masse (sphère) au bout d'un pendule articulé sur l'axe
+        if (a.slosh) a.slosh.sb.forEach((sb, k) => {
+          if (sb !== b) return;
+          const sh = new THREE.Vector3(...a.slosh.sh[k]);
+          const ball = new THREE.Mesh(new THREE.SphereGeometry(0.9 * Math.cbrt(a.slosh.sm[k] / 100), 16, 12), new THREE.MeshStandardMaterial({ color: c.liquid }));
+          const rod = new THREE.Line(new THREE.BufferGeometry().setFromPoints([sh, sh.clone()]), new THREE.LineBasicMaterial({ color: c.liquid }));
+          g.add(ball);
+          g.add(rod);
+          this.slosh.push({ k, sh, ball, rod });
+        });
         // Plancher : plaque perpendiculaire au « haut »
         const upV = new THREE.Vector3(...up);
         let floor;
@@ -282,6 +294,15 @@
         this.cableLines[ci].geometry.setDrawRange(0, ch.length);
         arr.needsUpdate = true;
         this.cableLines[ci].geometry.computeBoundingSphere();
+      });
+      // Écart latéral des ergols amplifié (sloshExaggeration) pour rester visible
+      if (A.sd) this.slosh.forEach(({ k, sh, ball, rod }) => {
+        const d = A.sd[k].map((v, i) => lerp(v, B.sd[k][i]));
+        const kx = this.opts.sloshExaggeration;
+        ball.position.set(sh.x + d[0], sh.y + kx * d[1], sh.z + kx * d[2]);
+        const arr = rod.geometry.attributes.position;
+        arr.setXYZ(1, ball.position.x, ball.position.y, ball.position.z);
+        arr.needsUpdate = true;
       });
       if (A.xi) this.masses.forEach((m, k) => {
         const body = this.anim.bi[k];
