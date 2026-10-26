@@ -34,6 +34,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python mission_mass.py               # masse d'un Starship après l'injection vers Mars
 .venv/bin/python run_scenarios.py mission      # mission Terre–Mars : 610 t, 3,711 m/s², câbles pour 1 600 t (~30 min)
 .venv/bin/python run_scenarios.py ballottement # ergols figés / libres / chicanes (~50 min)
+.venv/bin/python run_scenarios.py retenue      # solution retenue : ergols libres, réservoirs à chicanes
 .venv/bin/python slosh_modes.py                # modes couplés vaisseau + ergols (modèle linéaire)
 .venv/bin/python make_web_data.py              # met à jour docs/data/
 ```

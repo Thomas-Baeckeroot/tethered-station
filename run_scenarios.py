@@ -147,6 +147,13 @@ CAMPAIGNS = {
         ("L_libre_resonance", FREE + RESO + ["--traj-dt", "0.25"]),
         ("L_chicanes_resonance", BAFFLED + RESO + ["--traj-dt", "0.25"]),
     ],
+    # Solution retenue : mission, ergols libres, réservoirs à chicanes
+    "retenue": [
+        ("R_perturbation", BAFFLED + PERT + TRAJ),
+        ("R_cargaison_laterale", BAFFLED + CARGO + LAT + TRAJ),
+        ("R_cargaison_verticale", BAFFLED + CARGO + TRAJ),
+        ("R_equipage", BAFFLED + WALK + LAT),
+    ],
 }
 
 
