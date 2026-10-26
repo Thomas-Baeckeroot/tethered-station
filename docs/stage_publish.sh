@@ -12,15 +12,15 @@ for p in grand-public technique; do
   cp "$SRC/data/summary.json" "$DEST/$p/data/"
 done
 # Grand public : uniquement les données référencées
-for n in Zp_perturbation D_echelle_axial B_haltere_axial B_amortisseur Z_final_cargaison_patte_oie; do
+for n in Zp_perturbation D_echelle_axial B_haltere_axial B_amortisseur Z_final_cargaison_patte_oie SV2_perturbation M_cargaison_laterale; do
   cp "$SRC/data/anim/$n.json" "$DEST/grand-public/data/anim/"
   cp "$SRC/data/series/$n.json" "$DEST/grand-public/data/series/"
 done
-for n in A_cargaison Z_final_cargaison A_equipage Zp_equipage; do
+for n in A_cargaison Z_final_cargaison A_equipage Zp_equipage SV3_balayage_z SH3_balayage SH3n_balayage; do
   cp "$SRC/data/series/$n.json" "$DEST/grand-public/data/series/"
 done
 # Technique : tout
 cp "$SRC"/data/series/*.json "$DEST/technique/data/series/"
 cp "$SRC"/data/anim/*.json "$DEST/technique/data/anim/"
-cp "$SRC/data/validation.json" "$DEST/technique/data/"
+cp "$SRC/data/validation.json" "$SRC/data/mission.json" "$DEST/technique/data/"
 du -sh "$DEST"/*

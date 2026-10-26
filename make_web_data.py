@@ -31,6 +31,10 @@ ANIMATIONS = [
     ("final", "Z_final_perturbation", 0, 600, 1.0),
     ("final", "Z_final_cargaison_patte_oie", 0, 1500, 1.0),
     ("final", "Zp_perturbation", 0, 600, 1.0),
+    ("starship", "SV2_perturbation", 0, 1800, 2.0),
+    ("starship", "SV3_perturbation", 0, 600, 1.0),
+    ("mission", "M_perturbation", 0, 600, 1.0),
+    ("mission", "M_cargaison_laterale", 0, 1500, 1.0),
 ]
 
 
@@ -133,8 +137,10 @@ def export_anim(campaign, name, ta, tb, step, dest):
             fr["xi"] = r(d["xi"][i] @ Rz.T, 2)
         frames.append(fr)
     info = json.load(open(os.path.join(OUT, campaign, name + ".json")))
+    radius, length = float(d["module_radius"]), float(d["module_length"])
     anim = dict(name=name, seg=d["seg"].tolist(), nf=int(d["nf"]), module=str(d["module"]),
-                radius=float(d["module_radius"]), length=float(d["module_length"]), omega=w,
+                radius=radius, length=length, omega=w,
+                shape="starship" if (radius, length) == (4.5, 50.0) else "cylinder",
                 bi=d["bi"].tolist(), info=dict(topology=info["topology"], module=info["module"], R=info["R"],
                                                motion=info.get("motion"), motion_mass_t=info.get("motion_mass_t")),
                 frames=frames)
@@ -171,7 +177,7 @@ def main():
     args = p.parse_args()
     os.makedirs(args.dest, exist_ok=True)
     summary = {}
-    for campaign in ("rotation", "internes", "final"):
+    for campaign in ("rotation", "internes", "final", "starship", "mission"):
         if os.path.isdir(os.path.join(OUT, campaign)):
             summary[campaign] = export_series(campaign, args.dest)
             print(f"séries : {campaign} ({len(summary[campaign])} scénarios)")

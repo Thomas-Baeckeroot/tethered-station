@@ -13,6 +13,36 @@
 
   const UP_BODY = { tangential: [0, 0, -1], axial: [0, -1, 0], radial: [-1, 0, 0] };
 
+  /* Starship (cotes du plan SN8, en mètres) le long de l'axe x du corps,
+     pointe en x = −25 : coiffe ogivale, fût, ailerons avant et arrière dans
+     le plan (x, y). Les ailerons rendent visible la rotation propre. */
+  function starshipGeometries() {
+    const geos = [];
+    const prof = [];
+    for (let i = 0; i <= 16; i++) {
+      const u = i / 16;
+      prof.push(new THREE.Vector2(Math.max(4.5 * Math.sqrt(1 - (1 - u) * (1 - u)), 0.01), -25 + 13.8 * u));
+    }
+    const nose = new THREE.LatheGeometry(prof, 28);
+    nose.rotateZ(-Math.PI / 2);
+    geos.push(nose);
+    const barrel = new THREE.CylinderGeometry(4.5, 4.5, 36.2, 28, 1, false);
+    barrel.translate(0, 6.9, 0);
+    barrel.rotateZ(-Math.PI / 2);
+    geos.push(barrel);
+    const flap = (pts) => {
+      for (const sgn of [1, -1]) {
+        const sh = new THREE.Shape(pts.map(([r, x]) => new THREE.Vector2(x, sgn * r)));
+        const geo = new THREE.ExtrudeGeometry(sh, { depth: 0.4, bevelEnabled: false });
+        geo.translate(0, 0, -0.2);
+        geos.push(geo);
+      }
+    };
+    flap([[3.9, -18.6], [4.5, -11.4], [7.8, -11.4], [7.8, -15.6]]);
+    flap([[4.5, 11.9], [4.5, 23.8], [8.9, 23.8], [8.9, 14.5]]);
+    return geos;
+  }
+
   function cssVar(el, name, fallback) {
     const v = getComputedStyle(el).getPropertyValue(name).trim();
     return v || fallback;
@@ -145,18 +175,33 @@
       const ex = this.exag;
       this.modules = [];
       const up = UP_BODY[a.module];
+      const ship = a.shape === "starship";
+      const hullMat = () => new THREE.MeshStandardMaterial({ color: c.hull, transparent: true, opacity: 0.35, metalness: 0.2, roughness: 0.6, depthWrite: false, side: ship ? THREE.DoubleSide : THREE.FrontSide });
+      const edgeMat = () => new THREE.LineBasicMaterial({ color: c.hull, transparent: true, opacity: 0.6 });
       for (let b = 0; b < n; b++) {
         const g = new THREE.Group();
-        // Coque : cylindre le long de l'axe x du corps
-        const geo = new THREE.CylinderGeometry(a.radius, a.radius, a.length, 28, 1, false);
-        geo.rotateZ(-Math.PI / 2);
-        const hull = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: c.hull, transparent: true, opacity: 0.35, metalness: 0.2, roughness: 0.6, depthWrite: false }));
-        g.add(hull);
-        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), new THREE.LineBasicMaterial({ color: c.hull, transparent: true, opacity: 0.6 }));
-        g.add(edges);
+        // Coque le long de l'axe x du corps : cylindre, ou Starship (pointe en −x)
+        const geos = ship ? starshipGeometries() : [new THREE.CylinderGeometry(a.radius, a.radius, a.length, 28, 1, false)];
+        if (!ship) geos[0].rotateZ(-Math.PI / 2);
+        for (const geo of geos) {
+          g.add(new THREE.Mesh(geo, hullMat()));
+          g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), edgeMat()));
+        }
         // Plancher : plaque perpendiculaire au « haut »
         const upV = new THREE.Vector3(...up);
         let floor;
+        if (ship && a.module === "radial") {
+          // Pont de la section habitée, sous la coiffe
+          floor = new THREE.Mesh(new THREE.CylinderGeometry(a.radius * 0.95, a.radius * 0.95, 0.6, 28), new THREE.MeshStandardMaterial({ color: c.floor }));
+          floor.geometry.rotateZ(-Math.PI / 2);
+          floor.position.set(-6, 0, 0);
+          g.add(floor);
+          g.add(new THREE.ArrowHelper(upV, new THREE.Vector3(-6, 0, 0), a.radius * 1.6, c.up, a.radius * 0.5, a.radius * 0.35));
+          g.scale.setScalar(ex);
+          this.world.add(g);
+          this.modules.push(g);
+          continue;
+        }
         if (a.module === "radial") {
           floor = new THREE.Mesh(new THREE.CylinderGeometry(a.radius * 0.95, a.radius * 0.95, 0.6, 28), new THREE.MeshStandardMaterial({ color: c.floor }));
           floor.geometry.rotateZ(-Math.PI / 2);
@@ -268,14 +313,36 @@
     setExaggeration(e) { this.exag = e; this._buildObjects(); this._setFrameTime(this.time); }
     setFollow(f) {
       this.follow = f;
+      const radial = this.anim.module === "radial";
       if (f) {
-        const R = this.anim.info.R, ex = this.exag;
+        const ex = this.exag, L = this.anim.length * ex;
         const p = new THREE.Vector3(...this.anim.frames[0].xb[0]);
         const er = p.clone().setZ(0).normalize();
         this.controls.target.copy(p);
-        this.camera.position.copy(p.clone().sub(er.multiplyScalar(this.anim.length * ex * 1.6)).add(new THREE.Vector3(0, 0, this.anim.length * ex * 0.9)));
+        if (radial) {
+          // Module « debout » : le haut de l'écran pointe vers le centre de rotation,
+          // vue de trois quarts depuis le côté
+          const et = new THREE.Vector3(0, 0, 1).cross(er);
+          this._setUp(er.clone().negate());
+          this.camera.position.copy(p).addScaledVector(et, L * 1.6).addScaledVector(er, -L * 0.3).add(new THREE.Vector3(0, 0, L * 1.1));
+        } else {
+          this.camera.position.copy(p.clone().sub(er.multiplyScalar(L * 1.6)).add(new THREE.Vector3(0, 0, L * 0.9)));
+        }
         this._setFrameTime(this.time);
-      } else this._frameCamera();
+      } else {
+        if (radial) this._setUp(new THREE.Vector3(0, 0, 1));
+        this._frameCamera();
+      }
+    }
+
+    _setUp(up) {
+      // OrbitControls fige l'orientation « haut » à sa création : on le recrée
+      this.camera.up.copy(up);
+      const target = this.controls.target.clone();
+      this.controls.dispose();
+      this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+      this.controls.enableDamping = true;
+      this.controls.target.copy(target);
     }
   }
 

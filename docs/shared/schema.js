@@ -1,8 +1,10 @@
 /* Schémas des configurations (SVG, couleurs par variables CSS).
  *
- * drawSchema(container, {topology, module, spread, caption})
+ * drawSchema(container, {topology, module, spread, bridle, radius, length, ship, caption})
  *   topology : dumbbell | ladder | triangle | triangle2
  *   module   : tangential | axial | radial (orientation de l'axe long)
+ *   ship     : "starship" pour dessiner la silhouette du vaisseau (nez du
+ *              côté négatif de l'axe long, vers le centre s'il est radial)
  * Deux vues : dessus (plan de rotation) et côté (module 0, vu le long de la
  * direction de déplacement). Modules agrandis pour rester lisibles.
  */
@@ -25,6 +27,20 @@
     el("path", { d: "M0,0 L10,5 L0,10 z", class: "sc-arrowhead" }, m);
   }
 
+  /* Silhouette de Starship (cotes du plan SN8, en mètres) dans un repère
+     local : x le long de l'axe (pointe en −25), y transversal. k = px/m. */
+  function starship(parent, k, flaps) {
+    const g = el("g", {}, parent);
+    const P = (x, y) => `${(x * k).toFixed(2)} ${(y * k).toFixed(2)}`;
+    el("path", { d: `M ${P(-25, 0)} C ${P(-25, 2.9)} ${P(-18.5, 4.5)} ${P(-11.2, 4.5)} L ${P(25, 4.5)} L ${P(25, -4.5)} L ${P(-11.2, -4.5)} `
+      + `C ${P(-18.5, -4.5)} ${P(-25, -2.9)} ${P(-25, 0)} Z`, class: "sc-module" }, g);
+    if (flaps) for (const sgn of [1, -1]) {
+      el("path", { d: `M ${P(-18.6, 3.9 * sgn)} L ${P(-11.4, 4.5 * sgn)} L ${P(-11.4, 7.8 * sgn)} L ${P(-15.6, 7.8 * sgn)} Z`, class: "sc-module" }, g);
+      el("path", { d: `M ${P(11.9, 4.5 * sgn)} L ${P(23.8, 4.5 * sgn)} L ${P(23.8, 8.9 * sgn)} L ${P(14.5, 8.9 * sgn)} Z`, class: "sc-module" }, g);
+    }
+    return g;
+  }
+
   function topView(cfg) {
     const W = 300, H = 290, cx = 150, cy = 148, Rpx = 100;
     const s = Rpx / R, ex = 3.4;
@@ -40,7 +56,8 @@
     const tri = cfg.topology.startsWith("triangle");
     const angles = tri ? [90, 210, 330] : [0, 180];
     const spread = cfg.spread ?? (cfg.topology === "triangle2" ? 20 : cfg.topology === "ladder" ? 15 : 0);
-    const h = (cfg.module === "radial" ? LEN / 2 : A) + (cfg.bridle || 0);
+    const a = cfg.radius ?? A, len = cfg.length ?? LEN;
+    const h = (cfg.module === "radial" ? len / 2 : a) + (cfg.bridle || 0);
     const P = (th, rr, tt) => {
       const t = th * Math.PI / 180, er = [Math.cos(t), Math.sin(t)], et = [-Math.sin(t), Math.cos(t)];
       return [cx + (er[0] * rr + et[0] * tt) * s, cy - (er[1] * rr + et[1] * tt) * s];
@@ -64,8 +81,9 @@
     angles.forEach((th, b) => {
       const c = P(th, R, 0);
       const g = el("g", { transform: `translate(${c[0]},${c[1]}) rotate(${-th})` }, svg);
-      const L = LEN * s * ex, D = 2 * A * s * ex;
-      if (cfg.module === "tangential") el("rect", { x: -D / 2, y: -L / 2, width: D, height: L, rx: D / 2, class: "sc-module" }, g);
+      const L = len * s * ex, D = 2 * a * s * ex;
+      if (cfg.ship === "starship" && cfg.module !== "axial") starship(g, s * ex, true).setAttribute("transform", cfg.module === "tangential" ? "rotate(90)" : "");
+      else if (cfg.module === "tangential") el("rect", { x: -D / 2, y: -L / 2, width: D, height: L, rx: D / 2, class: "sc-module" }, g);
       else if (cfg.module === "radial") el("rect", { x: -L / 2, y: -D / 2, width: L, height: D, rx: D / 2, class: "sc-module" }, g);
       else el("circle", { r: D / 2, class: "sc-module" }, g);
       if (att[b].length === 2) {
@@ -90,9 +108,10 @@
     // Axe de rotation
     el("line", { x1: axisX, y1: 40, x2: axisX, y2: 250, class: "sc-axis" }, svg);
     el("text", { x: axisX + 6, y: 48, class: "sc-small" }, svg, "axe de rotation");
-    const s = ex * 0.9;
-    const L = LEN * s, D = 2 * A * s;
-    const h0 = (cfg.module === "radial" ? LEN / 2 : A) * s;
+    const a = cfg.radius ?? A, len = cfg.length ?? LEN;
+    const s = ex * 0.9 * (cfg.module === "radial" ? LEN / Math.max(len, LEN) : 1);
+    const L = len * s, D = 2 * a * s;
+    const h0 = (cfg.module === "radial" ? len / 2 : a) * s;
     const h = h0 + (cfg.bridle || 0) * s;
     // Module 0 vu le long de e_t : e_r vers la droite, e_z vers le haut
     let shape, floor;
@@ -102,6 +121,11 @@
     } else if (cfg.module === "axial") {
       shape = el("rect", { x: modX - D / 2, y: cy - L / 2, width: D, height: L, rx: D / 2, class: "sc-module" }, svg);
       floor = [modX + D * 0.18, cy - L * 0.45, modX + D * 0.18, cy + L * 0.45];
+    } else if (cfg.ship === "starship") {
+      // Starship vertical : ponts perpendiculaires à l'axe, section habitée sous la coiffe
+      starship(el("g", { transform: `translate(${modX},${cy})` }, svg), s, false);
+      for (const x of [-9, -3, 3]) el("line", { x1: modX + x * s, y1: cy - D * 0.45, x2: modX + x * s, y2: cy + D * 0.45, class: "sc-deck" }, svg);
+      floor = [modX - 6 * s, cy - D * 0.45, modX - 6 * s, cy + D * 0.45];
     } else {
       shape = el("rect", { x: modX - L / 2, y: cy - D / 2, width: L, height: D, rx: D / 2, class: "sc-module" }, svg);
       floor = [modX + L * 0.36, cy - D * 0.4, modX + L * 0.36, cy + D * 0.4];
@@ -126,7 +150,7 @@
     el("text", { x: modX + 50, y: cy + 92, class: "sc-small", "text-anchor": "middle" }, svg, "« bas »");
     el("text", { x: modX, y: cy + (cfg.module === "axial" ? L / 2 + 18 : D / 2 + 18), class: "sc-small", "text-anchor": "middle" }, svg, "M0");
     el("text", { x: 8, y: 16, class: "sc-title" }, svg, "Vue de côté (M0)");
-    el("text", { x: 8, y: H - 8, class: "sc-small" }, svg, cfg.topology === "triangle2" ? "2 attaches, écartées de ±" + (cfg.spread ?? 20) + " m en profondeur" : "câble non à l'échelle");
+    el("text", { x: 8, y: H - 8, class: "sc-small" }, svg, cfg.topology === "triangle2" ? "2 attaches, écartées de ±" + String(cfg.spread ?? 20).replace(".", ",") + " m en profondeur" : "câble non à l'échelle");
     return svg;
   }
 
