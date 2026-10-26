@@ -318,6 +318,20 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </figure>
 </section>
 
+<section class="trap wide" id="piege-bassin">
+  <div class="txt">
+    <span class="tag">Amortisseur</span>
+    <h3>Un bassin d'eau contre le balancement</h3>
+    <p>Certains gratte-ciel combattent leurs oscillations avec un bassin d'eau : quand la tour se balance, l'eau clapote à contretemps et absorbe le mouvement. Il suffit de régler la profondeur du bassin pour que l'eau clapote au même rythme que la tour, et de freiner le clapotis par des grilles.</p>
+    <p>Nous avons cherché le meilleur bassin pour nos vaisseaux. Il faut le placer en haut, sous la coiffe : le vaisseau se balance autour de son centre de gravité, et un bassin posé près des moteurs ne bougerait presque pas. 25 t d'eau suffisent, dans un bassin rond de 7,2 m de diamètre et 60 cm de profondeur, qui clapote toutes les 8,5 secondes. Plus d'eau n'apporte rien.</p>
+    <p class="verdict">Avec le bassin, au pire rythme, le plancher ne penche plus que de <b data-bind="T_balayage_z.tilt_max">—</b> au lieu de 2,7°. Cette eau sert aussi de réserve et de protection contre les radiations.</p>
+  </div>
+  <figure>
+    <div class="chartbox"><div id="chart-tld"></div></div>
+    <figcaption><b>Inclinaison maximale du plancher quand 4 t oscillent perpendiculairement au plan de rotation, selon la cadence.</b> Sans bassin, puis avec un bassin de 25 t dans chaque vaisseau.</figcaption>
+  </figure>
+</section>
+
 <section class="trap wide" id="starship-ergols">
   <div class="txt">
     <span class="tag">Ergols</span>
@@ -343,11 +357,11 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </div>
   <ul class="checks" id="mission-checks">
     <li><b>Pas de pivotement</b><span>Le vaisseau perturbé ne tourne que de <span class="num" data-bind="R_perturbation.roll_max">—</span> autour de son axe.</span></li>
-    <li><b>Plancher stable</b><span><span class="num" data-bind="R_cargaison_laterale.tilt_max">—</span> au pire quand 50 t traversent un pont, <span class="num" data-bind="R_equipage.tilt_max">—</span> quand l'équipage marche, rien quand on change de pont.</span></li>
+    <li><b>Plancher stable</b><span><span class="num" data-bind="R_cargaison_laterale.tilt_max">—</span> au pire quand 50 t traversent un pont, <span class="num" data-bind="R_equipage.tilt_max">—</span> quand l'équipage marche, rien quand on change de pont, <span class="num" data-bind="T_balayage_z.tilt_max">—</span> au pire rythme grâce au bassin.</span></li>
     <li><b>Gravité stable</b><span>Entre <span class="num" data-bind="R_perturbation.g_min" data-fmt="ms2">—</span> et <span class="num" data-bind="R_perturbation.g_max" data-fmt="ms2">—</span>, pour 3,711 m/s² visés.</span></li>
     <li><b>Marge de résistance</b><span>Câbles dimensionnés pour des vaisseaux pleins à 1 g avec un facteur de sécurité de 3 : en route, ils ne travaillent qu'à 5 % de leur résistance.</span></li>
   </ul>
-  <p class="verdict">Le point sensible reste le balancement des vaisseaux, plus légers qu'au départ et alourdis d'ergols qui ne suivent pas la coque : si 4 t (une cinquantaine de personnes) se balancent en cadence toutes les 8 secondes, perpendiculairement au plan de rotation, le plancher finit par pencher de 2,7°. Les parades sans moteurs : garder le lest en bas des vaisseaux, répartir chaque câble sur plusieurs points d'ancrage, et ajouter un « amortisseur à liquide » : un bassin d'eau peu profond dont le clapotis serait réglé sur le balancement, comme dans certains gratte-ciel.</p>
+  <p class="verdict">Le point sensible était le balancement des vaisseaux, plus légers qu'au départ et alourdis d'ergols qui ne suivent pas la coque : 4 t (une cinquantaine de personnes) se balançant en cadence toutes les 8 secondes faisaient pencher le plancher de 2,7°. Un bassin de 25 t d'eau sous la coiffe de chaque vaisseau ramène ce pire cas à <span class="num" data-bind="T_balayage_z.tilt_max">—</span>, sans moteur ni pièce mobile.</p>
 </section>
 
 <section class="col" id="alternatives">
@@ -484,7 +498,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <h2>Ce qu'il reste à étudier</h2>
   <ul class="todo">
     <li>La mise en rotation après l'injection vers Mars : rapprocher les trois vaisseaux, dérouler les câbles et accélérer sans jamais les laisser se détendre.</li>
-    <li>Un amortisseur à liquide accordé : environ 50 t d'eau sur 80 cm de profondeur, dont le clapotis serait réglé sur le balancement des vaisseaux. Cette eau servirait aussi de réserve et de protection contre les radiations.</li>
+    <li>Le clapotis réel du bassin d'eau aux grandes amplitudes (vagues qui déferlent), que nos pendules ne représentent pas.</li>
     <li>Des pattes d'oie sur plusieurs points d'ancrage du nez, pour raidir le balancement perpendiculaire au plan de rotation, aujourd'hui le plus sensible.</li>
     <li>La rupture d'un câble : un câble tendu stocke l'énergie de plusieurs kilos d'explosif. Le triangle doit survivre à la perte d'un côté.</li>
     <li>Des vaisseaux de masses différentes : le vaisseau d'équipage et les cargos ne seront pas forcément chargés à l'identique.</li>
@@ -617,6 +631,14 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
         series: ds.map((d, i) => ({ name: ["dans le plan de rotation", "perpendiculaire au plan"][i], x: d.sweep.map((p) => p[0]), y: d.sweep.map((p) => p[1]) })),
       });
     }).catch(() => {});
+  Promise.all(["L_chicanes_balayage_z", "T_balayage_z"].map((n) => getJSON(`data/series/${n}.json`)))
+    .then((ds) => {
+      lineChart(document.getElementById("chart-tld"), {
+        xLog: true, yLog: true, xLabel: "cadence (oscillations par seconde)", xName: "f =", xUnit: " Hz", yLabel: "inclinaison du plancher (°)", yUnit: "°",
+        xFmt: (v) => fr(v, v < 0.01 ? 3 : 2),
+        series: ds.map((d, i) => ({ name: ["sans bassin", "avec bassin de 25 t"][i], x: d.sweep.map((p) => p[0]), y: d.sweep.map((p) => p[1]) })),
+      });
+    }).catch(() => {});
   Promise.all(["A_cargaison", "Z_final_cargaison", "Z_final_cargaison_patte_oie"].map((n) => getJSON(`data/series/${n}.json`)))
     .then(([a, z, zp]) => {
       lineChart(document.getElementById("chart-cargo"), {
@@ -626,7 +648,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
       });
     }).catch(() => {});
   getJSON("data/summary.json").then((s) => {
-    const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {}, s.starship || {}, s.mission || {}, s.ballottement || {}, s.retenue || {});
+    const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {}, s.starship || {}, s.mission || {}, s.ballottement || {}, s.retenue || {}, s.amortisseur || {});
     document.querySelectorAll("[data-bind]").forEach((n) => {
       const [name, key] = n.dataset.bind.split(".");
       const info = all[name];

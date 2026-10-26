@@ -16,7 +16,7 @@ for n in R_perturbation R_cargaison_laterale D_echelle_axial B_haltere_axial B_a
   cp "$SRC/data/anim/$n.json" "$DEST/grand-public/data/anim/"
   cp "$SRC/data/series/$n.json" "$DEST/grand-public/data/series/"
 done
-for n in A_cargaison Z_final_cargaison Z_final_cargaison_patte_oie SV3_perturbation L_chicanes_balayage_t L_chicanes_balayage_z; do
+for n in A_cargaison Z_final_cargaison Z_final_cargaison_patte_oie SV3_perturbation L_chicanes_balayage_t L_chicanes_balayage_z T_balayage_z; do
   cp "$SRC/data/series/$n.json" "$DEST/grand-public/data/series/"
 done
 # Technique : tout

@@ -197,7 +197,7 @@ figcaption b { color: var(--ink); }
     <li><span class="k">Roulis</span><span>Un câble ne transmet pas de couple. Debout et axisymétrique, un vaisseau tenu par un seul câble a un roulis neutre : il dérive sans fin. Les deux attaches écartées du triangle le rappellent (<var>k</var> = <var>T s</var> + 2<var>T s</var>²/<var>L</var>) : roulis max <span data-bind="retenue.R_perturbation.roll_max" data-fmt="deg">—</span> après une poussée.</span></li>
     <li><span class="k">Vie à bord</span><span>50 t déplacées de 3,5 m sur un pont : <span data-bind="retenue.R_cargaison_laterale.tilt_max" data-fmt="deg">—</span> d'inclinaison du plancher. Changer de pont : <span data-bind="retenue.R_cargaison_verticale.tilt_max" data-fmt="deg">—</span>. Marche de l'équipage : <span data-bind="retenue.R_equipage.tilt_max" data-fmt="deg">—</span>.</span></li>
     <li><span class="k">Ergols</span><span>186 t de liquide ballottent par vaisseau (30 % de la masse). Sans chicanes, le ballottement du LOX résonne vers 4 s de période et met des minutes à se calmer (jusqu'à 4,3°). Avec chicanes (ζ = 3 %), il s'éteint en 20 s.</span></li>
-    <li><span class="k">Point faible</span><span>Le balancement hors du plan de rotation (période ≈ 8 s), sans écartement des attaches dans cette direction : 4 t oscillant au pire rythme inclinent le plancher de 2,7° (1,3° si les ergols étaient figés). Parades passives : pattes d'oie sur plusieurs points d'ancrage, amortisseur à liquide accordé.</span></li>
+    <li><span class="k">Amortisseur</span><span>Le point faible était le balancement hors du plan de rotation (période ≈ 8 s) : 4 t oscillant au pire rythme inclinaient le plancher de 2,7°. Un bassin de 25 t d'eau (Ø 7,2 m, 0,61 m de profondeur), placé à 12 m de la pointe, accordé à 0,117 Hz et amorti à 15 % par des grilles, ramène ce pire cas à <span data-bind="amortisseur.T_balayage_z.tilt_max" data-fmt="deg">—</span> (<span data-bind="amortisseur.T_balayage_t.tilt_max" data-fmt="deg">—</span> dans le plan), sans rien changer aux mouvements ordinaires (§ 6.1).</span></li>
     <li><span class="k">Alternatives</span><span>Couchés, les vaisseaux demandent des mâts et un intérieur refait, pour une pire résonance plus forte (0,85° contre 0,54° à 1 600 t ; 2,3° sans mâts). À deux vaisseaux, le roulis est neutre : 205° de dérive en 30 min. Modules génériques : un module allongé parallèle à l'axe de rotation est instable (doublement 7,1 s) ; l'haltère est sujet à l'effet Djanibekov.</span></li>
     <li><span class="k">Validation</span><span>Conservation de l'énergie et du moment cinétique à 10⁻⁹ ; temps de doublement analytique retrouvé à 0,1 % ; Project Chrono, moteur indépendant, donne le même roulis (écart de temps de doublement <span data-bind="validation.B_haltere_axial.doubling_rel" data-fmt="pct">—</span>) ; ballottement : énergie conservée à 10⁻⁸, fréquence couplée à 1 % du modèle linéaire.</span></li>
   </ul>
@@ -344,11 +344,14 @@ figcaption b { color: var(--ink); }
     <div class="viewer" id="viewer"><div class="poster">Choisissez une simulation, puis « Charger ».</div></div>
     <div class="ctrl" id="viewer-ctrl">
       <label>simulation <select id="viewer-pick" aria-label="Simulation à afficher">
-        <optgroup label="Solution retenue (§ 5, 6)">
+        <optgroup label="Solution retenue (§ 5, 6, 6.1)">
         <option value="R_perturbation">Solution retenue · perturbation</option>
         <option value="R_cargaison_laterale">Solution retenue · cargaison 50 t sur un pont</option>
         <option value="L_libre_resonance">Ergols sans chicanes · forçage au rythme du ballottement</option>
         <option value="L_chicanes_resonance">Ergols avec chicanes · même forçage</option>
+        <option value="R_resonance_z">Sans bassin · 4 t au rythme du balancement hors plan</option>
+        <option value="T_resonance_z">Avec bassin de 25 t · même forçage</option>
+        <option value="T_perturbation">Avec bassin de 25 t · perturbation</option>
         <option value="M_perturbation">Modèle homogène · perturbation</option>
         <option value="M_cargaison_laterale">Modèle homogène · cargaison 50 t sur un pont</option>
         </optgroup>
@@ -414,7 +417,43 @@ figcaption b { color: var(--ink); }
     <p><b>Les balancements eux-mêmes.</b> Au balancement principal (0,12 à 0,15 Hz), la réponse double, avec ou sans chicanes : 2,7 à 2,9° hors plan contre 1,33° pour les ergols figés. Un forçage périodique à 0,125 Hz montre que le vaisseau lui-même ne s'incline que 15 % de plus (0,268° contre 0,234°). Ce qui augmente, c'est la secousse latérale du plancher : l'inclinaison ressentie passe de 0,324° à 0,508°. Le liquide n'accompagne plus la coque, et la même poussée agite une structure de 424 t au lieu de 610 t.</p>
     <p><b>Avec chicanes (ζ = 3 %).</b> Le pic de ballottement tombe à 1,5° et s'éteint en une vingtaine de secondes. Le pire cas redevient le balancement hors plan : 2,7°, contre 1,3° avec les ergols figés et 1,44° dans le modèle homogène du § 5.3.</p>
   </div>
-  <div class="callout"><b>Conséquences pratiques</b><span>Les chicanes sont indispensables : sans elles, le ballottement du LOX résonne vers 4 s de période et met des minutes à se calmer. Les ergols ne forment pas un amortisseur gratuit : leurs fréquences (0,19 et 0,25 Hz) sont trop éloignées du balancement principal (0,12 Hz). Piste passive : un amortisseur à liquide accordé, comme dans certains gratte-ciel, c'est-à-dire environ 50 t d'eau sur 0,8 m de profondeur dans un réservoir de 9 m. Il serait accordé à 0,115 Hz (Den Hartog : <var>f</var> = <var>f</var><sub>balancement</sub>/(1 + μ), μ ≈ 0,07) et amorti à ~15 % par des grilles. Cette eau servirait aussi de réserve et de protection contre les radiations. Reste à le simuler, avec un ballottement en eau peu profonde, non linéaire.</span></div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Les chicanes sont indispensables : sans elles, le ballottement du LOX résonne vers 4 s de période et met des minutes à se calmer. Les ergols ne forment pas un amortisseur gratuit : leurs fréquences (0,19 et 0,25 Hz) sont trop éloignées du balancement principal (0,12 Hz). Le balancement hors plan demande donc un amortisseur dédié : c'est l'objet du § 6.1.</span></div>
+
+  <h3 id="tld">6.1 Amortisseur à liquide accordé</h3>
+  <div class="prose">
+    <p><b>Principe.</b> Comme dans certains gratte-ciel, un bassin d'eau peu profond clapote au rythme du balancement à combattre ; des grilles freinent ce clapotis et dissipent l'énergie que la structure lui cède. Le bassin est modélisé comme les ergols : un pendule d'Abramson (premier mode, ω² = 1,841 (<var>g</var>/<var>a</var>) tanh(1,841 <var>d</var>/<var>a</var>)) avec son propre amortissement ζ, ajouté au modèle de masse du vaisseau. Son eau est prise sur la charge utile : la masse totale (610 t) et le centre de masse ne bougent pas.</p>
+    <p><b>Dimensionnement.</b> Le modèle linéaire hors plan de <code>slosh_modes.py</code>, amorti, est intégré en temps (<code>tld_design.py</code>, discrétisation exacte par exponentielle de matrice) avec le même programme de balayage que le simulateur. L'inclinaison ressentie est θ + ü<sub>c</sub>/<var>g</var> : inclinaison du vaisseau, plus l'accélération latérale de son centre de masse rapportée à la gravité locale. Sans bassin, ce modèle donne 3,15° hors plan avec chicanes (simulateur : 2,70°), 1,52° ergols figés (1,31°) : il majore de 15 à 50 %, faute de l'amortissement apporté par les câbles. La recherche porte sur l'emplacement, la masse d'eau, le rayon (donc l'accord) et ζ.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Fond du bassin (depuis la pointe)</th><th>Eau</th><th>Diamètre</th><th>Profondeur</th><th>Accord</th><th>ζ optimal</th><th>Pic hors plan (linéaire)</th></tr></thead>
+    <tbody>
+      <tr><td>—</td><td class="n">sans bassin</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">3,15°</td></tr>
+      <tr><td>12 m</td><td class="n">25 t</td><td class="n">7,2 m</td><td class="n">0,61 m</td><td class="n">0,117 Hz</td><td class="n">0,08</td><td class="n"><b>0,44°</b></td></tr>
+      <tr><td>12 m</td><td class="n">50 t</td><td class="n">8,4 m</td><td class="n">0,90 m</td><td class="n">0,120 Hz</td><td class="n">0,08</td><td class="n">0,47°</td></tr>
+      <tr><td>12 m</td><td class="n">75 t</td><td class="n">8,8 m</td><td class="n">1,23 m</td><td class="n">0,132 Hz</td><td class="n">0,08</td><td class="n">0,50°</td></tr>
+      <tr><td>20 m</td><td class="n">25 t</td><td class="n">7,6 m</td><td class="n">0,55 m</td><td class="n">0,107 Hz</td><td class="n">0,25</td><td class="n">0,44°</td></tr>
+      <tr><td>20 m</td><td class="n">50 t</td><td class="n">7,6 m</td><td class="n">1,10 m</td><td class="n">0,146 Hz</td><td class="n">0,30</td><td class="n">0,48°</td></tr>
+      <tr><td>46 m (côté moteurs)</td><td class="n">25 t</td><td class="n">7,6 m</td><td class="n">0,55 m</td><td class="n">0,111 Hz</td><td class="n">0,05</td><td class="n">2,18°</td></tr>
+      <tr><td>46 m (côté moteurs)</td><td class="n">50 t</td><td class="n">8,8 m</td><td class="n">0,82 m</td><td class="n">0,116 Hz</td><td class="n">0,05</td><td class="n">1,57°</td></tr>
+    </tbody>
+    <caption>Recherche sur le modèle linéaire (balayage hors plan, 4 t, réservoirs à chicanes). Rayons de 2 à 4,4 m par pas de 0,2 m ; ζ de 0,05 à 0,30.</caption>
+  </table></div>
+  <div class="prose">
+    <p><b>Emplacement.</b> Le balancement hors plan est une rotation du vaisseau autour d'un point proche de son centre de masse, à 34 m de la pointe. Un bassin en haut, près des attaches, se déplace beaucoup ; côté moteurs, il est presque sur le centre de rotation et ne travaille pas. Au-delà de 25 t, l'eau supplémentaire n'apporte rien : le bassin est déjà assez lourd (μ ≈ 4 % de la masse), et ce qui reste est la réponse hors résonance.</p>
+    <p><b>Robustesse (25 t, 12 m, Ø 7,2 m).</b> ζ entre 0,08 et 0,20 donne le même pic (0,44°) ; ζ = 0,05 donne 0,55°. On retient ζ = 0,15, au milieu du plateau et accessible avec des grilles. Désaccord : Ø 6,8 m (0,130 Hz) donne 0,71°, Ø 7,6 m (0,105 Hz) 0,54°. Masse du vaisseau : à 560 t, 0,59° (3,74° sans bassin) ; à 650 t, 0,39° (2,55°). L'accord n'a donc pas à être réglé finement ; le niveau d'eau permettrait de le corriger en route.</p>
+    <p><b>Vérification dans le simulateur.</b> Le bassin est un troisième réservoir ballottant (« eau », 0,117 Hz, ζ = 0,15) dans les trois vaisseaux. Mêmes scénarios que la solution retenue :</p>
+  </div>
+  <div class="tbl"><table id="t-tld"><thead><tr><th>Scénario</th><th>Sans bassin</th><th>Avec bassin</th><th>Ballottement max (LOX / CH4 / eau)</th></tr></thead><tbody></tbody>
+  <caption>Plancher max, vaisseaux de 610 t (sauf mention), réservoirs à chicanes. « Sans bassin » : solution retenue (§ 5.3) et balayages du § 6.</caption></table></div>
+  <div class="grid2">
+    <div class="chartbox"><h4>Balayage hors plan (4 t)</h4><div id="ch-tld-z"></div></div>
+    <div class="chartbox"><h4>Balayage dans le plan (4 t)</h4><div id="ch-tld-t"></div></div>
+  </div>
+  <div class="chartbox"><h4>4 t oscillant 4 min hors plan au rythme du balancement (8 s), puis arrêt</h4><div id="ch-tld-reso"></div></div>
+  <div class="prose">
+    <p><b>Résultats.</b> Le pic hors plan passe de 2,70° à <span data-bind="amortisseur.T_balayage_z.tilt_max" data-fmt="deg">—</span>, celui dans le plan de 1,28° à <span data-bind="amortisseur.T_balayage_t.tilt_max" data-fmt="deg">—</span> : le bassin, circulaire, agit dans les deux directions, et le balancement dans le plan (0,15 Hz) reste dans sa bande. Le simulateur confirme le modèle linéaire (0,44°). Au rythme exact du balancement, le plancher penche de <span data-bind="amortisseur.T_resonance_z.tilt_max" data-fmt="deg">—</span> au lieu de <span data-bind="amortisseur.R_resonance_z.tilt_max" data-fmt="deg">—</span>, et une minute après l'arrêt l'oscillation est retombée à 0,01°, alors que sans bassin il reste 0,1° dix minutes plus tard. Les mouvements lents ne changent pas : la cargaison (statique) incline toujours le plancher de 0,6°. Un bassin de 50 t ou un vaisseau de 560 t donnent 0,50°.</p>
+  </div>
+  <div class="callout"><b>Conséquences pratiques</b><span>25 t d'eau, soit 4 % de la masse du vaisseau, suffisent : un bassin circulaire de 7,2 m de diamètre et 0,6 m de profondeur sous la coiffe, muni de grilles. Cette eau sert aussi de réserve et de protection contre les radiations ; consommée, elle désaccorderait le bassin, qu'il faudra donc maintenir à niveau. Le pire cas de toute la station tombe sous 0,6°, cargaison comprise. Non modélisé : la non-linéarité de l'eau peu profonde. Au pire rythme, la masse équivalente du bassin se déplace de 25 à 31 cm pour 0,61 m de profondeur : le clapotis y serait fort, avec déferlement ou ressaut possibles, ce qui dissipe davantage mais désaccorde. À confirmer par un calcul d'écoulement en eau peu profonde ; les mouvements ordinaires restent sous 8 cm.</span></div>
 
 </section>
 
@@ -589,7 +628,7 @@ figcaption b { color: var(--ink); }
       <li>Pas de gravité terrestre dans les simulations : précession estimée analytiquement (§ 14).</li>
       <li>Pas de contrôle actif ni de mise en rotation. L'amarrage d'un véhicule en route n'est pas prévu par le scénario Terre–Mars.</li>
       <li>Starships : structure rigide ; ergols réduits au premier mode de ballottement, linéaire, réservoirs équivalents à fond plat, partie fixe ponctuelle (§ 6) ; ailerons absents de l'inertie (ils favorisent faiblement l'orientation ailerons dans le plan de rotation) ; capacité des points d'ancrage non publiée. En route, chaque câble tire 1,31 MN et chaque vaisseau 2,26 MN au total ; à 1 600 t et 1 g, ce serait 9,1 et 15,7 MN.</li>
-      <li>À simuler ensuite, par priorité pour le scénario Terre–Mars : mise en rotation après l'injection (rapprochement, déroulement des câbles sans détente) ; amortisseur à liquide accordé (réservoir d'eau, § 6) ; pattes d'oie sur plusieurs points d'ancrage du nez pour raidir le balancement hors plan ; rupture d'un câble (énergie élastique stockée ≈ 1/2 · <var>T</var>·ε·<var>L</var>, 3,8 MJ par câble à 1 600 t, 0,5 MJ en route) ; vaisseaux de masses inégales (équipage contre cargos). Moins prioritaires : gradient de gravité complet en orbite terrestre (repère de Hill), câbles ANCF continus dans Chrono.</li>
+      <li>À simuler ensuite, par priorité pour le scénario Terre–Mars : mise en rotation après l'injection (rapprochement, déroulement des câbles sans détente) ; pattes d'oie sur plusieurs points d'ancrage du nez pour raidir le balancement hors plan ; rupture d'un câble (énergie élastique stockée ≈ 1/2 · <var>T</var>·ε·<var>L</var>, 3,8 MJ par câble à 1 600 t, 0,5 MJ en route) ; vaisseaux de masses inégales (équipage contre cargos). Moins prioritaires : gradient de gravité complet en orbite terrestre (repère de Hill), câbles ANCF continus dans Chrono.</li>
     </ul>
         <h3>Corrections apportées en cours d'étude</h3>
   <div class="prose">
@@ -613,6 +652,8 @@ figcaption b { color: var(--ink); }
 .venv/bin/python run_scenarios.py mission       # mission Terre–Mars, 610 t, 3,711 m/s² (~30 min)
 .venv/bin/python run_scenarios.py ballottement  # ergols figés / libres / chicanes (15 scénarios, ~50 min)
 .venv/bin/python run_scenarios.py retenue       # solution retenue : ergols libres, chicanes (4 scénarios)
+.venv/bin/python run_scenarios.py amortisseur   # bassin d'eau accordé (9 scénarios, ~3 h à 2 en parallèle)
+.venv/bin/python tld_design.py --json out/tld_search.json   # dimensionnement du bassin (modèle linéaire)
 .venv/bin/python slosh_modes.py                 # modes couplés vaisseau + ergols (modèle linéaire)
 tools/chrono-env/bin/python chrono_validation.py --name B --module axial --duration 300
 .venv/bin/python make_web_data.py               # exporte docs/data/ pour ce carnet</pre>
@@ -906,6 +947,37 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
   chartT("ch-slosh-ring", [
     ["L_libre_resonance", "libres (ζ 0,1 %)", (d) => envelope(d.tilt[0])], ["L_chicanes_resonance", "chicanes (ζ 3 %)", (d) => envelope(d.tilt[0])],
   ], { yLabel: "inclinaison du plancher, vaisseau 0, enveloppe (°)", yUnit: "°", vrefs: [{ x: 4, label: "arrêt du forçage" }] });
+
+  /* Amortisseur à liquide accordé (§ 6.1) */
+  getJSON("data/summary.json").then((S) => {
+    const A = S.amortisseur || {}, R = S.retenue || {}, L = S.ballottement || {};
+    const ROWS = [
+      ["Perturbation", R.R_perturbation, "T_perturbation"], ["Cargaison 50 t, ±3,5 m", R.R_cargaison_laterale, "T_cargaison_laterale"],
+      ["Équipage 4 t", R.R_equipage, "T_equipage"], ["Balayage hors plan", L.L_chicanes_balayage_z, "T_balayage_z"],
+      ["Balayage dans le plan", L.L_chicanes_balayage_t, "T_balayage_t"], ["Forçage 4 min à 8 s, hors plan", R.R_resonance_z || A.R_resonance_z, "T_resonance_z"],
+      ["Balayage hors plan, bassin de 50 t", L.L_chicanes_balayage_z, "T50_balayage_z"], ["Balayage hors plan, vaisseaux de 560 t", null, "T560_balayage_z"],
+    ];
+    const tb = document.querySelector("#t-tld tbody");
+    ROWS.forEach(([lab, ref, name]) => {
+      const info = A[name];
+      if (!info) return;
+      const r = info.results;
+      const sl = r.slosh_max ? r.slosh_max.map((v) => fr(v * 100, v < 0.1 ? 1 : 0) + " cm").join(" / ") : "—";
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${lab}</td><td class="n">${ref ? deg(ref.results.tilt_max) : "—"}</td><td class="n"><b>${deg(r.tilt_max)}</b></td><td class="n">${sl}</td></tr>`);
+    });
+  }).catch(() => {});
+  const sweepTld = (el, list) => Promise.all(list.map(([n]) => series(n))).then((ds) => {
+    lineChart(document.getElementById(el), {
+      xLog: true, yLog: true, xLabel: "fréquence d'excitation (Hz)", xName: "f =", xUnit: " Hz", yLabel: "inclinaison du plancher (°)", yUnit: "°",
+      xFmt: (v) => fr(v, v < 0.01 ? 3 : 2),
+      series: ds.map((d, i) => ({ name: list[i][1], x: d.sweep.map((p) => p[0]), y: d.sweep.map((p) => p[1]) })),
+    });
+  }).catch(() => {});
+  sweepTld("ch-tld-z", [["L_chicanes_balayage_z", "sans bassin"], ["T_balayage_z", "bassin 25 t"], ["T50_balayage_z", "bassin 50 t"], ["T560_balayage_z", "bassin 25 t, vaisseaux de 560 t"]]);
+  sweepTld("ch-tld-t", [["L_chicanes_balayage_t", "sans bassin"], ["T_balayage_t", "bassin 25 t"]]);
+  chartT("ch-tld-reso", [
+    ["R_resonance_z", "sans bassin", (d) => d.tilt[0]], ["T_resonance_z", "bassin 25 t", (d) => d.tilt[0]],
+  ], { yLabel: "inclinaison du plancher, vaisseau 0 (°)", yUnit: "°", vrefs: [{ x: 4, label: "arrêt du forçage" }] });
 
   getJSON("data/mission.json").then((M) => {
     const tb = document.querySelector("#t-tmi tbody");
