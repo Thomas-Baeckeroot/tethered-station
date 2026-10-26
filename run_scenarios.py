@@ -42,6 +42,10 @@ SH3n = ["--topology", "triangle2", "--module", "tangential", "--spread", "20"] +
 # Déplacements latéraux limités au rayon d'un pont (Ø9 m)
 LAT = ["--motion-amp", "3.5", "--motion-axis", "t"]
 LATZ = ["--motion-amp", "3.5", "--motion-axis", "z"]
+# Mission Terre → Mars : triangle vertical, masse après l'injection vers Mars
+# (mission_mass.py : 610 t), câbles dimensionnés pour le vaisseau plein
+# (1 600 t à 1 g), gravité de Mars
+MISSION = SV3 + ["--mass-t", "610", "--design-mass-t", "1600", "--accel", "3.711"]
 
 CAMPAIGNS = {
     "rotation": [
@@ -106,6 +110,16 @@ CAMPAIGNS = {
         ("SH3n_cargaison", SH3n + CARGO),
         ("SH3n_balayage", SH3n + SWEEP),
     ],
+    "mission": [
+        ("M_perturbation", MISSION + PERT + TRAJ),
+        ("M_cargaison_laterale", MISSION + CARGO + LAT + TRAJ),
+        ("M_cargaison_verticale", MISSION + CARGO),
+        ("M_equipage", MISSION + WALK + LAT),
+        ("M_balayage_t", MISSION + SWEEP + LAT),
+        ("M_balayage_z", MISSION + SWEEP + LATZ),
+        ("M_h15_balayage_t", MISSION + SWEEP + LAT + ["--bridle", "-10"]),
+        ("M_h15_balayage_z", MISSION + SWEEP + LATZ + ["--bridle", "-10"]),
+    ],
 }
 
 
@@ -159,10 +173,12 @@ def summarize(out, names):
         if not os.path.exists(path):
             continue
         info = json.load(open(path))
-        if "args" in info:  # prédiction recalculée avec la formule à jour
+        if "args" in info:  # prédictions recalculées avec les formules à jour
             sys.path.insert(0, HERE)
             import tether_sim
             info["tilt_static_pred"] = tether_sim.static_tilt_prediction(argparse.Namespace(**info["args"]), info["h"])
+            info["roll_prediction"] = tether_sim.roll_prediction_from_info(info)
+            info["results"]["doubling_time"] = tether_sim.doubling_from_info(info)
         r = info["results"]
         rows.append(f"| {name} | {info['L0']:.0f} m | {info['roll_prediction']} | {fmt(r['doubling_time'])} | "
                     f"{r['roll_max']:.1f}° | {fmt(r.get('roll_final'))}° | {fmt(r['t_roll_90'], '{:.0f}')} | {r['tilt_max']:.2f}° | "

@@ -1,0 +1,65 @@
+{
+ "m0_t": 1600.0,
+ "isp": 380.0,
+ "poussee_MN": 7.8,
+ "hohmann": {
+  "v_inf_depart": 2945.1621604144093,
+  "v_inf_arrivee": 2649.271402362123,
+  "duree_j": 258.8832388317415
+ },
+ "orbites": [
+  {
+   "alt_km": 200.0,
+   "dv_impulsionnel": 3611.5024685240223,
+   "m_impulsionnel_t": 607.0585982755927,
+   "m_final_t": 602.6532897969745,
+   "dv_reel": 3638.643763438673,
+   "perte_gravite": 27.141294914650643,
+   "duree_s": 476.49223640162273
+  },
+  {
+   "alt_km": 400.0,
+   "dv_impulsionnel": 3569.215141862769,
+   "m_impulsionnel_t": 613.9865206735908,
+   "m_final_t": 610.0001030550632,
+   "dv_reel": 3593.489174156112,
+   "perte_gravite": 24.27403229334277,
+   "duree_s": 472.98222384133743
+  },
+  {
+   "alt_km": 1600.0,
+   "dv_impulsionnel": 3352.644929255165,
+   "m_impulsionnel_t": 650.7260928812476,
+   "m_final_t": 648.4215849476676,
+   "dv_reel": 3365.8656280105097,
+   "perte_gravite": 13.220698755344529,
+   "duree_s": 454.6259815781582
+  }
+ ],
+ "sensibilite": [
+  {
+   "cas": "Isp 380 s (Raptor Vacuum)",
+   "isp": 380,
+   "v_inf": 2945.1621604144093,
+   "m_final_t": 610.0001030550632
+  },
+  {
+   "cas": "Isp 365 s (6 moteurs)",
+   "isp": 365,
+   "v_inf": 2945.1621604144093,
+   "m_final_t": 586.4294790451665
+  },
+  {
+   "cas": "v∞ 3,5 km/s (fenêtre moyenne)",
+   "isp": 380,
+   "v_inf": 3500.0,
+   "m_final_t": 584.1996395743923
+  },
+  {
+   "cas": "v∞ 4,0 km/s (fenêtre défavorable)",
+   "isp": 380,
+   "v_inf": 4000.0,
+   "m_final_t": 558.6421282234132
+  }
+ ]
+}

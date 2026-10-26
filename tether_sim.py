@@ -164,8 +164,11 @@ def make_program(kind, amp, t0=60.0, speed=1.2, period=None, f0=0.004, f1=0.25, 
 class Station:
     def __init__(self, args):
         mat = MATERIALS[args.material]
+        if getattr(args, "accel", None):
+            args.g = args.accel / G0  # tout le reste du code raisonne en g
         self.args = args
         M = args.mass_t * 1e3
+        M_design = (getattr(args, "design_mass_t", None) or args.mass_t) * 1e3
         a, ell = args.module_radius, args.module_length
         m_int = args.motion_mass_t * 1e3 if args.motion != "none" else 0.0
         self.motion_modules = [int(b) for b in args.motion_modules.split(",")] if args.motion != "none" else []
@@ -180,7 +183,7 @@ class Station:
         self.h = (ell / 2 if args.module == "radial" else a) + args.bridle
         topo = build_topology(args.topology, args.spread)
         self.topo = topo
-        self.T_design = M * args.design_g * G0 * topo["tfac"]
+        self.T_design = M_design * args.design_g * G0 * topo["tfac"]
         self.area = self.T_design * args.safety / mat["sigma"]
         self.EA = mat["E"] * self.area
         self.lam = mat["rho"] * self.area
@@ -525,6 +528,56 @@ class Station:
         return [float(v @ Iw @ v) for v in (er, et, ez)]
 
 
+def roll_prediction(topology, spread, I_r, I_t, I_z, omega, T, L):
+    """Roulis d'un module autour de la verticale (tangage verrouillé) :
+    I_r φ'' = (ω² (I_t − I_z) − k_att) φ, où k_att est la raideur apportée par
+    des attaches écartées de ±s :
+    - triangle2 (câbles vers les deux voisins, à ±30° de la verticale) : la
+      composante tangentielle T/2 de chaque câble agit au bras de levier s·φ
+      → T·s, plus la raideur latérale des câbles 2·T·s²/L (second ordre) ;
+    - ladder (câbles parallèles) : 2·T·s²/L ne retient que le roulis
+      différentiel des deux modules ; le roulis commun (toute la station
+      autour de la ligne) reste libre → k_att = 0."""
+    k_att = 0.0
+    if topology == "triangle2":
+        s = 20.0 if spread is None else spread
+        k_att = T * s + 2 * T * s * s / L
+    s2 = (omega ** 2 * (I_t - I_z) - k_att) / I_r
+    if abs(I_t - I_z) < 1e-9 * I_r and k_att == 0:
+        return "neutre (I_t = I_z) : aucun couple de rappel"
+    if s2 > 0:
+        return f"INSTABLE, temps de doublement ≈ {math.log(2) / math.sqrt(s2):.1f} s"
+    return f"stable, période ≈ {2 * math.pi / math.sqrt(-s2):.1f} s"
+
+
+def doubling_time(t1, t10, t45, duration):
+    """Temps de doublement du roulis, déduit du passage de 1° à 10°, si la
+    croissance est bien exponentielle : de 10° à 45°, il faut alors moins de
+    temps que de 1° à 10° (ln 4,5 / ln 10 ≈ 0,65 fois), contre ≈ 3,9 fois
+    pour une dérive linéaire (roulis neutre). Sans passage à 45°, la
+    croissance n'est retenue que si la simulation s'est arrêtée trop tôt
+    pour trancher."""
+    if t1 is None or t10 is None or t10 <= t1:
+        return None
+    d = t10 - t1
+    if (t45 - t10 if t45 is not None else duration - t10) > 2 * d:
+        return None
+    return math.log(2) * d / math.log(10)
+
+
+def doubling_from_info(info):
+    r = info["results"]
+    return doubling_time(r["t_roll_1"], r["t_roll_10"], r.get("t_roll_45"), info["args"]["duration"])
+
+
+def roll_prediction_from_info(info):
+    """Même prédiction, recalculée à partir du .json d'un scénario."""
+    a = info["args"]
+    M = a["mass_t"] * 1e3
+    I_r, I_t, I_z = (x * M for x in info["I_local_over_M"])
+    return roll_prediction(a["topology"], a.get("spread"), I_r, I_t, I_z, a["rpm"] * 2 * math.pi / 60, info["T_eq"], info["L_eq"])
+
+
 def static_tilt_prediction(args, h):
     """Inclinaison statique du plancher (°) quand la masse interne est à
     l'amplitude max : le module tourne jusqu'à ce que le couple de rappel des
@@ -588,11 +641,11 @@ def run(args):
     p = print if not args.quiet else (lambda *a, **k: None)
     rpm_1g = math.sqrt(G0 / st.R_target) * 60 / (2 * math.pi)
     p(f"=== {name} ===")
-    p(f"Cible           : {args.g:g} g à {args.rpm:g} tr/min → rayon au centre de masse des modules R = {st.R_target:.1f} m "
+    p(f"Cible           : {args.g * G0:.3f} m/s² ({args.g:.4f} g) à {args.rpm:g} tr/min → rayon au centre de masse des modules R = {st.R_target:.1f} m "
       f"(1 g avec ce rayon : {rpm_1g:.2f} tr/min)")
     p(f"Topologie       : {args.topology}, {st.nb} modules de {args.mass_t:g} t ({args.module}, cylindre Ø{2 * args.module_radius:g} m × {args.module_length:g} m), "
       f"attache à {st.h:g} m du centre de masse")
-    p(f"Câble           : dimensionné pour {args.design_g:g} g (facteur {args.safety:g}) : section {st.area * 1e4:.1f} cm² "
+    p(f"Câble           : dimensionné pour {args.design_mass_t or args.mass_t:g} t à {args.design_g:g} g (facteur {args.safety:g}) : section {st.area * 1e4:.1f} cm² "
       f"(Ø équiv. {2 * math.sqrt(st.area / math.pi) * 100:.1f} cm), {args.material}, T_conception = {st.T_design / 1e6:.2f} MN")
     if args.motion != "none":
         p(f"Masse interne   : {args.motion_mass_t:g} t, programme « {args.motion} », amplitude {args.motion_amp:g} m selon l'axe {args.motion_axis}, "
@@ -610,18 +663,12 @@ def run(args):
       f"tension {t_eq[0] / 1e6:.2f} MN, masse de câble totale {cable_mass / 1000:.1f} t, v tangentielle {st.omega * st.R_eq:.1f} m/s")
 
     # Prédictions analytiques
-    # - roulis autour du câble (tangage verrouillé) : φ'' = ω² (I_t − I_z)/I_r · φ
+    # - roulis autour du câble : voir roll_prediction ;
     # - balancements (câble long, point d'attache libre latéralement) :
     #   dans le plan Ω² = M·a·h / I_z ; hors plan Ω² = (M·a·h + ω²(I_z − I_r)) / I_t
     I_r, I_t, I_z = st.local_inertia()
     w2 = st.omega ** 2
-    s2 = w2 * (I_t - I_z) / I_r
-    if abs(I_t - I_z) < 1e-9 * I_r:
-        roll_pred = "neutre (I_t = I_z) : aucun couple de rappel"
-    elif s2 > 0:
-        roll_pred = f"INSTABLE, temps de doublement ≈ {math.log(2) / math.sqrt(s2):.1f} s"
-    else:
-        roll_pred = f"stable, période ≈ {2 * math.pi / math.sqrt(-s2):.1f} s"
+    roll_pred = roll_prediction(args.topology, args.spread, I_r, I_t, I_z, st.omega, t_eq[0], L_eq)
     Mah = st.M * args.g * G0 * st.h
     f_pitch = math.sqrt(Mah / I_z) / (2 * math.pi)
     f_swing = math.sqrt(max(Mah + w2 * (I_z - I_r), 0.0) / I_t) / (2 * math.pi)
@@ -751,7 +798,7 @@ def report(st, rec, E0, L0v, args, info, p):
     freqs, spec_g, f_g = spectrum_peak(t, rec["g"][:, 0], fmin=0.1)
     _, spec_tilt, f_tilt = spectrum_peak(t, rec["tilt"][:, 0], fmin=0.01)
     t1, t10, t45, t90 = (first_crossing(t, roll_abs, x) for x in (1, 10, 45, 90))
-    growth = (math.log(2) * (t10 - t1) / math.log(10)) if (t1 is not None and t10 is not None and t10 > t1) else None
+    growth = doubling_time(t1, t10, t45, args.duration)
     res = dict(g_min=float(rec["g"].min()), g_max=float(rec["g"].max()), g_mean=float(rec["g"].mean()),
                T_max_MN=float(rec["T"].max() / 1e6), T_min_MN=float(rec["T"].min() / 1e6),
                tilt_max=float(rec["tilt"].max()), roll_max=float(roll_abs.max()),
@@ -838,6 +885,8 @@ def make_parser():
     p.add_argument("--bridle", type=float, default=0.0, help="hauteur de patte d'oie au-dessus de la coque (m)")
     p.add_argument("--spread", type=float, help="écartement des points d'attache (ladder : selon l'axe de rotation ; triangle2 : selon e_t)")
     p.add_argument("--g", type=float, default=0.38, help="gravité visée en fonctionnement (en g)")
+    p.add_argument("--accel", type=float, help="gravité visée en m/s² (remplace --g ; Mars : 3.711)")
+    p.add_argument("--design-mass-t", type=float, help="masse de chaque module pour dimensionner les câbles (t, défaut : --mass-t)")
     p.add_argument("--rpm", type=float, default=1.0, help="vitesse de rotation visée (tr/min)")
     p.add_argument("--design-g", type=float, default=1.0, help="gravité de dimensionnement des câbles (en g)")
     p.add_argument("--material", choices=MATERIALS, default="dyneema")

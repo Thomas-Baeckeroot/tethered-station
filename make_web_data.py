@@ -70,8 +70,10 @@ def export_series(campaign, dest, step=1.0):
     for path in sorted(glob.glob(os.path.join(OUT, campaign, "*.json"))):
         name = os.path.basename(path)[:-5]
         info = json.load(open(path))
-        if "args" in info:  # prédiction recalculée avec la formule à jour
+        if "args" in info:  # prédictions recalculées avec les formules à jour
             info["tilt_static_pred"] = ts.static_tilt_prediction(argparse.Namespace(**info["args"]), info["h"])
+            info["roll_prediction"] = ts.roll_prediction_from_info(info)
+            info["results"]["doubling_time"] = ts.doubling_from_info(info)
         summary[name] = info
         d = np.load(os.path.join(OUT, campaign, name + ".npz"))
         t = d["t"]
