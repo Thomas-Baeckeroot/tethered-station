@@ -56,6 +56,11 @@ SWEEP_L = ["--motion", "sweep", "--motion-mass-t", "4", "--duration", "5460", "-
 RESO = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "0.38", "--motion-axis", "z",
         "--motion-period", "4.05", "--motion-stop", "240", "--duration", "600"]
 
+TLD = BAFFLED + ["--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "--tld-zeta", "0.15"]
+# 4 t oscillant hors plan au rythme du balancement principal (≈ 8 s) pendant 3 min
+RESO8 = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "3.5", "--motion-axis", "z",
+         "--motion-period", "8.0", "--motion-stop", "240", "--duration", "900"]
+
 CAMPAIGNS = {
     "rotation": [
         ("A_haltere_tangentiel", A + ["--duration", "1800"]),
@@ -153,6 +158,19 @@ CAMPAIGNS = {
         ("R_cargaison_laterale", BAFFLED + CARGO + LAT + TRAJ),
         ("R_cargaison_verticale", BAFFLED + CARGO + TRAJ),
         ("R_equipage", BAFFLED + WALK + LAT),
+    ],
+    # Amortisseur à liquide accordé (tld_design.py) : 25 t d'eau sous la
+    # coiffe, bassin Ø 7,2 m × 0,61 m accordé sur le balancement hors plan
+    "amortisseur": [
+        ("T_balayage_z", TLD + SWEEP_L + LATZ),
+        ("T_balayage_t", TLD + SWEEP_L + LAT),
+        ("T50_balayage_z", BAFFLED + ["--tld-mass-t", "50", "--tld-x", "12", "--tld-radius", "4.2", "--tld-zeta", "0.15"] + SWEEP_L + LATZ),
+        ("T560_balayage_z", [a if a != "610" else "560" for a in TLD] + SWEEP_L + LATZ),
+        ("T_perturbation", TLD + PERT + TRAJ),
+        ("T_cargaison_laterale", TLD + CARGO + LAT),
+        ("T_equipage", TLD + WALK + LAT),
+        ("R_resonance_z", BAFFLED + RESO8 + ["--traj-dt", "0.25"]),
+        ("T_resonance_z", TLD + RESO8 + ["--traj-dt", "0.25"]),
     ],
 }
 

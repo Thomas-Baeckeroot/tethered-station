@@ -90,15 +90,21 @@ def slosh_tank(m, depth, a=SHIP_TANK_RADIUS):
     return dict(m=m, depth=depth, ms=ms, L=L, H=H, hb=hb, mf=mf, hf=hf)
 
 
-def starship_mass_model(M_t, slosh=True):
+def starship_mass_model(M_t, slosh=True, tld=None):
     """Starship en route : structure et charge utile (SHIP_PARTS), ergols
     restants (rapport de mélange 3,6) posés au fond de leurs réservoirs par la
     gravité artificielle. Partie rigide : éléments de structure, charge, masse
     fixe des liquides (ponctuelle : le liquide ne tourne pas avec le
     réservoir autour de l'axe) et, si slosh=False, masses ballottantes figées
-    à leur position d'équilibre. Positions en m depuis la pointe."""
+    à leur position d'équilibre. Positions en m depuis la pointe.
+
+    tld : amortisseur à liquide accordé, dict(m_t, x, a, zeta) : bassin d'eau
+    cylindrique de rayon a dont le fond est à x de la pointe ; son eau est
+    prise sur la charge utile (masse totale inchangée). Toujours libre."""
     rigid = []  # (masse kg, x, I_axe propre, I_transverse propre)
-    for _, m_t, x0, x1, r, shell in SHIP_PARTS:
+    for name, m_t, x0, x1, r, shell in SHIP_PARTS:
+        if name == "charge" and tld:
+            m_t -= tld["m_t"]
         m, ell = m_t * 1e3, x1 - x0
         rigid.append((m, (x0 + x1) / 2, m * r * r * (1.0 if shell else 0.5), m * (r * r * (0.5 if shell else 0.25) + ell * ell / 12)))
     prop = (M_t - sum(p[1] for p in SHIP_PARTS)) * 1e3
@@ -116,6 +122,14 @@ def starship_mass_model(M_t, slosh=True):
             pend.append(tk)
         else:
             rigid.append((tk["ms"], tk["x_bob"], 0.0, 0.0))
+    if tld:
+        m = tld["m_t"] * 1e3
+        tk = slosh_tank(m, m / (1000.0 * math.pi * tld["a"] ** 2), tld["a"])
+        x_bottom = tld["x"]
+        tk.update(name="eau", zeta=tld["zeta"], a=tld["a"], x_hinge=x_bottom - tk["H"], x_bob=x_bottom - tk["hb"], x_fixed=x_bottom - tk["hf"])
+        tanks.append(tk)
+        rigid.append((tk["mf"], tk["x_fixed"], 0.0, 0.0))
+        pend.append(tk)
     M_r = sum(p[0] for p in rigid)
     x_c = sum(p[0] * p[1] for p in rigid) / M_r
     I_ax = sum(p[2] for p in rigid)
@@ -253,7 +267,10 @@ class Station:
         if slosh != "off":
             if args.module != "radial":
                 raise ValueError("le modèle de ballottement suppose des vaisseaux debout (--module radial)")
-            self.ship = starship_mass_model(args.mass_t, slosh=slosh == "free")
+            tld = None
+            if getattr(args, "tld_mass_t", 0) > 0:
+                tld = dict(m_t=args.tld_mass_t, x=args.tld_x, a=args.tld_radius, zeta=args.tld_zeta)
+            self.ship = starship_mass_model(args.mass_t, slosh=slosh == "free", tld=tld)
             M_rigid = self.ship["M_rigid"]
             h_att = self.h + self.ship["x_c"] - self.ship["x_tot"]
             self.Ib = np.array([self.ship["I_ax"], self.ship["I_tr"], self.ship["I_tr"]])
@@ -292,7 +309,8 @@ class Station:
         # = ressort raide (3 Hz) ; amortisseur latéral 2ζω·m par rapport à la
         # paroi (ζ ~ 1e-4 parois lisses, ~1e-3 avec raidisseurs, 2 à 5 % avec
         # chicanes) ; tige amortie seulement si ζ > 0 (sinon système conservatif).
-        sb, sm, sL, sh, se = [], [], [], [], []
+        zeta = getattr(args, "slosh_zeta", 0.0)
+        sb, sm, sL, sh, se, sz = [], [], [], [], [], []
         for b in range(nb if self.ship else 0):
             for tk in self.ship["pendulums"]:
                 sb.append(b)
@@ -300,18 +318,19 @@ class Station:
                 sL.append(tk["L"])
                 sh.append([tk["x_hinge"] - self.ship["x_c"], 0.0, 0.0])
                 se.append([tk["x_bob"] - self.ship["x_c"], 0.0, 0.0])
+                sz.append(tk.get("zeta", zeta))
         self.sb = np.array(sb, dtype=int)
         self.sm = np.array(sm)
         self.sL = np.array(sL)
         self.sh = np.array(sh).reshape(-1, 3)
         self.s_eq = np.array(se).reshape(-1, 3)
-        zeta = getattr(args, "slosh_zeta", 0.0)
         r_bob = self.R_target + (self.s_eq[:, 0] - ((self.ship["x_tot"] - self.ship["x_c"]) if self.ship else 0.0))
         self.s_w = np.sqrt(self.omega ** 2 * r_bob / self.sL) if len(sm) else np.zeros(0)
-        self.s_c = 2 * zeta * self.sm * self.s_w
+        self.s_zeta = np.array(sz)
+        self.s_c = 2 * self.s_zeta * self.sm * self.s_w
         w_rod = 2 * math.pi * 3.0
         self.s_k = self.sm * w_rod ** 2
-        self.s_cr = 2 * 0.7 * self.sm * w_rod * (1.0 if zeta > 0 else 0.0)
+        self.s_cr = 2 * 0.7 * self.sm * w_rod * (self.s_zeta > 0)
         self.xs = np.zeros((len(sm), 3))
         self.vs = np.zeros((len(sm), 3))
 
@@ -836,7 +855,7 @@ def run(args):
             p(f"  {tk['name']:4s}          : {tk['m'] / 1e3:.0f} t sur {tk['depth']:.2f} m ; ballottant {tk['ms'] / 1e3:.1f} t, pendule {tk['L']:.2f} m, "
               f"articulation à {tk['x_hinge']:.2f} m de la pointe" + (" (figé)" if args.slosh == "frozen" else ""))
         if len(st.sm):
-            p(f"  fréquences    : " + ", ".join(f"{w / (2 * math.pi):.3f} Hz" for w in st.s_w[st.sb == 0]) + f" ; ζ = {args.slosh_zeta:g}")
+            p(f"  fréquences    : " + ", ".join(f"{w / (2 * math.pi):.3f} Hz" for w in st.s_w[st.sb == 0]) + " ; ζ = " + ", ".join(f"{z:g}" for z in st.s_zeta[st.sb == 0]))
     p("Relaxation vers l'équilibre en rotation...")
     st.relax(verbose=not args.quiet)
     L0 = st.ds0[: st.n].sum()
@@ -960,7 +979,7 @@ def run(args):
         info["ship"] = dict(M_rigid_t=sh["M_rigid"] / 1e3, x_c=sh["x_c"], x_tot=sh["x_tot"], x_attach=sh["x_tot"] - st.h,
                             I_ax_over_M=sh["I_ax"] / st.M, I_tr_over_M=sh["I_tr"] / st.M,
                             tanks=[{k: (v / 1e3 if k in ("m", "ms", "mf") else v) for k, v in tk.items()} for tk in sh["tanks"]],
-                            f_slosh=[float(w / (2 * math.pi)) for w in st.s_w[st.sb == 0]], zeta=args.slosh_zeta)
+                            f_slosh=[float(w / (2 * math.pi)) for w in st.s_w[st.sb == 0]], zeta=[float(z) for z in st.s_zeta[st.sb == 0]])
     if traj_every:
         os.makedirs(args.out, exist_ok=True)
         np.savez_compressed(os.path.join(args.out, name + "_traj.npz"),
@@ -988,7 +1007,7 @@ def spectrum_peak(t, y, fmin=0.01, fmax=2.0):
 def report(st, rec, E0, L0v, args, info, p):
     t = rec["t"]
     # Énergie non conservée : travail des masses asservies, ou amortissement des ergols
-    forced = args.motion != "none" or (len(st.sm) > 0 and args.slosh_zeta > 0)
+    forced = args.motion != "none" or bool(np.any(st.s_zeta > 0))
     dE = (rec["E"] - E0) / E0
     dL = np.linalg.norm(rec["L"] - L0v, axis=1) / np.linalg.norm(L0v)
     roll_abs = np.abs(rec["roll"]).max(axis=1)
@@ -1115,6 +1134,10 @@ def make_parser():
     p.add_argument("--slosh", choices=["off", "frozen", "free"], default="off",
                    help="Starship à ergols (modules radiaux) : off = cylindre homogène ; frozen = modèle de masse, ergols figés ; "
                         "free = ergols ballottants (pendules d'Abramson)")
+    p.add_argument("--tld-mass-t", type=float, default=0.0, help="amortisseur à liquide accordé : masse d'eau (t), prise sur la charge utile")
+    p.add_argument("--tld-x", type=float, default=46.0, help="fond du bassin, en m depuis la pointe")
+    p.add_argument("--tld-radius", type=float, default=4.5, help="rayon du bassin (m) ; la profondeur, donc l'accord, en découle")
+    p.add_argument("--tld-zeta", type=float, default=0.15, help="amortissement du clapotis du bassin (grilles, écrans perforés)")
     p.add_argument("--slosh-zeta", type=float, default=0.001, help="amortissement du ballottement (parois : ~1e-4 à 1e-3 ; chicanes : 0,02 à 0,05)")
     p.add_argument("--cfl", type=float, default=0.3, help="fraction du pas de temps critique")
     p.add_argument("--record-dt", type=float, default=0.05, help="période d'échantillonnage (s)")

@@ -39,6 +39,9 @@ ANIMATIONS = [
     ("ballottement", "L_chicanes_resonance", 0, 600, 0.5),
     ("retenue", "R_perturbation", 0, 600, 1.0),
     ("retenue", "R_cargaison_laterale", 0, 1500, 1.0),
+    ("amortisseur", "T_perturbation", 0, 600, 1.0),
+    ("amortisseur", "R_resonance_z", 0, 900, 0.5),
+    ("amortisseur", "T_resonance_z", 0, 900, 0.5),
 ]
 
 
@@ -190,7 +193,7 @@ def main():
     args = p.parse_args()
     os.makedirs(args.dest, exist_ok=True)
     summary = {}
-    for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement", "retenue"):
+    for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement", "retenue", "amortisseur"):
         if os.path.isdir(os.path.join(OUT, campaign)):
             summary[campaign] = export_series(campaign, args.dest)
             print(f"séries : {campaign} ({len(summary[campaign])} scénarios)")
