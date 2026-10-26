@@ -16,7 +16,7 @@ for n in Zp_perturbation D_echelle_axial B_haltere_axial B_amortisseur Z_final_c
   cp "$SRC/data/anim/$n.json" "$DEST/grand-public/data/anim/"
   cp "$SRC/data/series/$n.json" "$DEST/grand-public/data/series/"
 done
-for n in A_cargaison Z_final_cargaison A_equipage Zp_equipage SV3_balayage_z SH3_balayage SH3n_balayage; do
+for n in A_cargaison Z_final_cargaison A_equipage Zp_equipage; do
   cp "$SRC/data/series/$n.json" "$DEST/grand-public/data/series/"
 done
 # Technique : tout
