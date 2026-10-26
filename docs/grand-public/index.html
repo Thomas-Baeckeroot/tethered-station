@@ -101,6 +101,7 @@ figure { margin: 0; display: grid; gap: 10px; }
 .sc-module { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
 .sc-attach { fill: var(--ink); }
 .sc-floor { stroke: var(--accent); stroke-width: 3; }
+.sc-deck { stroke: var(--accent); stroke-width: 1; opacity: 0.45; }
 .sc-axis { stroke: var(--muted); stroke-dasharray: 6 4; }
 .sc-break { stroke: var(--muted); fill: none; }
 .sc-title { font: 600 13px var(--f-display); fill: var(--ink); letter-spacing: 0.02em; }
@@ -111,7 +112,7 @@ figure { margin: 0; display: grid; gap: 10px; }
 .viewer .poster .sc-title { fill: #e3e8ef; }
 .viewer .poster .sc-small { fill: #9aa7b8; }
 .viewer .poster .sc-module { fill: #3a2116; stroke: #ff6a2b; }
-.viewer .poster .sc-floor { stroke: #ff6a2b; }
+.viewer .poster .sc-floor, .viewer .poster .sc-deck { stroke: #ff6a2b; }
 .viewer .poster .sc-orbit { stroke: #3a4656; }
 
 /* Calculateur */
@@ -163,7 +164,7 @@ figure { margin: 0; display: grid; gap: 10px; }
 
 .final { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: clamp(16px, 3vw, 32px); display: grid; gap: 22px; }
 .checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 28px; list-style: none; padding: 0; margin: 0; }
-.checks li { display: grid; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.checks li { display: grid; gap: 4px; align-content: start; padding-top: 10px; border-top: 1px solid var(--line); }
 .checks b { font: 600 1.05rem/1.25 var(--f-display); letter-spacing: 0.01em; }
 .checks span { font-size: 0.95rem; color: var(--ink-2); }
 .todo { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
@@ -341,7 +342,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <span class="eyebrow">Autres effets vérifiés</span>
   <h3>Le rebond et la lente valse de l'axe</h3>
   <p><b>Le rebond.</b> Les câbles sont élastiques : la station peut « respirer », les modules s'éloignant et se rapprochant du centre de quelques centimètres, environ toutes les 4 secondes. Pour une perturbation réaliste, le poids ressenti varie de ±0,5 %, ce qui est imperceptible.</p>
-  <p><b>La valse de l'axe.</b> La station ne tourne pas dans le vide absolu : la Terre attire un peu plus le module le plus proche que le plus éloigné. Sur un objet de 680 m, cet écart est minuscule, mais il agit en continu. Si l'axe de rotation est incliné par rapport à l'orbite, il décrit un cône complet en une douzaine de jours à 1 600 km d'altitude. La parade est simple : faire tourner la station dans le plan de son orbite.</p>
+  <p><b>La valse de l'axe.</b> La station ne tourne pas dans le vide absolu : la Terre attire un peu plus le module le plus proche que le plus éloigné. Sur un objet de 680 m, cet écart est minuscule, mais il agit en continu. Si l'axe de rotation est incliné par rapport à l'orbite, il décrit un cône complet en une douzaine de jours à 1 600 km d'altitude. La parade est simple : faire tourner la station dans le plan de son orbite. En route vers Mars, le problème disparaît : loin de la Terre, l'effet de marée du Soleil est environ vingt millions de fois plus faible.</p>
 </section>
 
 <section class="wide final" id="final">
@@ -365,20 +366,96 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </figure>
 </section>
 
+<section class="col" id="starship">
+  <span class="eyebrow">5 · Le projet</span>
+  <h2>Trois Starships en route vers Mars</h2>
+  <p>Et si les modules étaient des vaisseaux&nbsp;? Le Starship de SpaceX mesure 9 m de diamètre et 50 m de haut. Son intérieur est découpé en ponts, comme les étages d'un immeuble, parce qu'il est conçu pour se poser debout, sur la Terre comme sur Mars.</p>
+  <p>Le scénario&nbsp;: trois Starships quittent l'orbite basse, pleins, à 1 600 t chacun. Ils allument leurs moteurs pour s'insérer sur l'orbite de transfert vers Mars, un voyage de 259 jours. Gagner les 3,6 km/s nécessaires brûle près de 1 000 t d'ergols&nbsp;: une fois en route, chaque vaisseau ne pèse plus qu'environ <b>610 t</b>. Les trois vaisseaux se relient alors par des câbles et se mettent à tourner. L'un emmène l'équipage, les deux autres sont des cargos.</p>
+  <p>La gravité visée est celle de Mars, 3,711 m/s², pour que l'équipage arrive déjà habitué. Les câbles restent dimensionnés pour des vaisseaux pleins sous 1 g&nbsp;: en route, ils ne travaillent qu'à 5 % de leur résistance.</p>
+</section>
+
+<section class="wide">
+  <div class="figures">
+    <div><b class="num">≈ 610 t</b><span>par vaisseau, une fois en route</span></div>
+    <div><b class="num">259 jours</b><span>de la Terre à Mars</span></div>
+    <div><b class="num">338 m</b><span>rayon de rotation</span></div>
+    <div><b class="num">3,711 m/s²</b><span>gravité de Mars</span></div>
+    <div><b class="num" data-bind="M_perturbation.L0" data-fmt="m">539 m</b><span>câble entre deux nez</span></div>
+  </div>
+</section>
+
+<section class="trap wide" id="starship-debout">
+  <div class="txt">
+    <span class="tag">Premier choix</span>
+    <h3>Debout plutôt que couché</h3>
+    <p>Couché dans le sens du mouvement, comme les modules de la configuration retenue, un Starship verrait ses ponts devenir des murs&nbsp;: il faudrait refaire tout l'intérieur, et sa coque de 50 m travaillerait en flexion, ce pour quoi elle n'est pas faite. Debout, le nez tourné vers le centre et les moteurs vers l'extérieur, tout redevient normal&nbsp;: la gravité tire vers les moteurs, comme sur le pas de tir ou sur Mars.</p>
+    <p>Le nez possède déjà des points d'ancrage renforcés, ceux qu'utilise la tour de lancement pour soulever le vaisseau. Les câbles s'y attachent, environ 25 m au-dessus du centre de gravité&nbsp;: le vaisseau joue lui-même le rôle des mâts de 20 m de la configuration retenue. Et les grands déplacements se font d'un pont à l'autre, dans l'axe du câble, ce qui ne fait rien pencher. Sur un même pont, une charge ne peut s'écarter que de 4 m du centre.</p>
+    <p class="verdict">À masse égale (1 600 t), le pire balancement entretenu par l'équipage atteint 0,54° debout, 0,85° couché avec des mâts et 2,3° couché sans mâts.</p>
+  </div>
+  <figure>
+    <div class="stack">
+      <div id="schema-SV3"></div>
+      <div id="schema-SH3"></div>
+    </div>
+    <figcaption><b>En haut</b>, les Starships debout, câbles attachés aux points d'ancrage du nez. <b>En bas</b>, couchés dans le sens du mouvement, attachés à leurs deux extrémités au bout de mâts de 20 m.</figcaption>
+  </figure>
+</section>
+
+<section class="trap wide" id="starship-trois">
+  <div class="txt">
+    <span class="tag">Second choix</span>
+    <h3>Trois vaisseaux plutôt que deux</h3>
+    <p>Avec deux vaisseaux, un câble relie les deux nez. Rien n'empêche alors chaque vaisseau de tourner sur lui-même autour du câble&nbsp;: la moindre poussée le fait pivoter, et il continue indéfiniment. Ce n'est pas dangereux, le plancher reste horizontal, mais les hublots, les radiateurs et les panneaux solaires tournent lentement, et il faudrait des moteurs pour les remettre en place. Avec un second câble parallèle, c'est la station entière qui tourne autour de la ligne des câbles.</p>
+    <p>Dans le triangle, chaque vaisseau est tenu par deux câbles qui partent de deux côtés opposés de son nez, vers ses deux voisins. S'il pivote, l'un tire d'un côté, l'autre de l'autre, et ils le ramènent : il oscille autour de sa position, avec une période de 7 secondes, sans jamais s'en écarter. Autre avantage&nbsp;: si un câble casse, les trois vaisseaux restent reliés par les deux autres.</p>
+    <p class="verdict">Après une même petite poussée, l'haltère a pivoté de <span data-bind="SV2_perturbation.roll_max">205°</span> en 30 minutes, le triangle de <span data-bind="SV3_perturbation.roll_max">0,1°</span>.</p>
+  </div>
+  <figure>
+    <div class="viewer" data-anim="SV2_perturbation" data-speed="30" data-follow>
+      <div class="poster" data-schema='{"topology":"dumbbell","module":"radial","ship":"starship","radius":4.5,"length":50}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : deux Starships reliés par un seul câble, vus en suivant le vaisseau 0.</b> Ses ailerons tournent lentement autour de son axe, et rien ne les ramène. Lecture accélérée 30 fois.</figcaption>
+  </figure>
+</section>
+
+<section class="wide final" id="starship-mission">
+  <div class="col" style="margin:0;max-width:46rem">
+    <span class="eyebrow">Le résultat</span>
+    <h2>La station en route vers Mars</h2>
+    <p>Trois Starships de 610 t, debout, forment un triangle. Chacun est attaché par son nez, avec un câble vers chaque voisin, sur le côté qui lui fait face. Le centre de gravité des vaisseaux tourne à 338 m de l'axe, à un tour par minute.</p>
+  </div>
+  <ul class="checks" id="mission-checks">
+    <li><b>Pas de pivotement</b><span>Le vaisseau perturbé ne tourne que de <span class="num" data-bind="M_perturbation.roll_max">—</span> autour de son axe.</span></li>
+    <li><b>Changer de pont</b><span>Monter ou descendre 50 t de 15 m ne fait pas pencher le plancher&nbsp;: <span class="num" data-bind="M_cargaison_verticale.tilt_max">—</span>, autant que la perturbation seule.</span></li>
+    <li><b>Déplacer sur un pont</b><span>50 t déplacées de 3,5 m sur un pont&nbsp;: <span class="num" data-bind="M_cargaison_laterale.tilt_max">—</span> d'inclinaison au pire. La marche de l'équipage ne se distingue pas de la petite perturbation de départ (<span class="num" data-bind="M_equipage.tilt_max">—</span>).</span></li>
+    <li><b>Gravité stable</b><span>Entre <span class="num" data-bind="M_perturbation.g_min" data-fmt="ms2">—</span> et <span class="num" data-bind="M_perturbation.g_max" data-fmt="ms2">—</span>, pour 3,711 m/s² visés.</span></li>
+  </ul>
+  <figure>
+    <div class="viewer" data-anim="M_cargaison_laterale" data-speed="20" data-follow>
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : la station en route, 50 t de cargaison (sphère jaune) déplacées sur un pont du vaisseau 0.</b> Le vaisseau penche à peine. Les vaisseaux sont dessinés 1,6 fois plus gros que nature.</figcaption>
+  </figure>
+  <p class="verdict">Le point sensible reste le balancement des vaisseaux, plus légers qu'au départ : si 4 t (une cinquantaine de personnes) se balancent en cadence toutes les 8 secondes, perpendiculairement au plan de rotation, le plancher finit par pencher de 1,4°. Les parades sans moteurs : garder le lest en bas des vaisseaux, répartir chaque câble sur plusieurs points d'ancrage, et laisser le clapotis des ergols, guidé par des chicanes, freiner les balancements.</p>
+</section>
+
 <section class="col">
-  <span class="eyebrow">5 · La suite</span>
+  <span class="eyebrow">6 · La suite</span>
   <h2>Ce qu'il reste à étudier</h2>
   <ul class="todo">
-    <li>La mise en rotation : partir de modules immobiles et dérouler les câbles en accélérant, sans jamais les laisser se détendre.</li>
+    <li>La mise en rotation après l'injection vers Mars : rapprocher les trois vaisseaux, dérouler les câbles et accélérer sans jamais les laisser se détendre.</li>
+    <li>Le ballottement des ergols : en route, près des deux tiers de la masse de chaque vaisseau sont liquides. Leur clapotis peut freiner les balancements, ou les entretenir.</li>
+    <li>Des pattes d'oie sur plusieurs points d'ancrage du nez, pour raidir le balancement perpendiculaire au plan de rotation, aujourd'hui le plus sensible.</li>
     <li>La rupture d'un câble : un câble tendu stocke l'énergie de plusieurs kilos d'explosif. Le triangle doit survivre à la perte d'un côté.</li>
-    <li>L'amarrage des vaisseaux : chaque arrivée est un choc et un déplacement de masse.</li>
-    <li>Le contrôle actif : des moteurs pour corriger l'axe de rotation et amortir les balancements.</li>
+    <li>Des vaisseaux de masses différentes : le vaisseau d'équipage et les cargos ne seront pas forcément chargés à l'identique.</li>
+    <li>Plus tard, le contrôle actif : les moteurs de manœuvre pour corriger l'axe de rotation et amortir les balancements.</li>
     <li>Le vieillissement des câbles : rayonnement, micrométéorites, fluage du Dyneema sous charge permanente.</li>
   </ul>
 </section>
 
 <footer>
-  <p>Simulations : modèle multicorps écrit pour l'étude (Python, NumPy), validé par comparaison avec <a href="https://projectchrono.org/" target="_blank" rel="noopener">Project Chrono</a>. Les modules sont des cylindres rigides et les câbles des chaînes de ressorts élastiques. Orbite à 1 600 km, gravité terrestre négligée sauf mention.</p>
+  <p>Simulations : modèle multicorps écrit pour l'étude (Python, NumPy), validé par comparaison avec <a href="https://projectchrono.org/" target="_blank" rel="noopener">Project Chrono</a>. Les modules sont des cylindres rigides et les câbles des chaînes de ressorts élastiques. Orbite à 1 600 km, gravité terrestre négligée sauf mention. Les Starships sont modélisés comme des cylindres homogènes de 9 × 50 m (ergols supposés figés) ; dimensions et masses d'après les sources publiques sur le Starship V2 et V3.</p>
   <p id="tech-link">Le détail des calculs, des hypothèses et de tous les résultats est dans le <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi" target="_blank" rel="noopener">carnet de calcul technique</a>.</p>
 </footer>
 
@@ -424,6 +501,9 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   document.querySelectorAll("[data-schema]").forEach((p) => drawSchema(p, JSON.parse(p.dataset.schema)));
   drawSchema(document.getElementById("schema-F"), { topology: "triangle", module: "axial", caption: "Triangle, attache unique, modules parallèles à l'axe." });
   drawSchema(document.getElementById("schema-Z"), { topology: "triangle2", module: "tangential", bridle: 20, caption: "Configuration retenue (attaches surélevées de 20 m)." });
+  const SS = { ship: "starship", radius: 4.5, length: 50 };
+  drawSchema(document.getElementById("schema-SV3"), Object.assign({ topology: "triangle2", module: "radial", spread: 3.5, caption: "Debout : nez vers le centre, câbles aux points d'ancrage du nez." }, SS));
+  drawSchema(document.getElementById("schema-SH3"), Object.assign({ topology: "triangle2", module: "tangential", bridle: 20, caption: "Couchés : attaches aux deux extrémités, sur des mâts." }, SS));
 
   /* Données */
   const cache = {};
@@ -496,14 +576,14 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
       });
     }).catch(() => {});
   getJSON("data/summary.json").then((s) => {
-    const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {});
+    const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {}, s.starship || {}, s.mission || {});
     document.querySelectorAll("[data-bind]").forEach((n) => {
       const [name, key] = n.dataset.bind.split(".");
       const info = all[name];
       if (!info) return;
       const v = key in info.results ? info.results[key] : info[key];
       if (v === undefined || v === null) return;
-      n.textContent = n.dataset.fmt === "m" ? fr(v) + " m" : key.startsWith("g_") ? fr(v, 3) + " g" : fmtDeg(v);
+      n.textContent = n.dataset.fmt === "m" ? fr(v) + " m" : n.dataset.fmt === "ms2" ? fr(v * G0, 3) + " m/s²" : key.startsWith("g_") ? fr(v, 3) + " g" : fmtDeg(v);
     });
   }).catch(() => {});
 })();

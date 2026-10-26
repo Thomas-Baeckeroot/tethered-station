@@ -116,6 +116,7 @@ figcaption b { color: var(--ink); }
 .sc-module { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
 .sc-attach { fill: var(--ink); }
 .sc-floor { stroke: var(--accent); stroke-width: 3; }
+.sc-deck { stroke: var(--accent); stroke-width: 1; opacity: 0.45; }
 .sc-axis { stroke: var(--muted); stroke-dasharray: 6 4; }
 .sc-break { stroke: var(--muted); fill: none; }
 .sc-title { font: 600 13px var(--f-display); fill: var(--ink); }
@@ -169,9 +170,10 @@ figcaption b { color: var(--ink); }
     <li><a href="#modes"><span class="num">8</span>Modes propres</a></li>
     <li><a href="#internes"><span class="num">9</span>Mouvements internes</a></li>
     <li><a href="#final"><span class="num">10</span>Configuration retenue</a></li>
-    <li><a href="#non-simule"><span class="num">11</span>Effets estimés</a></li>
-    <li><a href="#limites"><span class="num">12</span>Limites et suite</a></li>
-    <li><a href="#reproduire"><span class="num">13</span>Reproduire</a></li>
+    <li><a href="#starship"><span class="num">11</span>Starships vers Mars</a></li>
+    <li><a href="#non-simule"><span class="num">12</span>Effets estimés</a></li>
+    <li><a href="#limites"><span class="num">13</span>Limites et suite</a></li>
+    <li><a href="#reproduire"><span class="num">14</span>Reproduire</a></li>
   </ol>
 </nav>
 
@@ -180,8 +182,8 @@ figcaption b { color: var(--ink); }
 <header style="display:grid;gap:14px">
   <span class="eyebrow">tethered-station · carnet de calcul</span>
   <h1>Carnet de calcul de la station</h1>
-  <p class="lede">Station à gravité artificielle de 0,38 g à 1 tr/min : trois modules de 1 600 t reliés par des câbles en Dyneema, en orbite à 1 600 km. Ce carnet donne les hypothèses, le dimensionnement, le modèle numérique et sa validation, puis chaque problème de dynamique examiné, avec la théorie et le résultat des simulations.</p>
-  <div class="meta"><span>25 octobre 2026</span><span>modèle : tether_sim.py (NumPy)</span><span>validation : Project Chrono 10.0</span><span id="meta-count"></span><span><a href="https://claude.ai/artifact/AhFHVxf86G4P5S4H4s9cXx" target="_blank" rel="noopener">version grand public</a></span></div>
+  <p class="lede">Station à gravité artificielle de 0,38 g à 1 tr/min : trois modules de 1 600 t reliés par des câbles en Dyneema, en orbite à 1 600 km. Ce carnet donne les hypothèses, le dimensionnement, le modèle numérique et sa validation, puis chaque problème de dynamique examiné, avec la théorie et le résultat des simulations. Le § 11 applique l'étude à trois Starships reliés par câbles, en route vers Mars.</p>
+  <div class="meta"><span>25–26 octobre 2026</span><span>modèle : tether_sim.py (NumPy)</span><span>validation : Project Chrono 10.0</span><span id="meta-count"></span><span><a href="https://claude.ai/artifact/AhFHVxf86G4P5S4H4s9cXx" target="_blank" rel="noopener">version grand public</a></span></div>
 </header>
 
 <section id="synthese">
@@ -191,11 +193,12 @@ figcaption b { color: var(--ink); }
     <li><span class="k">Câbles</span><span>Dimensionnés pour 1 g avec un facteur 3 : Dyneema de 157 cm² (haltère, Ø 14,1 cm) ou 90,6 cm² (triangle, Ø 10,7 cm). Déformation en service 0,38 %. Masse : 10 à 15 t au total.</span></li>
     <li><span class="k">Roulis</span><span>Un câble sans raideur en torsion laisse chaque module libre de tourner autour de lui. Le roulis obéit à <var>φ̈</var> = ω²(<var>I<sub>t</sub></var> − <var>I<sub>z</sub></var>)/<var>I<sub>r</sub></var> · <var>φ</var> : un module dont l'axe long est parallèle à l'axe de rotation est <b>instable, temps de doublement 7,1 s</b>.</span></li>
     <li><span class="k">Djanibekov</span><span>Dans l'haltère, I<sub>Y</sub> et I<sub>Z</sub> ne diffèrent que de 0,1 % : l'inertie propre des modules décide de l'ordre des axes. Avec deux câbles parallèles et des modules mal orientés, la station entière se retourne périodiquement (toutes les ~150 s). Le triangle, plan, a I<sub>Z</sub> = I<sub>X</sub> + I<sub>Y</sub> et n'y est pas sujet.</span></li>
-    <li><span class="k">Parade</span><span>Deux points d'attache écartés de ±20 m par module (palonnier) donnent un couple de rappel 2,3 fois supérieur au couple déstabilisant : même un module mal orienté reste à 0,2°.</span></li>
+    <li><span class="k">Parade</span><span>Deux points d'attache écartés de ±<var>s</var> par module (palonnier) : chaque câble tire vers son voisin avec une composante tangentielle, d'où un couple de rappel <var>T s</var>. Pour <var>s</var> = 20 m, il vaut 34 fois le couple déstabilisant : même un module mal orienté reste à 0,2°.</span></li>
     <li><span class="k">Cargaison</span><span>Déplacer 50 t de 15 m incline le plancher de δ/h = 4,4° avec une attache unique, 1,6° avec le palonnier, <span data-bind="final.Z_final_cargaison_patte_oie.tilt_max" data-fmt="deg">—</span> avec des attaches surélevées de 20 m.</span></li>
     <li><span class="k">Résonances</span><span>Les balancements des modules (0,06 à 0,2 Hz) sont très peu amortis. 4 t oscillant à la fréquence la plus défavorable inclinent le plancher de 3,9° avec une attache unique (environ 30 fois la réponse statique), contre 0,68° pour Z+. La marche ordinaire donne 0,3 à 0,6°, et 0,17° pour Z+.</span></li>
     <li><span class="k">Validation</span><span>Conservation de l'énergie et du moment cinétique à 10⁻⁹ ; temps de doublement analytique retrouvé à 0,1 % ; Project Chrono, moteur indépendant, donne le même roulis (écart de temps de doublement <span data-bind="validation.B_haltere_axial.doubling_rel" data-fmt="pct">—</span>).</span></li>
     <li><span class="k">Retenu</span><span>Z+ : triangle, modules tangentiels, deux attaches par module aux extrémités, surélevées de 20 m. Rotation dans le plan de l'orbite pour éviter la précession par gradient de gravité (sinon ~28°/jour à 1 600 km).</span></li>
+    <li><span class="k">Starships</span><span>Trois Starships debout (pointe vers le centre), en triangle, attachés aux points d'ancrage de la coiffe. Après l'injection vers Mars, chacun pèse ≈ 610 t ; gravité de Mars (3,711 m/s²) à 338,4 m. Roulis <span data-bind="mission.M_perturbation.roll_max" data-fmt="deg">—</span>, cargaison de 50 t sur un pont <span data-bind="mission.M_cargaison_laterale.tilt_max" data-fmt="deg">—</span>, changement de pont sans effet. À deux vaisseaux, le roulis autour du câble est neutre et dérive sans limite.</span></li>
   </ul>
 </section>
 
@@ -222,7 +225,7 @@ figcaption b { color: var(--ink); }
     </tbody>
   </table></div>
   <div class="prose">
-    <p><b>Gravité terrestre.</b> En chute libre orbitale, seule la marée (gradient de gravité) subsiste, d'ordre 3<var>n</var>²<var>R</var>, avec <var>n</var> le mouvement moyen orbital. Rapportée à la centrifuge ω²<var>R</var> : <var>n</var>²/ω² = 7,2·10⁻⁵ à 1 600 km (1,2·10⁻⁴ à 400 km). Elle est négligée dans les simulations ; son effet cumulé sur l'axe de rotation est estimé au § 11.</p>
+    <p><b>Gravité terrestre.</b> En chute libre orbitale, seule la marée (gradient de gravité) subsiste, d'ordre 3<var>n</var>²<var>R</var>, avec <var>n</var> le mouvement moyen orbital. Rapportée à la centrifuge ω²<var>R</var> : <var>n</var>²/ω² = 7,2·10⁻⁵ à 1 600 km (1,2·10⁻⁴ à 400 km). Elle est négligée dans les simulations ; son effet cumulé sur l'axe de rotation est estimé au § 12.</p>
     <p><b>Modules.</b> Cylindres pleins équivalents de 1 600 t, Ø 12 m × 40 m : <var>I</var><sub>axe long</sub> = <var>M a</var>²/2 = 18·<var>M</var> m², <var>I</var><sub>transverse</sub> = <var>M</var>(3<var>a</var>² + ℓ²)/12 = 142,3·<var>M</var> m². Point d'attache sur la coque, à <var>h</var> = 6 m du centre de masse (20 m pour un module en tour, attaché par son extrémité).</p>
   </div>
 </section>
@@ -299,7 +302,13 @@ figcaption b { color: var(--ink); }
   </div>
   <h3>6.3 Points d'attache écartés (palonnier)</h3>
   <div class="prose">
-    <p>Si chaque câble du triangle s'attache à un point différent, à ±<var>s</var> le long de <var>e</var><sub>t</sub>, un roulis φ déplace ces points de ±<var>s</var>φ hors du plan, transversalement aux câbles. Chaque câble tendu y oppose une raideur latérale <var>T</var>/<var>L</var>, d'où un couple de rappel 2<var>T s</var>²/<var>L</var>, à comparer au couple déstabilisant ω²(<var>I</var><sub>t</sub> − <var>I</var><sub>z</sub>). Pour <var>s</var> = 20 m : <b>4,95 MN·m/rad contre 2,18 MN·m/rad</b>. Le rapport de 2,3 suffit : le module axial de la configuration G reste à 0,2°. Avec <var>s</var> = 6 m, limité au rayon du module, le rappel ne vaudrait que 0,45 MN·m/rad.</p>
+    <p>Si chaque câble du triangle s'attache à un point différent, à ±<var>s</var> le long de <var>e</var><sub>t</sub>, chaque point est tiré vers le voisin le plus proche, dans une direction inclinée de 30° sur la verticale : le câble a une composante tangentielle <var>T</var>/2. Un roulis φ déplace les deux points de ±<var>s</var>φ hors du plan ; ces deux composantes tangentielles, de sens opposés, forment alors un couple qui ramène le module. S'y ajoute, au second ordre, la raideur latérale des câbles tendus (<var>T</var>/<var>L</var> chacun) :</p>
+  </div>
+  <div class="eq"><var>k</var><sub>att</sub> = <var>T s</var> + 2<var>T s</var>²/<var>L</var> &nbsp;&nbsp;&nbsp; <var>I</var><sub>r</sub> φ̈ = [ω² (<var>I</var><sub>t</sub> − <var>I</var><sub>z</sub>) − <var>k</var><sub>att</sub>] φ</div>
+  <div class="prose">
+    <p>Pour <var>s</var> = 20 m et <var>T</var> = 3,45 MN : <var>T s</var> = 69 MN·m/rad et 2<var>T s</var>²/<var>L</var> = 4,95 MN·m/rad, soit <b>74 MN·m/rad contre 2,18 MN·m/rad</b> de couple déstabilisant pour un module axial. Période de roulis prédite pour G : 11,2 s ; mesurée : 10,3 s (le roulis est couplé gyroscopiquement au balancement hors plan, de période 16 s, ce qui écarte les deux fréquences). Le même mécanisme raidit le roulis des modules tangentiels : 10,9 s prédit et 11,1 s mesuré pour Z+, contre 64 s avec une attache unique. Même avec <var>s</var> = 6 m, limité au rayon du module, le rappel vaudrait encore 21 MN·m/rad, dix fois le couple déstabilisant. Les Starships verticaux du § 11 en profitent avec seulement ±3,5 m.</p>
+    <p>Dans l'haltère à deux câbles parallèles (D, E), les câbles n'ont pas de composante tangentielle : il ne reste que 2<var>T s</var>²/<var>L</var>, qui ne retient d'ailleurs que le roulis <i>différentiel</i> des deux modules. Le roulis commun, où toute la station tourne autour de la ligne des câbles, n'a aucun rappel.</p>
+    <p><b>Correction.</b> Une version précédente de ce carnet n'attribuait le rappel qu'au terme 2<var>T s</var>²/<var>L</var>, quatorze fois trop faible, et annonçait un rapport de 2,3 au lieu de 34. Les simulations n'étaient pas concernées, puisqu'elles calculent directement les forces des câbles ; seules la prédiction affichée et cette explication l'étaient.</p>
   </div>
   <h3>6.4 Résultats de la campagne de stabilité</h3>
   <div class="prose"><p>Huit configurations, 30 min simulées chacune, perturbation initiale du module 0 : 2 cm/s radial, 2 cm/s hors plan, 0,11°/s en roulis.</p></div>
@@ -323,6 +332,10 @@ figcaption b { color: var(--ink); }
         <option value="Z_final_cargaison_patte_oie">Z+ · retenue, cargaison 50 t</option>
         <option value="Z_final_perturbation">Z · perturbation</option>
         <option value="Zp_perturbation">Z+ · retenue, perturbation</option>
+        <option value="SV3_perturbation">SV3 · Starships, triangle vertical, perturbation</option>
+        <option value="SV2_perturbation">SV2 · Starships, haltère vertical (dérive du roulis)</option>
+        <option value="M_perturbation">Mission · 610 t, perturbation</option>
+        <option value="M_cargaison_laterale">Mission · 610 t, cargaison 50 t latérale</option>
       </select></label>
       <label><input type="checkbox" id="viewer-follow" checked> suivre M0</label>
       <button type="button" id="viewer-load">Charger</button>
@@ -358,6 +371,9 @@ figcaption b { color: var(--ink); }
       <tr><td>Balancement dans le plan</td><td>A (tangentiel)</td><td class="n">0,063 Hz</td><td class="n">0,071 Hz</td><td>pic de réponse du balayage (§ 9.3)</td></tr>
       <tr><td>Balancement hors plan</td><td>G (axial)</td><td class="n">0,061 Hz</td><td class="n">0,062 Hz</td><td>pic de réponse du balayage (§ 9.3)</td></tr>
       <tr><td>Roulis</td><td>A (tangentiel)</td><td class="n">64,2 s</td><td class="n" id="roll-period">—</td><td>période d'oscillation du roulis</td></tr>
+      <tr><td>Roulis</td><td>G (palonnier, axial)</td><td class="n">11,2 s</td><td class="n">10,3 s</td><td>pic du spectre du roulis (§ 6.3)</td></tr>
+      <tr><td>Roulis</td><td>Z+ (palonnier, tangentiel)</td><td class="n">10,9 s</td><td class="n">11,1 s</td><td>idem</td></tr>
+      <tr><td>Roulis</td><td>Starships verticaux (§ 11)</td><td class="n">7,2 s</td><td class="n">7,2 s</td><td>idem</td></tr>
     </tbody>
   </table></div>
   <div class="prose"><p>Le mode longitudinal fait varier la gravité ressentie de ±0,5 % pour une perturbation de 2 cm/s. Il est amorti à 2 % par construction (constante de temps ~30 s). Les balancements ne sont amortis que par leur couplage aux câbles : à concevoir avec soin (§ 9).</p></div>
@@ -399,8 +415,79 @@ figcaption b { color: var(--ink); }
   <div class="chartbox"><h4>Balayage en fréquence : configuration retenue contre attache unique</h4><div id="ch-sweep-final"></div></div>
 </section>
 
+<section id="starship">
+  <h2>11 · Station de Starships pour le trajet Terre–Mars</h2>
+  <div class="prose">
+    <p><b>Scénario.</b> Trois Starships quittent l'orbite basse pleins (1 600 t chacun, structure, charge et ergols compris), s'injectent sur un transfert de Hohmann vers Mars, puis se relient par des câbles et se mettent en rotation. Un vaisseau emporte l'équipage, les deux autres sont des cargos. Les câbles sont dimensionnés pour la masse maximale (1 600 t à 1 g, facteur 3) ; la dynamique est calculée à la masse après l'injection. Gravité visée : celle de la surface de Mars, 3,711 m/s², à 1 tr/min. En transit, la précession par effet de marée (§ 12) et l'amarrage de nouveaux véhicules deviennent secondaires.</p>
+  </div>
+
+  <h3>11.1 Gabarit du vaisseau et modèle</h3>
+  <div class="prose">
+    <p>Sources publiques : diamètre 9 m ; hauteur 50 m (plan du SN8), 50,3 m (bloc 1), 52,1 m (bloc 2) ; masse à vide de 85 à 100 t selon les versions et les sources ; ergols 1 200 t (bloc 1), 1 500 t (bloc 2), environ 1 600 t annoncées pour le V3. Les ponts sont perpendiculaires à l'axe, pour une pesanteur dirigée vers les moteurs (pas de tir, surface de Mars). La coiffe porte des points de levage renforcés, utilisés par les bras de la tour ; leur nombre exact n'est pas publié.</p>
+    <p><b>Modèle.</b> Cylindre plein homogène Ø 9 m × 50 m : <var>I</var><sub>axe</sub> = 10,1·<var>M</var> m², <var>I</var><sub>transverse</sub> = 213,4·<var>M</var> m². Orientation <i>radiale</i> (« debout ») : axe long selon <var>e</var><sub>r</sub>, pointe vers le centre. Câbles attachés au niveau de la pointe, à <var>h</var> = 25 m du centre de masse, en deux points écartés de ±3,5 m selon <var>e</var><sub>t</sub>, chacun relié au voisin situé de son côté (palonnier du § 6.3).</p>
+    <p><b>Centre de masse réel.</b> Après l'injection (§ 11.2), un vaisseau de 610 t contient environ 100 t de structure, 100 t de charge et 400 t d'ergols. Sous la gravité artificielle, les liquides se rassemblent au fond des réservoirs, côté moteurs : l'oxygène liquide (≈ 305 t) occupe les 4 m inférieurs du réservoir arrière. Une estimation grossière place alors le centre de masse vers 33 m sous la pointe, soit <var>h</var> ≈ 23 à 28 m selon la hauteur des points d'ancrage : le modèle homogène (<var>h</var> = 25 m) est dans la fourchette. Un cas de sensibilité prend <var>h</var> = 15 m.</p>
+  </div>
+
+  <h3>11.2 Masse après l'injection vers Mars</h3>
+  <div class="prose">
+    <p>Transfert de Hohmann entre orbites circulaires coplanaires (demi-grands axes de la fiche NASA) : <span id="tmi-hohmann">—</span>. Depuis une orbite circulaire de rayon <var>r</var> :</p>
+  </div>
+  <div class="eq">Δ<var>v</var> = √(<var>v</var><sub>∞</sub>² + 2μ/<var>r</var>) − √(μ/<var>r</var>) &nbsp;&nbsp;&nbsp; <var>m</var><sub>f</sub> = <var>m</var><sub>0</sub> exp(−Δ<var>v</var> / <var>g</var><sub>0</sub><var>I</var><sub>sp</sub>)</div>
+  <div class="prose">
+    <p>La poussée finie est intégrée numériquement (<code>mission_mass.py</code>) : 3 Raptor Vacuum, <var>I</var><sub>sp</sub> = 380 s, 3 × 2,6 MN, poussée dirigée selon la vitesse, arrêt quand l'énergie orbitale atteint <var>v</var><sub>∞</sub>²/2. Les pertes par gravité restent faibles, car la combustion ne dure que 8 minutes.</p>
+  </div>
+  <div class="tbl"><table id="t-tmi"><thead><tr><th>Orbite de départ</th><th>Δv idéal</th><th>Masse (idéal)</th><th>Δv réel</th><th>Pertes</th><th>Combustion</th><th>Masse finale</th></tr></thead><tbody></tbody>
+  <caption>Vaisseau plein de 1 600 t au départ. Calculs de la suite : 610 t (départ de 400 km).</caption></table></div>
+  <div class="prose">
+    <p>Sensibilité (départ de 400 km) :</p>
+    <ul id="tmi-sens"></ul>
+    <p>La masse en route se situe donc entre 560 et 650 t ; les calculs suivants prennent <b>610 t</b>. Les trois vaisseaux partant pleins, ils ont la même masse en route : le triangle reste équilibré.</p>
+  </div>
+
+  <h3>11.3 Gravité visée et rayon</h3>
+  <div class="prose">
+    <p>3,711 m/s² est la valeur la plus citée pour la gravité de surface de Mars ; la fiche de la NASA donne 3,69 m/s² à l'équateur et 3,73 m/s² en moyenne. En unités de pesanteur standard (<var>g</var><sub>0</sub> = 9,80665 m/s²), 3,711 m/s² vaut 0,3784 <var>g</var><sub>0</sub> ; le « 0,379 g » souvent associé est rapporté à la pesanteur équatoriale terrestre (9,78 m/s²). Avec ω = 1 tr/min : <var>R</var> = 3,711 / 0,010966 = <b>338,4 m</b>, contre 339,8 m pour 0,38 <var>g</var><sub>0</sub> dans les sections précédentes.</p>
+    <p>Un vaisseau de 50 m de haut, debout, voit la gravité varier de ±7,4 % entre la pointe (3,44 m/s²) et la base (3,98 m/s²). La gravité visée est atteinte au centre de masse ; pour l'obtenir au pont principal de la section habitée, 6 m plus haut, il suffit d'allonger les câbles de √3 × 6 ≈ 10 m.</p>
+    <p><b>Câbles.</b> Dimensionnés pour 1 600 t à 1 g (90,6 cm², Ø 10,7 cm, 9,06 MN de conception) : <span id="mission-cable">—</span>. En route, ils travaillent donc à 4,8 % de leur résistance, et s'allongent de 0,14 %.</p>
+  </div>
+
+  <h3>11.4 Debout ou couché, deux ou trois vaisseaux</h3>
+  <div class="prose">
+    <p>Comparaison à masse maximale (1 600 t, 0,38 <var>g</var><sub>0</sub>), avec les mêmes scénarios qu'aux § 6 et 9. Les déplacements latéraux sont limités au rayon d'un pont (±3,5 m). Pour un vaisseau debout, un déplacement le long de l'axe est un changement de pont, sur la verticale du câble.</p>
+  </div>
+  <div class="grid2" id="ss-schemas"></div>
+  <div class="tbl"><table id="t-ss"><thead><tr><th></th><th>Configuration</th><th>Câble à vide</th><th>Roulis max (perturbation, 30 min)</th><th>Prédiction roulis</th><th>Cargaison 50 t</th><th>Pire résonance (4 t)</th></tr></thead><tbody></tbody>
+  <caption>Starships de 1 600 t, Ø 9 × 50 m. Résonance : maximum de la réponse au balayage en fréquence (§ 9.3).</caption></table></div>
+  <div class="prose">
+    <p><b>Debout.</b> L'intérieur reste utilisable tel quel, la structure travaille selon son axe (en traction plutôt qu'en compression), et les points d'ancrage existants sont à 25 m au-dessus du centre de masse : le vaisseau tient lieu des mâts de Z+. Les grands déplacements deviennent des changements de pont, sans effet sur l'inclinaison. Couché, il faudrait refaire l'intérieur (les ponts deviendraient des murs), faire travailler en flexion une coque de 50 m, et ajouter des mâts pour égaler la version debout.</p>
+    <p><b>Trois vaisseaux.</b> Debout et axisymétrique, un vaisseau a <var>I</var><sub>t</sub> = <var>I</var><sub>z</sub> : son roulis autour d'un câble unique est neutre. Dans l'haltère, la petite poussée initiale (0,11°/s) se transforme en dérive linéaire : 205° en 30 min. Avec deux câbles parallèles, le roulis différentiel est retenu, mais la station entière tourne autour de la ligne des câbles : la vitesse varie au cours du tour (0,11 à 0,29°/s), la station passant par-dessus une très faible bosse d'énergie liée à l'orientation des câbles. Dans le triangle, le rappel <var>T s</var> (§ 6.3) donne une période de roulis de 7,2 s, prédite comme mesurée, indépendante de la masse puisque <var>T</var> et <var>I</var><sub>r</sub> lui sont proportionnels. Le triangle offre en outre une redondance : la perte d'un câble laisse les trois vaisseaux reliés.</p>
+  </div>
+  <div class="chartbox"><h4>Roulis du vaisseau 0 après une même perturbation</h4><div id="ch-ss-roll"></div></div>
+
+  <h3>11.5 Mission : 610 t, 3,711 m/s²</h3>
+  <div class="prose">
+    <p>Triangle debout, vaisseaux de 610 t, câbles de conception 1 600 t. Mêmes perturbations et mêmes programmes de mouvement qu'au § 9 ; déplacements latéraux limités à ±3,5 m.</p>
+  </div>
+  <div class="tbl"><table id="t-mission"><thead><tr><th>Scénario</th><th>Plancher prédit (statique)</th><th>Plancher max</th><th>Roulis max</th><th>Rotation parasite max</th><th>Gravité ressentie</th><th>Tension</th></tr></thead><tbody></tbody></table></div>
+  <div class="chartbox"><h4>Balayage en fréquence (4 t) : mission, et vaisseaux pleins pour comparaison</h4><div id="ch-ss-sweep"></div></div>
+  <div class="prose" id="mission-analysis">
+    <p><b>Mouvements lents.</b> 50 t déplacées de ±3,5 m sur un pont inclinent le plancher de <span data-bind="mission.M_cargaison_laterale.tilt_max" data-fmt="deg">—</span>, pour 0,61° prédit par la formule du palonnier (§ 9.1, <var>s</var> = 3,5 m, <var>h</var> = 25 m). C'est 2,6 fois plus qu'à 1 600 t, le rapport des masses. Le changement de pont (50 t sur ±15 m le long de l'axe) et la marche de l'équipage ne se distinguent pas de la réponse à la perturbation initiale (<span data-bind="mission.M_perturbation.tilt_max" data-fmt="deg">—</span>).</p>
+    <p><b>Résonances.</b> Chaque vaisseau est un pendule de 25 m sous 3,7 m/s². Dans le plan de rotation, le palonnier raidit le balancement : pic de 0,58° à 0,15 Hz (période 6,6 s). Hors du plan, les attaches ne sont pas écartées et seul le rappel pendulaire agit : pic de <b>1,44° à 0,12 Hz</b> (période 8,1 s). C'est le point faible de la configuration. Les réponses varient comme 1/<var>M</var> : à 1 600 t, le même balayage donne 0,54°. La hauteur du centre de masse compte autant : avec <var>h</var> = 15 m, les pics montent à 1,53° (dans le plan, 5,0 s) et 2,71° (hors plan, 8,7 s). Au pic, la masse de 4 t oscille de ±1,7 m, l'amplitude étant limitée par l'accélération de 1 m/s² (§ 9.3).</p>
+  </div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Garder le centre de masse bas : ranger l'eau, les réserves et les ergols restants côté moteurs augmente <var>h</var> et raidit tous les balancements. Raidir le balancement hors plan : répartir chaque câble en patte d'oie sur plusieurs points d'ancrage du nez, écartés aussi selon l'axe de rotation. Éviter les activités collectives rythmées sur des périodes de 5 à 9 s. Le ballottement des ergols (0,18 à 0,20 Hz, § 12) tombe près des balancements : avec des chicanes, il pourrait servir d'amortisseur passif, ce qui reste à modéliser.</span></div>
+
+  <h3>11.6 Corrections apportées en cours d'étude</h3>
+  <div class="prose">
+    <ul>
+      <li><b>Rappel du palonnier.</b> L'ancienne explication (2<var>T s</var>²/<var>L</var> seulement) sous-estimait le rappel d'un facteur 14 ; corrigée au § 6.3. La prédiction de roulis affichée par le simulateur et dans les tableaux est recalculée avec <var>T s</var> + 2<var>T s</var>²/<var>L</var>. Les trajectoires simulées n'étaient pas concernées.</li>
+      <li><b>Poussée initiale et masses internes.</b> La perturbation de départ était appliquée à la coque du module 0 mais pas aux masses internes qu'il contient : l'asservissement encaissait l'écart de vitesse, d'où un à-coup de 0,2 s (0,17° pour 50 t) à t = 0. Les masses internes suivent désormais la coque ; tous les scénarios de cargaison ont été recalculés, sans changement des maxima publiés.</li>
+      <li><b>Dérive prise pour une instabilité.</b> Le temps de doublement est estimé entre 1° et 10° de roulis. Une dérive linéaire (roulis neutre) donnait une valeur trompeuse : 23,7 s pour C. Il n'est plus retenu que si la croissance est bien exponentielle (passage de 10° à 45° plus rapide que de 1° à 10°).</li>
+    </ul>
+  </div>
+</section>
+
 <section id="non-simule">
-  <h2>11 · Effets estimés, non simulés</h2>
+  <h2>12 · Effets estimés, non simulés</h2>
   <div class="prose">
     <p><b>Précession par gradient de gravité.</b> Moyenné sur la rotation, l'haltère comme le triangle se comporte comme un rotor axisymétrique avec (<var>C</var> − <var>A</var>)/<var>C</var> = 1/2. Le couple de gradient de gravité moyenné sur l'orbite fait précesser l'axe de rotation autour de la normale à l'orbite :</p>
   </div>
@@ -409,28 +496,34 @@ figcaption b { color: var(--ink); }
     <p>Soit <b>27,9°/jour</b> à 1 600 km (période 12,9 jours) et 45,5°/jour à 400 km, pour β petit. Le moment cinétique de la station (3,9·10¹⁰ kg·m²/s pour l'haltère) rend coûteux tout pilotage de l'axe : 7,8 kN·m en permanence pour seulement 1°/jour. Recommandation : axe de rotation aligné sur la normale à l'orbite (β = 0, couple nul). La précession nodale de l'orbite due à J2 entraîne alors l'axe à suivre lentement : à étudier.</p>
     <p><b>Confort de l'équipage.</b> Coriolis : 2ω<var>v</var>/<var>a</var> = ±5,6 % du poids à 1 m/s. Gradient tête-pieds : 1,8/340 = 0,5 %. À 1 tr/min, les deux restent sous les seuils usuels de confort, qui se situent vers 2 tr/min sans adaptation.</p>
     <p><b>Masse propre des câbles.</b> La centrifuge sur le câble ajoute λω²<var>R</var>²/2 ≈ 10 kN de tension au centre, négligeable devant 3,4 à 6 MN.</p>
+    <p><b>En transit vers Mars.</b> Sur l'orbite héliocentrique, le mouvement moyen vaut <var>n</var> = 2,0·10⁻⁷ rad/s à 1 UA (1,1·10⁻⁷ rad/s à 1,52 UA) : <var>n</var>²/ω² ≈ 3,6·10⁻¹², vingt millions de fois moins qu'à 1 600 km d'altitude. La précession tombe à ~10⁻⁶ °/jour, soit 3·10⁻⁴ ° sur les 259 jours du transfert : l'axe de rotation reste fixe dans l'espace. La direction du Soleil, elle, tourne de 180° autour de la station pendant le transfert, ce qui compte pour l'orientation des panneaux et des radiateurs.</p>
+    <p><b>Ballottement des ergols (Starships).</b> Premier mode d'un réservoir cylindrique de rayon <var>a</var> rempli sur une hauteur <var>d</var>, sous une gravité <var>g</var><sub>loc</sub> : ω<sub>s</sub>² = 1,841 (<var>g</var><sub>loc</sub>/<var>a</var>) tanh(1,841 <var>d</var>/<var>a</var>). Pour l'oxygène liquide en route (<var>d</var> ≈ 4,2 m, <var>g</var><sub>loc</sub> ≈ 3,9 m/s² au bas du vaisseau) : 0,20 Hz ; pour le méthane (<var>d</var> ≈ 3,2 m) : 0,18 Hz. Ces fréquences tombent au milieu des balancements des vaisseaux (pics de réponse entre 0,1 et 0,23 Hz), avec environ 400 t de liquide sur 610 t. Les liquides ne sont pas modélisés ici (masse figée) : ils peuvent amortir les balancements, comme l'amortisseur du § 7, ou se coupler à eux. C'est la prochaine étape de modélisation pour ce scénario.</p>
   </div>
 </section>
 
 <section id="limites">
-  <h2>12 · Limites et suite</h2>
+  <h2>13 · Limites et suite</h2>
   <div class="prose">
     <ul>
       <li>Modules rigides : pas de flexibilité de structure, pas de ballottement réel, seulement le modèle de Kane.</li>
       <li>Câbles sans raideur en flexion ni en torsion, discrétisés en 16 segments : suffisant pour les modes bas, pas pour les ondes rapides. Un câble réel a une raideur en torsion qui ajouterait un faible rappel au roulis ; ce rappel est négligé, ce qui va dans le sens de la sécurité.</li>
-      <li>Pas de gravité terrestre dans les simulations : précession estimée analytiquement (§ 11).</li>
-      <li>Pas de contrôle actif, d'amarrage ni de mise en rotation.</li>
-      <li>À simuler ensuite : rupture d'un câble du triangle (énergie élastique stockée ≈ 1/2 · <var>T</var>·ε·<var>L</var> ≈ 3,8 MJ par câble en service), déploiement et mise en rotation, amarrage d'un véhicule de 50 t, gradient de gravité complet (repère de Hill), câbles ANCF continus dans Chrono.</li>
+      <li>Pas de gravité terrestre dans les simulations : précession estimée analytiquement (§ 12).</li>
+      <li>Pas de contrôle actif ni de mise en rotation. L'amarrage d'un véhicule en route n'est pas prévu par le scénario Terre–Mars.</li>
+      <li>Starships : cylindres homogènes et rigides ; ergols figés (§ 12) ; ailerons absents de l'inertie (ils favorisent faiblement l'orientation ailerons dans le plan de rotation) ; capacité des points d'ancrage non publiée. En route, chaque câble tire 1,31 MN et chaque vaisseau 2,26 MN au total ; à 1 600 t et 1 g, ce serait 9,1 et 15,7 MN.</li>
+      <li>À simuler ensuite, par priorité pour le scénario Terre–Mars : mise en rotation après l'injection (rapprochement, déroulement des câbles sans détente) ; ballottement des ergols ; pattes d'oie sur plusieurs points d'ancrage du nez pour raidir le balancement hors plan ; rupture d'un câble (énergie élastique stockée ≈ 1/2 · <var>T</var>·ε·<var>L</var>, 3,8 MJ par câble à 1 600 t, 0,5 MJ en route) ; vaisseaux de masses inégales (équipage contre cargos). Moins prioritaires : gradient de gravité complet en orbite terrestre (repère de Hill), câbles ANCF continus dans Chrono.</li>
     </ul>
   </div>
 </section>
 
 <section id="reproduire">
-  <h2>13 · Reproduire</h2>
-  <div class="prose"><p>Projet <code>~/Workspace/perso/tethered-station</code>. Environnement Python : <code>.venv</code> (NumPy, Matplotlib). Chrono : <code>tools/chrono-env</code> (PyChrono 10.0.0, installé par micromamba).</p></div>
+  <h2>14 · Reproduire</h2>
+  <div class="prose"><p>Projet <code>~/Workspace/perso/tethered-station</code>. Environnement Python : <code>.venv</code> (NumPy, Matplotlib, SciPy). Chrono : <code>tools/chrono-env</code> (PyChrono 10.0.0, installé par micromamba).</p></div>
 <pre>.venv/bin/python run_scenarios.py rotation      # 8 scénarios de stabilité, ~8 min (M1 Max)
 .venv/bin/python run_scenarios.py internes      # 11 scénarios de mouvements internes, ~30 min
 .venv/bin/python run_scenarios.py final         # configuration retenue
+.venv/bin/python mission_mass.py                # masse après l'injection vers Mars
+.venv/bin/python run_scenarios.py starship      # Starships debout/couchés, 2 ou 3 (21 scénarios, ~30 min)
+.venv/bin/python run_scenarios.py mission       # mission Terre–Mars, 610 t, 3,711 m/s² (~30 min)
 tools/chrono-env/bin/python chrono_validation.py --name B --module axial --duration 300
 .venv/bin/python make_web_data.py               # exporte docs/data/ pour ce carnet</pre>
 </section>
@@ -483,10 +576,12 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
     ["G", "G_triangle_palonnier_axial", "Triangle palonnier, axial"], ["H", "H_triangle_tangentiel", "Triangle, tangentiel"],
   ];
   const verdict = (r, info) => {
+    if (r.roll_max > 5 && (!r.doubling_time || (info && info.roll_prediction.startsWith("neutre")))) return '<span class="pill warn">dérive</span>';
     if (r.roll_max > 45) return '<span class="pill bad">instable</span>';
     if (r.roll_max > 5) return '<span class="pill warn">dérive</span>';
     return '<span class="pill ok">stable</span>';
   };
+  const decFr = (t) => t.replace(/(\d)\.(\d)/g, "$1,$2");
   const gRange = (r) => `${fr(r.g_min, 3)}–${fr(r.g_max, 3)}`;
   getJSON("data/summary.json").then((S) => {
     const all = S;
@@ -509,7 +604,7 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
       const info = S.rotation && S.rotation[name];
       if (!info) return;
       const r = info.results;
-      tb.insertAdjacentHTML("beforeend", `<tr><td>${verdict(r, info)}</td><td><b class="mono">${k}</b> · ${lab}</td><td>${info.roll_prediction}</td>
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${verdict(r, info)}</td><td><b class="mono">${k}</b> · ${lab}</td><td>${decFr(info.roll_prediction)}</td>
         <td class="n">${r.doubling_time ? fr(r.doubling_time, 1) + " s" : "—"}</td><td class="n">${deg(r.roll_max)}</td><td class="n">${deg(r.tilt_max)}</td>
         <td class="n">${fr(r.wrel_max, 2)} °/s</td><td class="n">${gRange(r)}</td><td class="n">${sci(r.dE_max)}</td><td class="n">${sci(r.dL_max)}</td></tr>`);
     });
@@ -597,6 +692,88 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
     });
   }).catch(() => {});
   sweepChart("ch-sweep-final", [["A_balayage", "A haltère"], ["Z_final_balayage", "Z"], ["Zp_balayage", "Z+ retenue"]]);
+
+  /* Starships (§ 11) */
+  const SS = { ship: "starship", radius: 4.5, length: 50 };
+  [["SV3", "triangle2", "radial", 3.5, 0, "Triangle vertical : nez vers le centre, câbles aux points d'ancrage du nez (±3,5 m)."],
+   ["SV2", "dumbbell", "radial", undefined, 0, "Haltère vertical : un câble entre les deux nez."],
+   ["SH3", "triangle2", "tangential", 20, 20, "Triangle horizontal, attaches aux extrémités sur mâts de 20 m."],
+   ["SH3n", "triangle2", "tangential", 20, 0, "Triangle horizontal, attaches aux extrémités sur la coque."]].forEach(([k, topo, mod, spread, bridle, cap]) => {
+    const d = document.createElement("div");
+    document.getElementById("ss-schemas").appendChild(d);
+    drawSchema(d, Object.assign({ topology: topo, module: mod, spread, bridle, caption: `<b>${k}</b> · ${cap}` }, SS));
+  });
+  const peak = (d) => d.sweep.reduce((a, b) => (b[1] > a[1] ? b : a));
+  const SS_ROWS = [
+    ["SV3", "Triangle vertical", "SV3_perturbation", [["SV3_cargaison_laterale", "latérale 3,5 m"], ["SV3_cargaison_verticale", "verticale 15 m"]], [["SV3_balayage_t", "dans le plan"], ["SV3_balayage_z", "hors plan"]]],
+    ["SV2", "Haltère vertical", "SV2_perturbation", [["SV2_cargaison_laterale", "latérale 3,5 m"]], [["SV2_balayage_t", "dans le plan"]]],
+    ["SV2L", "Haltère vertical, 2 câbles", "SV2L_perturbation", [], []],
+    ["SH3", "Triangle horizontal, mâts 20 m", "SH3_perturbation", [["SH3_cargaison", "15 m le long du vaisseau"]], [["SH3_balayage", "le long du vaisseau"]]],
+    ["SH3n", "Triangle horizontal, sans mâts", "SH3n_perturbation", [["SH3n_cargaison", "15 m le long du vaisseau"]], [["SH3n_balayage", "le long du vaisseau"]]],
+  ];
+  getJSON("data/summary.json").then((S) => {
+    const st = S.starship || {}, mi = S.mission || {};
+    const tb = document.querySelector("#t-ss tbody");
+    SS_ROWS.forEach(([k, lab, pert, cargos, sweeps]) => {
+      const p = st[pert];
+      if (!p) return;
+      const r = p.results;
+      const cargo = cargos.filter(([n]) => st[n]).map(([n, l]) => `<b>${deg(st[n].results.tilt_max)}</b> <span class="mono">(${l})</span>`).join("<br>") || "—";
+      const cell = `<td class="n" data-sweeps="${sweeps.map(([n, l]) => n + ":" + l).join("|")}">${sweeps.length ? "…" : "—"}</td>`;
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${verdict(r, p)}</td><td><b class="mono">${k}</b> · ${lab}</td><td class="n">${fr(p.L0, 1)} m</td>
+        <td class="n"><b>${deg(r.roll_max)}</b></td><td>${decFr(p.roll_prediction)}</td><td>${cargo}</td>${cell}</tr>`);
+    });
+    tb.querySelectorAll("[data-sweeps]").forEach((td) => {
+      const list = td.dataset.sweeps.split("|").filter(Boolean).map((s) => s.split(":"));
+      if (!list.length) return;
+      Promise.all(list.map(([n]) => series(n))).then((ds) => {
+        td.innerHTML = ds.map((d, i) => { const pk = peak(d); return `<b>${deg(pk[1])}</b> à ${fr(pk[0], 3)} Hz <span class="mono">(${list[i][1]})</span>`; }).join("<br>");
+      }).catch(() => {});
+    });
+    // Mission
+    const MI = [
+      ["M_perturbation", "Perturbation (sans masse mobile)"], ["M_cargaison_laterale", "Cargaison 50 t, latérale ±3,5 m"],
+      ["M_cargaison_verticale", "Cargaison 50 t, verticale ±15 m (changement de pont)"], ["M_equipage", "Équipage 4 t, allers-retours ±3,5 m"],
+      ["M_balayage_t", "Balayage 4 t, dans le plan"], ["M_balayage_z", "Balayage 4 t, hors plan"],
+      ["M_h15_balayage_t", "Balayage 4 t, dans le plan, h = 15 m"], ["M_h15_balayage_z", "Balayage 4 t, hors plan, h = 15 m"],
+    ];
+    const tm = document.querySelector("#t-mission tbody");
+    MI.forEach(([name, lab]) => {
+      const info = mi[name];
+      if (!info) return;
+      const r = info.results;
+      tm.insertAdjacentHTML("beforeend", `<tr><td>${lab}</td><td class="n">${deg(info.tilt_static_pred)}</td><td class="n"><b>${deg(r.tilt_max)}</b></td>
+        <td class="n">${deg(r.roll_max)}</td><td class="n">${fr(r.wrel_max, 2)} °/s</td><td class="n">${fr(r.g_min * 9.80665, 3)}–${fr(r.g_max * 9.80665, 3)} m/s²</td>
+        <td class="n">${fr(r.T_min_MN, 2)}–${fr(r.T_max_MN, 2)} MN</td></tr>`);
+    });
+    const m0 = mi.M_perturbation;
+    if (m0) {
+      document.getElementById("mission-cable").textContent = `${fr(m0.L0, 1)} m à vide, ${fr(m0.L_eq, 1)} m sous charge, tension ${fr(m0.T_eq / 1e6, 2)} MN par câble pour ${fr(m0.T_design / 1e6, 2)} MN de conception`;
+    }
+  }).catch(() => {});
+  chartT("ch-ss-roll", [
+    ["SV3_perturbation", "SV3 triangle vertical", (d) => d.roll[0]], ["SV2_perturbation", "SV2 haltère vertical", (d) => d.roll[0]],
+    ["SV2L_perturbation", "SV2L haltère vertical, 2 câbles", (d) => d.roll[0]],
+  ], { yLabel: "roulis du vaisseau 0 autour de son axe (°)", yUnit: "°" });
+  const sweepChartSS = (el, list) => Promise.all(list.map(([n]) => series(n))).then((ds) => {
+    lineChart(document.getElementById(el), {
+      xLog: true, yLog: true, xLabel: "fréquence d'excitation (Hz)", xName: "f =", xUnit: " Hz", yLabel: "inclinaison du plancher (°)", yUnit: "°",
+      xFmt: (v) => fr(v, v < 0.01 ? 3 : 2),
+      series: ds.map((d, i) => ({ name: list[i][1], x: d.sweep.map((p) => p[0]), y: d.sweep.map((p) => p[1]), dash: !!list[i][2] })),
+      vrefs: [{ x: 0.105, label: "pendule, prédit" }],
+    });
+  }).catch(() => {});
+  sweepChartSS("ch-ss-sweep", [["M_balayage_t", "610 t, dans le plan"], ["M_balayage_z", "610 t, hors plan"],
+    ["M_h15_balayage_z", "610 t, hors plan, h = 15 m"], ["SV3_balayage_z", "1 600 t, hors plan", true]]);
+  getJSON("data/mission.json").then((M) => {
+    const tb = document.querySelector("#t-tmi tbody");
+    M.orbites.forEach((o) => tb.insertAdjacentHTML("beforeend", `<tr><td>${fr(o.alt_km)} km</td><td class="n">${fr(o.dv_impulsionnel)} m/s</td>
+      <td class="n">${fr(o.m_impulsionnel_t)} t</td><td class="n">${fr(o.dv_reel)} m/s</td><td class="n">${fr(o.perte_gravite)} m/s</td><td class="n">${fr(o.duree_s / 60, 1)} min</td>
+      <td class="n"><b>${fr(o.m_final_t)} t</b></td></tr>`));
+    document.getElementById("tmi-sens").innerHTML = M.sensibilite.map((s) => `<li>${s.cas} : <b>${fr(s.m_final_t)} t</b></li>`).join("");
+    const h = M.hohmann;
+    document.getElementById("tmi-hohmann").textContent = `v∞ au départ ${fr(h.v_inf_depart / 1000, 3)} km/s, à l'arrivée ${fr(h.v_inf_arrivee / 1000, 3)} km/s, durée ${fr(h.duree_j)} jours`;
+  }).catch(() => {});
 
   /* Période du roulis stable (A) : passages par zéro */
   series("A_haltere_tangentiel").then((d) => {
