@@ -112,10 +112,14 @@ def sweep_response(d, info, f0=0.004, f1=0.25, t0=60.0):
     roll = d["roll"][:, 0]
     s = d["s"]
     out = []
-    for f in np.geomspace(f0 * 1.05, f1 * 0.98, 60):
-        tc = t0 + (f - f0) / (f1 - f0) * (t1 - t0)
-        half = max(0.75 / f, 10.0)
-        m = (t > tc - half) & (t < tc + half)
+    # fenêtres contiguës : chaque fréquence prend le maximum entre les
+    # milieux de ses voisines (au moins ±0,75 période), pour ne manquer aucun pic
+    fs = np.geomspace(f0 * 1.05, f1 * 0.98, 60)
+    tc = t0 + (fs - f0) / (f1 - f0) * (t1 - t0)
+    edges = np.concatenate([[tc[0]], (tc[1:] + tc[:-1]) / 2, [tc[-1]]])
+    for k, f in enumerate(fs):
+        half = 0.75 / f
+        m = (t > min(edges[k], tc[k] - half)) & (t < max(edges[k + 1], tc[k] + half))
         if m.sum() < 10:
             continue
         out.append([f, float(tilt[m].max()), float(np.ptp(roll[m]) / 2), float(np.ptp(s[m]) / 2)])

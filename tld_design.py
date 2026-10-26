@@ -95,10 +95,13 @@ def sweep(tld=None, dt=0.1, **kw):
     tilt = np.degrees(tilt)
     out = []
     f0, f1, t0, t1 = 0.004, SWEEP["f1"], 60.0, T - 60
-    for fr in np.geomspace(f0 * 1.05, f1 * 0.98, 120):
-        tc = t0 + (fr - f0) / (f1 - f0) * (t1 - t0)
-        half = max(0.75 / fr, 10.0)
-        m = (t > tc - half) & (t < tc + half)
+    # fenêtres contiguës, comme sweep_response de make_web_data
+    fs = np.geomspace(f0 * 1.05, f1 * 0.98, 120)
+    tc = t0 + (fs - f0) / (f1 - f0) * (t1 - t0)
+    edges = np.concatenate([[tc[0]], (tc[1:] + tc[:-1]) / 2, [tc[-1]]])
+    for k, fr in enumerate(fs):
+        half = 0.75 / fr
+        m = (t > min(edges[k], tc[k] - half)) & (t < max(edges[k + 1], tc[k] + half))
         out.append([fr, tilt[m].max()])
     return np.array(out)
 
