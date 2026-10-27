@@ -30,4 +30,6 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 
 ## Pages
 
+- **Site bilingue français / anglais** : version anglaise des deux pages (et du README), avec un sélecteur de langue ; `build_site.sh` à adapter.
+
 - Après toute nouvelle campagne : mettre à jour la synthèse (§ 1), les limites (§ 15) et la section Reproduire (§ 16) du carnet ; le bilan et « Ce qu'il reste à étudier » de la page grand public ; ce fichier et le README.

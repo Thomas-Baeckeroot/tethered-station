@@ -9,7 +9,7 @@ Deux publications présentent les résultats :
 - `docs/grand-public/` : article de présentation, avec animations 3D des simulations ;
 - `docs/technique/` : carnet de calcul (hypothèses, dimensionnement, modèle, validation, problèmes étudiés, résultats).
 
-Site : http://t.baeckeroot.free.fr/tethered-station/ ([grand public](http://t.baeckeroot.free.fr/tethered-station/grand-public/), [carnet technique](http://t.baeckeroot.free.fr/tethered-station/technique/)).
+Code source : https://github.com/Thomas-Baeckeroot/tethered-station. Site : http://t.baeckeroot.free.fr/tethered-station/ ([grand public](http://t.baeckeroot.free.fr/tethered-station/grand-public/), [carnet technique](http://t.baeckeroot.free.fr/tethered-station/technique/)).
 
 Site statique : `docs/build_site.sh <dossier>` construit `index.html`, `grand-public/` et `technique/` (squelette HTML complet, liens relatifs entre les pages), à copier tel quel sur le serveur (ex. http://t.baeckeroot.free.fr/tethered-station/).
 
