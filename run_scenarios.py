@@ -61,6 +61,12 @@ TLD = BAFFLED + ["--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "
 RESO8 = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "3.5", "--motion-axis", "z",
          "--motion-period", "8.0", "--motion-stop", "240", "--duration", "900"]
 
+# Rupture d'un câble (côté 0, entre les vaisseaux 0 et 1) à t = 60 s ; parade :
+# moyeu central de 20 t relié au nez de chaque vaisseau par un rayon prétendu
+# à 15 % de la tension d'un côté
+BRK = ["--break-cable", "0", "--break-time", "60"]
+HUB = ["--hub-mass-t", "20", "--spoke-tension", "0.15"]
+
 CAMPAIGNS = {
     "rotation": [
         ("A_haltere_tangentiel", A + ["--duration", "1800"]),
@@ -172,6 +178,14 @@ CAMPAIGNS = {
         ("R_resonance_z", BAFFLED + RESO8 + ["--traj-dt", "0.25"]),
         ("T_resonance_z", TLD + RESO8 + ["--traj-dt", "0.25"]),
     ],
+    # Rupture d'un câble, solution retenue (chicanes + bassin), puis avec moyeu
+    "rupture": [
+        ("X_rupture_milieu", TLD + BRK + ["--break-at", "0.5", "--duration", "1800"] + TRAJ),
+        ("X_rupture_attache", TLD + BRK + ["--break-at", "0", "--duration", "900"] + TRAJ),
+        ("Y_moyeu_perturbation", TLD + HUB + PERT + TRAJ),
+        ("Y_moyeu_rupture", TLD + HUB + BRK + ["--break-at", "0.5", "--duration", "1800"] + TRAJ),
+        ("Y_moyeu_rupture_rayon", TLD + HUB + ["--break-cable", "3", "--break-time", "60", "--break-at", "0.5", "--duration", "900"]),
+    ],
 }
 
 
@@ -254,6 +268,21 @@ def summarize(out, names):
               "Plancher max | Plancher prédit (statique) | Rotation parasite max (°/s) | g ressenti | Dérive énergie | Dérive L |\n"
               "|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     md = header + "\n" + "\n".join(rows) + "\n"
+    brk = []
+    for name in names:
+        path = os.path.join(out, name + ".json")
+        if os.path.exists(path):
+            r = json.load(open(path))["results"]
+            if "break" in r:
+                b = r["break"]
+                brk.append(f"| {name} | {b['E_cable_kJ']:.0f} | {b['v_whip_max']:.0f} | {b['clear_min']:.1f} (module {b['clear_ship']}, +{b['clear_t']:.0f} s) | "
+                           f"{b['T_max_MN']:.2f} | {b['slack_s']:.0f} | " + " / ".join(f"{lo:.1f}–{hi:.1f}" for lo, hi in zip(b["g_min"], b["g_max"]))
+                           + " | " + " / ".join(f"{v:.0f}" for v in b["wrel_max"]) + f" | {b['rpm_before']:.2f} → {b['rpm_final']:.2f} | "
+                           + " / ".join(f"{v:.0f}" for v in b["r_final"]) + f" | {b['gap_min']:.0f} |")
+    if brk:
+        md += ("\n| Rupture | Énergie du câble (kJ) | Brin libre max (m/s) | Brin au plus près d'une coque (m) | Tension max restante (MN) | "
+               "Détente (s) | g après (m/s², par module) | Rotation parasite max (°/s) | tr/min | Distance finale au centre (m) | Coques au plus près (m) |\n"
+               "|---|---|---|---|---|---|---|---|---|---|---|\n" + "\n".join(brk) + "\n")
     with open(os.path.join(out, "summary.md"), "w") as fh:
         fh.write(md)
     print(md)

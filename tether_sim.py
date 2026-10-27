@@ -21,7 +21,10 @@ Modèle :
 - intégration « kick-drift-kick » ; rotation libre des corps par
   décomposition symétrique autour des axes principaux (symplectique,
   conserve |L| exactement) ; amortissement des câbles appliqué de façon
-  exacte à part.
+  exacte à part ;
+- options : moyeu central (masse ponctuelle) relié à chaque module par un
+  rayon légèrement prétendu ; rupture d'un câble (un segment cesse de porter
+  à un instant donné, son énergie élastique est comptée comme dissipée).
 
 Dimensionnement : rayon R = a/ω² déduit de la gravité et de la vitesse de
 rotation visées (au centre de masse des modules), longueur des câbles déduite
@@ -275,6 +278,17 @@ class Station:
             h_att = self.h + self.ship["x_c"] - self.ship["x_tot"]
             self.Ib = np.array([self.ship["I_ax"], self.ship["I_tr"], self.ship["I_tr"]])
         topo = build_topology(args.topology, args.spread)
+        # Moyeu central : un point d'attache de plus au milieu du nez de chaque
+        # module, et un rayon vers le moyeu (câbles d'indice 3 à 5)
+        self.hub_m = getattr(args, "hub_mass_t", 0.0) * 1e3
+        if self.hub_m > 0:
+            if not args.topology.startswith("triangle"):
+                raise ValueError("le moyeu suppose une topologie en triangle")
+            k_hub = len(topo["attach"])
+            topo["attach"] = topo["attach"] + [(0.0, 0.0)]
+            n_sides = len(topo["cables"])
+            topo["cables"] = topo["cables"] + [((b, k_hub), ("hub", 0)) for b in range(len(topo["angles"]))]
+            topo["spokes"] = list(range(n_sides, len(topo["cables"])))
         self.topo = topo
         self.T_design = M_design * args.design_g * G0 * topo["tfac"]
         self.area = self.T_design * args.safety / mat["sigma"]
@@ -361,28 +375,40 @@ class Station:
         self.cd = self.J / args.damper_tau if self.J > 0 else 0.0
         self.hs = np.zeros((nb, 3))
 
-        # Câbles : nœuds libres, puis points d'attache (sans masse, portés par les corps)
+        # Câbles : nœuds libres (moyeu compris), puis points d'attache (sans
+        # masse, portés par les corps)
         n = args.segments
         assert n >= 2
         P0, _ = self._attach_points(self.xb, self.R)
         xn, mn, segs, ds0 = [], [], [], []
+        self.hub_nodes = []
+        if self.hub_m > 0:
+            xn.append(np.zeros(3))
+            mn.append(self.hub_m)
+            self.hub_nodes.append(0)
         self.cable_first_seg, self.cable_mid_node = [], []
-        for (bA, kA), (bB, kB) in topo["cables"]:
-            iA, iB = bA * na + kA, bB * na + kB
-            pA, pB = P0[iA], P0[iB]
+        for ends in topo["cables"]:
+            # extrémité : (indice dans la chaîne, position) ; attache < 0, nœud libre ≥ 0
+            ch_end = [(self.hub_nodes[k], xn[self.hub_nodes[k]]) if b == "hub" else (-(b * na + k + 1), P0[b * na + k])
+                      for b, k in ends]
+            (cA, pA), (cB, pB) = ch_end
             ds = np.linalg.norm(pB - pA) / n
-            chain = [-(iA + 1)]
+            chain = [cA]
             for s in range(1, n):
                 xn.append(pA + (pB - pA) * s / n)
                 mn.append(self.lam * ds)
                 chain.append(len(xn) - 1)
-            chain.append(-(iB + 1))
+            chain.append(cB)
             self.cable_first_seg.append(len(segs))
             self.cable_mid_node.append(chain[n // 2])
             segs += list(zip(chain[:-1], chain[1:]))
             ds0 += [ds] * n
-            self.Mb[bA] += self.lam * ds / 2
-            self.Mb[bB] += self.lam * ds / 2
+            # demi-segments d'extrémité : masse reportée sur le corps ou le moyeu
+            for (b, k), (c, _) in zip(ends, ch_end):
+                if b == "hub":
+                    mn[c] += self.lam * ds / 2
+                else:
+                    self.Mb[b] += self.lam * ds / 2
         nf = len(xn)
         self.nf = nf
         self.seg = np.array([[p if p >= 0 else nf - p - 1 for p in s] for s in segs])
@@ -395,13 +421,32 @@ class Station:
         self.n_cables = len(topo["cables"])
         self.ds0 = np.array(ds0)
         self._update_stiffness()
+        # Segments qui portent (rupture : un segment cesse de porter)
+        self.alive = np.ones(len(segs), dtype=bool)
+        # Rayons du moyeu : allongement de prétension visé (fraction de la
+        # tension nominale d'un côté du triangle)
+        spokes = topo.get("spokes", [])
+        self.spoke_seg = np.array([self.cable_first_seg[c] + s for c in spokes for s in range(n)], dtype=int)
+        self.side_seg = np.setdiff1d(np.arange(len(segs)), self.spoke_seg)
+        self.spoke_eps = getattr(args, "spoke_tension", 0.0) * M * args.g * G0 * topo["tfac"] / self.EA
 
-        # Segments nœud-nœud en deux groupes sans nœud partagé (amortissement)
+        # Segments nœud-nœud en groupes sans nœud partagé (amortissement exact
+        # par paires) : coloriage glouton des arêtes (deux groupes pour une
+        # chaîne, un de plus autour du moyeu)
         i, j = self.seg[:, 0], self.seg[:, 1]
         att_i, att_j = i >= nf, j >= nf
         nn = ~(att_i | att_j)
-        pos = np.arange(len(segs)) % n
-        self.nn_groups = [np.where(nn & (pos % 2 == p))[0] for p in (0, 1)]
+        groups, used = [], []
+        for s in np.where(nn)[0]:
+            for g, u in zip(groups, used):
+                if i[s] not in u and j[s] not in u:
+                    g.append(s)
+                    u.update((i[s], j[s]))
+                    break
+            else:
+                groups.append([s])
+                used.append({i[s], j[s]})
+        self.nn_groups = [np.array(g, dtype=int) for g in groups]
         # Segments d'attache : (point d'attache, nœud)
         self.as_idx = np.where(~nn)[0]
         self.as_att = np.where(att_i[self.as_idx], i[self.as_idx], j[self.as_idx]) - nf
@@ -444,7 +489,7 @@ class Station:
         l = np.linalg.norm(d, axis=1)
         e = d / l[:, None]
         stretch = l - self.ds0
-        taut = stretch > 0
+        taut = (stretch > 0) & self.alive
         t = np.where(taut, self.k * stretch, 0.0)
         f = t[:, None] * e
         F = np.zeros_like(P)
@@ -579,7 +624,7 @@ class Station:
             e = d / l[:, None]
             mu = self.mn[i] * self.mn[j] / (self.mn[i] + self.mn[j])
             vrel = np.einsum("ij,ij->i", self.vn[j] - self.vn[i], e)
-            J = np.where(l > self.ds0[grp], mu * vrel * (1 - np.exp(-self.c[grp] * dt / mu)), 0.0)
+            J = np.where((l > self.ds0[grp]) & self.alive[grp], mu * vrel * (1 - np.exp(-self.c[grp] * dt / mu)), 0.0)
             imp = J[:, None] * e
             np.add.at(self.vn, i, imp / self.mn[i][:, None])
             np.add.at(self.vn, j, -imp / self.mn[j][:, None])
@@ -596,7 +641,7 @@ class Station:
         vrel = np.einsum("ij,ij->i", self.vn[nd] - va, e)
         mu = 1 / (1 / self.mn[nd] + 1 / m_eff)
         cs = self.c[self.as_idx]
-        J = np.where(l > self.ds0[self.as_idx], mu * vrel * (1 - np.exp(-cs * dt / mu)), 0.0)
+        J = np.where((l > self.ds0[self.as_idx]) & self.alive[self.as_idx], mu * vrel * (1 - np.exp(-cs * dt / mu)), 0.0)
         imp = J[:, None] * e
         np.add.at(self.vn, nd, -imp / self.mn[nd][:, None])
         Fb = np.zeros((self.nb, 3))
@@ -632,7 +677,7 @@ class Station:
             c = Mb_tot[:, None] * self.xb
             np.add.at(c, self.sb, self.sm[:, None] * (self.xb[self.sb] + rs))
             return c / Mmod[:, None]
-        for it in range(15):
+        for it in range(40):
             vn = np.zeros_like(self.xn)
             vb = np.zeros_like(self.xb)
             for step in range(100000):
@@ -654,11 +699,23 @@ class Station:
                 if step % 1000 == 999 and max(np.abs(vn).max(), np.abs(vb).max()) < 1e-8:
                     break
             R = np.linalg.norm(module_com()[:, :2], axis=1).mean()
+            # Rayons : longueur à vide recalée sur la géométrie pour garder
+            # l'allongement de prétension visé ; seuls les côtés fixent R
+            spoke_ok = True
+            if len(self.spoke_seg):
+                P, _ = self.points()
+                i, j = self.seg[self.spoke_seg, 0], self.seg[self.spoke_seg, 1]
+                l = np.linalg.norm(P[j] - P[i], axis=1)
+                eps = l.sum() / self.ds0[self.spoke_seg].sum() - 1
+                spoke_ok = abs(eps - self.spoke_eps) < max(0.01 * self.spoke_eps, 1e-7)
             if verbose:
-                print(f"  itération {it}: R = {R:.5f} m (visé {self.R_target:.5f})")
-            if abs(R - self.R_target) < 1e-4:
+                print(f"  itération {it}: R = {R:.5f} m (visé {self.R_target:.5f})"
+                      + (f", allongement des rayons {eps:.2e} (visé {self.spoke_eps:.2e})" if len(self.spoke_seg) else ""))
+            if abs(R - self.R_target) < 1e-4 and spoke_ok:
                 break
-            self.ds0 += (self.R_target - R) / self.topo["dRdL"] / self.n
+            self.ds0[self.side_seg] += (self.R_target - R) / self.topo["dRdL"] / self.n
+            if len(self.spoke_seg):
+                self.ds0[self.spoke_seg] = l / (1 + self.spoke_eps)
             self._update_stiffness()
         self.R_eq = R
 
@@ -707,6 +764,22 @@ class Station:
         if self.cd:
             L += self.hs.sum(axis=0)
         return L
+
+    def hull_axes(self):
+        """Axe de chaque coque (pointe, arrière), en repère inertiel."""
+        L = self.args.module_length
+        x_c = self.ship["x_c"] if self.ship else L / 2
+        ax = self.R[:, :, 0]
+        return self.xb - x_c * ax, self.xb + (L - x_c) * ax
+
+    def spin_rate(self, com):
+        """Vitesse de rotation d'ensemble ω = L_z / I_z (rad/s), I_z compté
+        comme si tout tournait d'un bloc autour du centre de masse."""
+        ez = np.array([0.0, 0.0, 1.0])
+        rp = lambda x: np.sum(((x - com) * np.array([1.0, 1.0, 0.0])) ** 2, axis=1)
+        Iz = self.mn @ rp(self.xn) + self.Mb @ rp(self.xb) + self.sm @ rp(self.xs) + self.mi @ rp(self.xi)
+        Iz += np.einsum("bi,i,bi->", self.R[:, 2, :], self.Ib, self.R[:, 2, :])
+        return float(self.angular_momentum() @ ez / Iz)
 
     def local_inertia(self, b=0):
         """Inerties du module dans le repère local (e_r, e_t, e_z) à l'état initial."""
@@ -816,6 +889,29 @@ def apply_perturbation(st, args):
     st.vs -= vcm
 
 
+def point_segment_dist(P, A, B):
+    """Distances (m × b) des points P (m, 3) aux segments [A, B] (b, 3)."""
+    AB = B - A
+    u = np.einsum("mbi,bi->mb", P[:, None, :] - A[None], AB) / np.sum(AB * AB, axis=1)
+    u = np.clip(u, 0.0, 1.0)
+    return np.linalg.norm(P[:, None, :] - (A[None] + u[..., None] * AB[None]), axis=2)
+
+
+def segment_segment_dist(p1, q1, p2, q2):
+    """Distance minimale entre les segments [p1, q1] et [p2, q2]."""
+    d1, d2, r = q1 - p1, q2 - p2, p1 - p2
+    a, e, f = d1 @ d1, d2 @ d2, d2 @ r
+    c, b = d1 @ r, d1 @ d2
+    den = a * e - b * b
+    s = np.clip((b * f - c * e) / den, 0.0, 1.0) if den > 1e-12 else 0.0
+    t = (b * s + f) / e
+    if t < 0.0:
+        t, s = 0.0, np.clip(-c / a, 0.0, 1.0)
+    elif t > 1.0:
+        t, s = 1.0, np.clip((b - c) / a, 0.0, 1.0)
+    return float(np.linalg.norm(p1 + s * d1 - (p2 + t * d2)))
+
+
 def roll_angles(xb, R, com, eL, module):
     """Roulis de chaque module autour du câble (rad, relatif à l'orientation
     nominale) et position hors plan (m)."""
@@ -865,6 +961,12 @@ def run(args):
     cable_mass = st.lam * st.ds0.sum()
     p(f"Équilibre       : câble {L0:.2f} m à vide, {L_eq:.2f} m sous charge (+{(L_eq - L0) * 100:.0f} cm), "
       f"tension {t_eq[0] / 1e6:.2f} MN, masse de câble totale {cable_mass / 1000:.1f} t, v tangentielle {st.omega * st.R_eq:.1f} m/s")
+    T_eq_cables = [float(v) for v in t_eq[st.cable_first_seg]]
+    if st.hub_m > 0:
+        sp = st.topo["spokes"]
+        L_spoke = float(st.ds0[st.spoke_seg].sum() / len(sp))
+        p(f"Moyeu           : {st.hub_m / 1e3:g} t au centre, 3 rayons de {L_spoke:.1f} m à vide, tension "
+          + ", ".join(f"{T_eq_cables[c] / 1e6:.3f}" for c in sp) + " MN (côtés " + ", ".join(f"{T_eq_cables[c] / 1e6:.3f}" for c in range(sp[0])) + " MN)")
 
     # Prédictions analytiques
     # - roulis autour du câble : voir roll_prediction ;
@@ -896,7 +998,19 @@ def run(args):
     E0 = st.energy()
     L0v = st.angular_momentum()
     eL = L0v / np.linalg.norm(L0v)
-    rec = {k: [] for k in ("t", "g", "T", "tilt", "roll", "wrel", "z", "plane", "E", "L", "s", "slosh")}
+    rec = {k: [] for k in ("t", "g", "T", "tilt", "roll", "wrel", "z", "plane", "E", "L", "s", "slosh",
+                           "Tc", "rship", "wsys", "gap", "clear", "vwhip")}
+    # Rupture : segment qui cède, nœuds libres du câble rompu
+    nc, ns = st.n_cables, st.n
+    brk = getattr(args, "break_cable", -1)
+    k_brk, brk_meta = None, None
+    if brk >= 0:
+        f0 = st.cable_first_seg[brk]
+        k_brk = f0 + min(int(args.break_at * ns), ns - 1)
+        brk_nodes = np.unique(st.seg[f0:f0 + ns][st.seg[f0:f0 + ns] < st.nf])
+        p(f"Rupture         : câble {brk}, segment {k_brk - f0 + 1}/{ns} (fraction {args.break_at:g}), à t = {args.break_time:g} s")
+    pairs = [(a, b) for a in range(st.nb) for b in range(a + 1, st.nb)]
+    tpk = np.zeros(nc)  # tension de crête par câble depuis le dernier enregistrement
     traj = {k: [] for k in ("t", "xb", "R", "xn", "pa", "xi", "xs")}
     P, rw = st.points()
     F, *_ = st.spring_forces(P)
@@ -908,6 +1022,14 @@ def run(args):
     nb = st.nb
     for step in range(n_steps + 1):
         t = step * dt
+        if k_brk is not None and brk_meta is None and t >= args.break_time:
+            # Le segment cède : son énergie élastique est perdue (comptée dissipée)
+            _, _, stretch, taut, _ = st.spring_forces(P)
+            E_rel = 0.5 * st.k[k_brk] * stretch[k_brk] ** 2 if taut[k_brk] else 0.0
+            w_diss += E_rel
+            st.alive[k_brk] = False
+            brk_meta = dict(t=t, cable=brk, seg=int(k_brk), E_seg_J=float(E_rel))
+            F, *_ = st.spring_forces(P)
         if step % rec_every == 0:
             # Forces réelles (ressort + amortisseur) pour les diagnostics
             Pv = st.point_velocities(rw)
@@ -944,6 +1066,16 @@ def run(args):
             rec["L"].append(st.angular_momentum())
             rec["s"].append(st.program(t) if st.program else 0.0)
             rec["slosh"].append(st.slosh_offsets()[st.sb == 0])
+            rec["Tc"].append(np.maximum(tpk, t_tot.reshape(nc, ns).max(axis=1)))
+            tpk[:] = 0.0
+            rec["rship"].append(np.linalg.norm((st.xb - com)[:, :2], axis=1))
+            rec["wsys"].append(st.spin_rate(com))
+            hA, hB = st.hull_axes()
+            rec["gap"].append([segment_segment_dist(hA[a], hB[a], hA[b], hB[b]) - 2 * args.module_radius for a, b in pairs])
+            if k_brk is not None:
+                xnb = st.xn[brk_nodes]
+                rec["clear"].append(point_segment_dist(xnb, hA, hB).min(axis=0) - args.module_radius)
+                rec["vwhip"].append(float(np.linalg.norm(st.vn[brk_nodes] - np.cross(st.omega * eL, xnb - com), axis=1).max()))
             if not args.quiet and step % (rec_every * 2000) == 0:
                 print(f"  t = {t:7.1f} s  roulis max {np.degrees(np.abs(roll)).max():6.2f}°  plancher {tilt.max():6.2f}°", flush=True)
         if traj_every and step % traj_every == 0:
@@ -957,7 +1089,8 @@ def run(args):
         st.kick(dt / 2, F, rw, Fi, Fbi + Fbs, Tbi + Tbs, Td, Fs)
         st.drift(dt)
         P, rw = st.points()
-        F, *_ = st.spring_forces(P)
+        F, t_spr, *_ = st.spring_forces(P)
+        np.maximum(tpk, t_spr.reshape(nc, ns).max(axis=1), out=tpk)
         Fi, Fbi, Tbi = st.internal_forces(t + dt)
         Fs, Fbs, Tbs = st.slosh_forces()
         Td = st.damper_torque()
@@ -973,7 +1106,10 @@ def run(args):
                 area_cm2=st.area * 1e4, cable_mass_t=cable_mass / 1000, I_local_over_M=[I_r / st.M, I_t / st.M, I_z / st.M],
                 roll_prediction=roll_pred, f_pitch_pred=f_pitch, f_swing_pred=f_swing, h=st.h,
                 motion=args.motion, motion_mass_t=args.motion_mass_t, motion_amp=args.motion_amp,
-                tilt_static_pred=tilt_static, damper=bool(st.cd), args=vars(args))
+                tilt_static_pred=tilt_static, damper=bool(st.cd), T_eq_cables=T_eq_cables,
+                hub_mass_t=st.hub_m / 1e3, spokes=st.topo.get("spokes", []), args=vars(args))
+    if brk_meta:
+        info["break"] = brk_meta
     if st.ship:
         sh = st.ship
         info["ship"] = dict(M_rigid_t=sh["M_rigid"] / 1e3, x_c=sh["x_c"], x_tot=sh["x_tot"], x_attach=sh["x_tot"] - st.h,
@@ -1004,6 +1140,38 @@ def spectrum_peak(t, y, fmin=0.01, fmax=2.0):
     return freqs, spec, float(freqs[np.argmax(spec)])
 
 
+def break_results(rec, info, args):
+    """Bilan d'une rupture : fouet du brin libre, distances aux coques,
+    surtensions et détentes des câbles restants, état final (5 dernières
+    minutes)."""
+    b = info["break"]
+    t = rec["t"]
+    after = t >= b["t"]
+    whip = after & (t <= b["t"] + 60)
+    tail = t >= t[-1] - 300
+    keep = [c for c in range(rec["Tc"].shape[1]) if c != b["cable"]]
+    Tk = rec["Tc"][:, keep]
+    i_T = np.unravel_index(np.argmax(np.where(after[:, None], Tk, -1)), Tk.shape)
+    cl = np.where(after[:, None], rec["clear"], np.inf)
+    i_c = np.unravel_index(np.argmin(cl), cl.shape)
+    gp = np.where(after, rec["gap"].min(axis=1), np.inf)
+    dtr = t[1] - t[0]
+    a = info["args"]
+    E_cable = 0.5 * info["T_eq_cables"][b["cable"]] ** 2 * info["L_eq"] / (MATERIALS[a["material"]]["E"] * info["area_cm2"] * 1e-4)
+    w = rec["wsys"]
+    return dict(t=b["t"], cable=b["cable"], E_seg_kJ=b["E_seg_J"] / 1e3, E_cable_kJ=E_cable / 1e3,
+                v_whip_max=float(rec["vwhip"][whip].max()),
+                clear_min=float(cl[i_c]), clear_ship=int(i_c[1]), clear_t=float(t[i_c[0]] - b["t"]),
+                gap_min=float(gp.min()), gap_t=float(t[np.argmin(gp)] - b["t"]),
+                T_max_MN=float(Tk[i_T] / 1e6), T_max_cable=int(keep[i_T[1]]), T_max_t=float(t[i_T[0]] - b["t"]),
+                slack_s=float(np.sum(np.any(Tk[after] <= 0, axis=1)) * dtr),
+                g_min=[float(v) for v in rec["g"][after].min(axis=0) * G0], g_max=[float(v) for v in rec["g"][after].max(axis=0) * G0],
+                g_final=[float(v) for v in rec["g"][tail].mean(axis=0) * G0],
+                tilt_max=[float(v) for v in rec["tilt"][after].max(axis=0)], wrel_max=[float(v) for v in rec["wrel"][after].max(axis=0)],
+                rpm_before=float(w[~after].mean() * 60 / (2 * math.pi)), rpm_final=float(w[tail].mean() * 60 / (2 * math.pi)),
+                r_final=[float(v) for v in rec["rship"][tail].mean(axis=0)], r_max=[float(v) for v in rec["rship"][after].max(axis=0)])
+
+
 def report(st, rec, E0, L0v, args, info, p):
     t = rec["t"]
     # Énergie non conservée : travail des masses asservies, ou amortissement des ergols
@@ -1025,6 +1193,11 @@ def report(st, rec, E0, L0v, args, info, p):
                f_bungee=f_g, f_tilt=f_tilt, dE_max=None if forced else float(np.abs(dE).max()), dL_max=float(dL.max()))
     if rec["slosh"].size:
         res["slosh_max"] = [float(v) for v in rec["slosh"].max(axis=0)]
+    res["Tc_max_MN"] = [float(v) for v in rec["Tc"].max(axis=0) / 1e6]
+    res["gap_min"] = float(rec["gap"].min())
+    res["rpm_mean"] = float(rec["wsys"].mean() * 60 / (2 * math.pi))
+    if "break" in info:
+        res["break"] = break_results(rec, info, args)
     info["results"] = res
 
     p("\n--- Résultats ---")
@@ -1042,6 +1215,20 @@ def report(st, rec, E0, L0v, args, info, p):
         p("Ballottement    : écart latéral max " + ", ".join(f"{tk['name']} {v:.2f} m" for tk, v in zip(st.ship["pendulums"], res["slosh_max"])))
     p(f"Conservation    : " + (f"énergie {res['dE_max']:.1e}, " if res["dE_max"] is not None else "énergie n/a (système forcé ou amorti), ")
       + f"moment cinétique {res['dL_max']:.1e}")
+    p(f"Câbles          : tension de crête " + ", ".join(f"{v:.2f}" for v in res["Tc_max_MN"]) + " MN ; écart min entre coques "
+      f"{res['gap_min']:.1f} m")
+    if "break" in res:
+        b = res["break"]
+        p(f"Rupture         : t = {b['t']:g} s, énergie du segment {b['E_seg_kJ']:.0f} kJ, énergie élastique du câble {b['E_cable_kJ']:.0f} kJ ; "
+          f"brin libre jusqu'à {b['v_whip_max']:.1f} m/s")
+        p(f"  coques        : brin à {b['clear_min']:.1f} m au plus près (module {b['clear_ship']}, t = {b['clear_t']:.1f} s) ; "
+          f"coques à {b['gap_min']:.1f} m au plus près (t = {b['gap_t']:.0f} s)")
+        p(f"  câbles restants : tension max {b['T_max_MN']:.2f} MN (câble {b['T_max_cable']}, t = {b['T_max_t']:.1f} s), "
+          f"détendus {b['slack_s']:.1f} s au total")
+        p(f"  après         : " + " ; ".join(f"module {k} : g {lo:.2f}–{hi:.2f} m/s², final {fin:.2f}, plancher max {tl:.0f}°, rotation parasite max {wr:.1f} °/s"
+                                             for k, (lo, hi, fin, tl, wr) in enumerate(zip(b["g_min"], b["g_max"], b["g_final"], b["tilt_max"], b["wrel_max"]))))
+        p(f"  rotation      : {b['rpm_before']:.3f} → {b['rpm_final']:.3f} tr/min ; distance au centre finale "
+          + ", ".join(f"{v:.0f}" for v in b["r_final"]) + " m")
 
     import matplotlib
     matplotlib.use("Agg")
@@ -1087,7 +1274,8 @@ def report(st, rec, E0, L0v, args, info, p):
     fig.savefig(base + ".png", dpi=100)
     plt.close(fig)
     np.savez_compressed(base + ".npz", t=t, roll=rec["roll"], tilt=rec["tilt"], wrel=rec["wrel"], g=rec["g"], slosh=rec["slosh"],
-                        s=rec["s"], T=rec["T"], z=rec["z"])
+                        s=rec["s"], T=rec["T"], z=rec["z"], Tc=rec["Tc"], rship=rec["rship"], wsys=rec["wsys"], gap=rec["gap"],
+                        clear=rec["clear"], vwhip=rec["vwhip"])
     with open(base + ".json", "w") as fh:
         json.dump(info, fh, indent=2, ensure_ascii=False)
     p(f"Graphiques      : {os.path.abspath(base + '.png')}")
@@ -1139,6 +1327,11 @@ def make_parser():
     p.add_argument("--tld-radius", type=float, default=4.5, help="rayon du bassin (m) ; la profondeur, donc l'accord, en découle")
     p.add_argument("--tld-zeta", type=float, default=0.15, help="amortissement du clapotis du bassin (grilles, écrans perforés)")
     p.add_argument("--slosh-zeta", type=float, default=0.001, help="amortissement du ballottement (parois : ~1e-4 à 1e-3 ; chicanes : 0,02 à 0,05)")
+    p.add_argument("--hub-mass-t", type=float, default=0.0, help="moyeu central (t) relié au nez de chaque module par un rayon (0 = sans)")
+    p.add_argument("--spoke-tension", type=float, default=0.15, help="prétension des rayons, en fraction de la tension nominale d'un côté")
+    p.add_argument("--break-cable", type=int, default=-1, help="câble qui rompt (indice ; −1 = aucun ; avec moyeu, 3 à 5 = rayons)")
+    p.add_argument("--break-time", type=float, default=60.0, help="instant de la rupture (s)")
+    p.add_argument("--break-at", type=float, default=0.5, help="position de la rupture le long du câble (0 = à la première attache, 0,5 = au milieu)")
     p.add_argument("--cfl", type=float, default=0.3, help="fraction du pas de temps critique")
     p.add_argument("--record-dt", type=float, default=0.05, help="période d'échantillonnage (s)")
     p.add_argument("--traj-dt", type=float, default=0.0, help="période d'enregistrement des trajectoires pour animation (s, 0 = non)")
