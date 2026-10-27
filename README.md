@@ -11,6 +11,8 @@ Deux publications présentent les résultats :
 
 Versions publiées (Artifacts claude.ai, privées tant qu'elles ne sont pas partagées) : [grand public](https://claude.ai/artifact/AhFHVxf86G4P5S4H4s9cXx), [carnet technique](https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi). Pour republier : `docs/stage_publish.sh <dossier>` prépare une copie de chaque page avec ses données.
 
+Site statique : `docs/build_site.sh <dossier>` construit `index.html`, `grand-public/` et `technique/` (squelette HTML complet, liens relatifs entre les pages), à copier tel quel sur le serveur (ex. http://t.baeckeroot.free.fr/tethered-station/).
+
 ## Contenu
 
 | Fichier | Rôle |
