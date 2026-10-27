@@ -51,7 +51,8 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 - `out/<campaign>/`: per-scenario `.log`, `.json` (inputs + results), `.npz` (time series), optional `_traj.npz` (3D trajectories), plus `summary.md`. Git-ignored; reproducible. `out/tld_search.{log,json}`: TLD search.
 - `docs/data/`: exported JSON consumed by the pages (committed).
 - Local preview: `docs/_preview/build.sh`, then `python3 -m http.server 8765` in `docs/_preview/`; headless Chrome `--dump-dom` to check that charts render and bound values fill in.
-- Published as private claude.ai Artifacts (same URLs on every update):
+- Public static site: http://t.baeckeroot.free.fr/tethered-station/ — built by `docs/build_site.sh <dir>` (adds the HTML skeleton, rewrites the Artifact links to relative ones); the user copies it to free.fr. The repo is public on GitHub: no secrets, no work identifiers. Code is MIT (`LICENSE`), page content CC BY 4.0 (`docs/LICENSE`).
+- Also published as private claude.ai Artifacts, used as previews (same URLs on every update):
   - grand public: https://claude.ai/artifact/AhFHVxf86G4P5S4H4s9cXx
   - carnet technique: https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi
 - To republish: `docs/stage_publish.sh <scratch dir>`, then Artifact publish with `url`, `file_path=<dir>/<page>/index.html`, `root=<dir>/<page>` and `files` = the changed data files (new `data/series/*.json`, `data/anim/*.json`, `data/summary.json`). In a new session, first `list` the artifact with `scope: "files"` (a publish touching unread files is refused). New page data must also be added to `stage_publish.sh` (grand public copies only listed files).

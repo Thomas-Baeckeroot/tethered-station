@@ -9,7 +9,7 @@ Deux publications présentent les résultats :
 - `docs/grand-public/` : article de présentation, avec animations 3D des simulations ;
 - `docs/technique/` : carnet de calcul (hypothèses, dimensionnement, modèle, validation, problèmes étudiés, résultats).
 
-Versions publiées (Artifacts claude.ai, privées tant qu'elles ne sont pas partagées) : [grand public](https://claude.ai/artifact/AhFHVxf86G4P5S4H4s9cXx), [carnet technique](https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi). Pour republier : `docs/stage_publish.sh <dossier>` prépare une copie de chaque page avec ses données.
+Site : http://t.baeckeroot.free.fr/tethered-station/ ([grand public](http://t.baeckeroot.free.fr/tethered-station/grand-public/), [carnet technique](http://t.baeckeroot.free.fr/tethered-station/technique/)).
 
 Site statique : `docs/build_site.sh <dossier>` construit `index.html`, `grand-public/` et `technique/` (squelette HTML complet, liens relatifs entre les pages), à copier tel quel sur le serveur (ex. http://t.baeckeroot.free.fr/tethered-station/).
 
@@ -78,3 +78,7 @@ Historique de l'étude :
 - Ballottement des ergols (`--slosh free`, pendules d'Abramson, NASA SP-106) : 139 t de LOX et 47 t de CH4 ballottent par vaisseau. Mode couplé du LOX à 0,25 Hz (vérifié par `slosh_modes.py`). Sans chicanes (ζ ≈ 0,1 %), il résonne et met des minutes à s'éteindre : jusqu'à 4,3° au pire rythme. Avec chicanes (ζ = 3 %), il s'éteint en 20 s, mais le pire balancement double (2,7° contre 1,3° ergols figés) car le liquide n'accompagne plus la coque. Cargaison et marche quasi inchangées.
 - Amortisseur à liquide accordé (`--tld-mass-t`, dimensionné par `tld_design.py`) : bassin de 25 t d'eau, Ø 7,2 m × 0,61 m, à 12 m de la pointe, accordé à 0,117 Hz, ζ = 0,15. Pire balayage hors plan 2,70° → 0,46°, dans le plan 1,28° → 0,44° ; peu sensible à l'accord, à ζ (0,08–0,20) et à la masse du vaisseau (560 t : 0,50°). Placé côté moteurs, il serait presque inutile.
 - Validation : énergie et moment cinétique conservés à 10⁻⁸ ou mieux ; Project Chrono reproduit les mêmes trajectoires (écart de temps de doublement 0,03 à 0,13 %).
+
+## Licence
+
+Code (scripts Python, JavaScript, shell) : [MIT](LICENSE). Textes, figures et données des pages (`docs/`) : [CC BY 4.0](docs/LICENSE).

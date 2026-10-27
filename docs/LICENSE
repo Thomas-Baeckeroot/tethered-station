@@ -1,0 +1,11 @@
+Textes, figures et données des pages (docs/grand-public, docs/technique, docs/data)
+© 2026 Thomas Baeckeroot
+
+Sous licence Creative Commons Attribution 4.0 International (CC BY 4.0).
+Vous pouvez partager et adapter ce contenu, y compris à des fins commerciales,
+à condition de citer l'auteur, d'indiquer la licence et de signaler les modifications.
+
+Résumé : https://creativecommons.org/licenses/by/4.0/deed.fr
+Texte juridique : https://creativecommons.org/licenses/by/4.0/legalcode.fr
+
+Le code (scripts Python, docs/shared/*.js, scripts shell) est sous licence MIT : voir ../LICENSE.
