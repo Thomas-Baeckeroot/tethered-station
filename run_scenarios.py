@@ -185,6 +185,12 @@ CAMPAIGNS = {
         ("Y_moyeu_perturbation", TLD + HUB + PERT + TRAJ),
         ("Y_moyeu_rupture", TLD + HUB + BRK + ["--break-at", "0.5", "--duration", "1800"] + TRAJ),
         ("Y_moyeu_rupture_rayon", TLD + HUB + ["--break-cable", "3", "--break-time", "60", "--break-at", "0.5", "--duration", "900"]),
+        # Parades complémentaires : coupe-câbles qui larguent les morceaux 1 s
+        # après la rupture ; rayons doublés (un par point d'attache du nez)
+        ("Y_moyeu_rupture_largage", TLD + HUB + BRK + ["--break-at", "0.5", "--release-delay", "1", "--duration", "900"] + TRAJ),
+        ("Z_moyeu_double_rupture_rayon", TLD + HUB + ["--hub-spokes", "2", "--break-cable", "3", "--break-time", "60", "--break-at", "0.5",
+                                                      "--release-delay", "1", "--duration", "900"]),
+        ("Z_moyeu_double_rupture", TLD + HUB + ["--hub-spokes", "2"] + BRK + ["--break-at", "0.5", "--release-delay", "1", "--duration", "900"] + TRAJ),
     ],
 }
 

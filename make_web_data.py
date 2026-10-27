@@ -42,7 +42,12 @@ ANIMATIONS = [
     ("amortisseur", "T_perturbation", 0, 600, 1.0),
     ("amortisseur", "R_resonance_z", 0, 900, 0.5),
     ("amortisseur", "T_resonance_z", 0, 900, 0.5),
+    ("rupture", "X_rupture_milieu", 0, 600, 0.5),
+    ("rupture", "X_rupture_attache", 0, 300, 0.5),
+    ("rupture", "Y_moyeu_rupture", 0, 600, 0.5),
 ]
+# Pas des séries exportées (s) : plus fin pour les ruptures (fouet des brins)
+SERIES_STEP = {"rupture": 0.5}
 
 
 def r(x, nd=3):
@@ -97,6 +102,16 @@ def export_series(campaign, dest, step=1.0):
             ser["slosh"] = r(d["slosh"][::k].T, 3)
         if info.get("motion") == "sweep":
             ser["sweep"] = sweep_response(d, info, f1=info["args"].get("sweep_f1", 0.25))
+        if "break" in info or info.get("hub_mass_t"):
+            # Tension de crête par câble (MN), distance des vaisseaux au centre,
+            # vitesse de rotation d'ensemble, distances aux coques
+            ser["Tc"] = r(d["Tc"][::k].T / 1e6, 3)
+            ser["rship"] = r(d["rship"][::k].T, 1)
+            ser["rpm"] = r(d["wsys"][::k] * 60 / (2 * math.pi), 4)
+            ser["gap"] = r(d["gap"][::k].min(axis=1), 1)
+            if d["clear"].size:
+                ser["clear"] = r(d["clear"][::k].T, 1)
+                ser["vwhip"] = r(d["vwhip"][::k], 1)
         with open(os.path.join(dest, "series", name + ".json"), "w") as fh:
             json.dump(ser, fh, separators=(",", ":"))
     return summary
@@ -156,14 +171,19 @@ def export_anim(campaign, name, ta, tb, step, dest):
         frames.append(fr)
     info = json.load(open(os.path.join(OUT, campaign, name + ".json")))
     radius, length = float(d["module_radius"]), float(d["module_length"])
+    extent = float(np.linalg.norm(d["xb"][idx][:, :, :2], axis=2).max() + length)
     anim = dict(name=name, seg=d["seg"].tolist(), nf=int(d["nf"]), module=str(d["module"]),
                 radius=radius, length=length, omega=w,
                 shape="starship" if (radius, length) == (4.5, 50.0) else "cylinder",
                 bi=d["bi"].tolist(),
                 slosh=dict(sb=d["sb"].tolist(), sh=r(d["sh"], 3), sm=r(d["sm"] / 1e3, 1)) if "sb" in d.files and len(d["sb"]) else None,
-                info=dict(topology=info["topology"], module=info["module"], R=info["R"],
+                info=dict(topology=info["topology"], module=info["module"], R=info["R"], extent=round(extent, 1),
                                                motion=info.get("motion"), motion_mass_t=info.get("motion_mass_t")),
                 frames=frames)
+    if "break" in info:
+        anim["cut"] = dict(seg=info["break"]["seg"], t=round(info["break"]["t"], 2))
+    if info.get("hub_mass_t"):
+        anim["hub"] = [0]  # le moyeu est le premier nœud libre
     os.makedirs(os.path.join(dest, "anim"), exist_ok=True)
     with open(os.path.join(dest, "anim", name + ".json"), "w") as fh:
         json.dump(anim, fh, separators=(",", ":"))
@@ -197,9 +217,9 @@ def main():
     args = p.parse_args()
     os.makedirs(args.dest, exist_ok=True)
     summary = {}
-    for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement", "retenue", "amortisseur"):
+    for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement", "retenue", "amortisseur", "rupture"):
         if os.path.isdir(os.path.join(OUT, campaign)):
-            summary[campaign] = export_series(campaign, args.dest)
+            summary[campaign] = export_series(campaign, args.dest, SERIES_STEP.get(campaign, 1.0))
             print(f"séries : {campaign} ({len(summary[campaign])} scénarios)")
     with open(os.path.join(args.dest, "summary.json"), "w") as fh:
         json.dump(r(summary, 5), fh, separators=(",", ":"), ensure_ascii=False)

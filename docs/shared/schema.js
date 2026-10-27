@@ -5,6 +5,7 @@
  *   module   : tangential | axial | radial (orientation de l'axe long)
  *   ship     : "starship" pour dessiner la silhouette du vaisseau (nez du
  *              côté négatif de l'axe long, vers le centre s'il est radial)
+ *   hub      : true pour un moyeu central relié au nez de chaque module
  * Deux vues : dessus (plan de rotation) et côté (module 0, vu le long de la
  * direction de déplacement). Modules agrandis pour rester lisibles.
  */
@@ -73,6 +74,11 @@
       cables.push(cfg.topology === "triangle2" ? [att[i][0], att[j][1]] : [att[i][0], att[j][0]]);
     } else cables.push([att[0][0], att[1][0]]);
     cables.forEach(([p, q]) => el("line", { x1: p[0], y1: p[1], x2: q[0], y2: q[1], class: "sc-cable" }, svg));
+    if (cfg.hub) {
+      angles.forEach((th) => { const q = P(th, R - ex * h, 0); el("line", { x1: cx, y1: cy, x2: q[0], y2: q[1], class: "sc-cable" }, svg); });
+      el("circle", { cx, cy, r: 4.5, class: "sc-attach" }, svg);
+      el("text", { x: cx + 8, y: cy - 8, class: "sc-small" }, svg, "moyeu");
+    }
     if (cfg.topology === "ladder") {
       const [p, q] = cables[0];
       el("text", { x: (p[0] + q[0]) / 2, y: (p[1] + q[1]) / 2 - 6, class: "sc-small", "text-anchor": "middle" }, svg, "2 câbles superposés");

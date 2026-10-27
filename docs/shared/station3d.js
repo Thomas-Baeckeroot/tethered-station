@@ -149,14 +149,24 @@
       this.tStart = f[0].t;
       this.tEnd = f[f.length - 1].t;
       this.time = this.tStart;
-      // Polylignes des câbles : chaînes de segments consécutifs
-      const chains = [];
-      let cur = null;
-      for (const [i, j] of anim.seg) {
-        if (cur && cur[cur.length - 1] === i) cur.push(j);
-        else { cur = [i, j]; chains.push(cur); }
-      }
-      this.chains = chains;
+      // Polylignes des câbles : chaînes de segments consécutifs. Rupture
+      // (anim.cut) : avant l'instant de rupture, le câble entier ; après, ses
+      // deux morceaux (phase : -1 toujours, 0 avant, 1 après)
+      const build = (skip) => {
+        const out = [];
+        let cur = null;
+        anim.seg.forEach(([i, j], k) => {
+          if (k === skip) { cur = null; return; }
+          if (cur && cur[cur.length - 1] === i) cur.push(j);
+          else { cur = [i, j]; out.push(cur); }
+        });
+        return out;
+      };
+      const before = build(-1), key = (c) => c.join(",");
+      const after = anim.cut ? build(anim.cut.seg) : before;
+      const kb = new Set(before.map(key)), ka = new Set(after.map(key));
+      this.chains = before.map((c) => ({ c, phase: ka.has(key(c)) ? -1 : 0 }))
+        .concat(after.filter((c) => !kb.has(key(c))).map((c) => ({ c, phase: 1 })));
       this._buildObjects();
       this._frameCamera();
       this._setFrameTime(this.time);
@@ -164,7 +174,7 @@
     }
 
     _frameCamera() {
-      const R = this.anim.info.R;
+      const R = Math.max(this.anim.info.R, this.anim.info.extent || 0);
       this.camera.position.set(R * 1.35, -R * 1.6, R * 1.15);
       this.controls.target.set(0, 0, 0);
     }
@@ -271,6 +281,12 @@
         this.world.add(line);
         return line;
       });
+      // Moyeu central (nœud libre)
+      this.hubs = (a.hub || []).map((i) => {
+        const m = new THREE.Mesh(new THREE.SphereGeometry(4 * Math.max(1, ex / 2), 16, 12), new THREE.MeshStandardMaterial({ color: c.hull }));
+        this.world.add(m);
+        return { i, m };
+      });
       // Masses internes
       this.masses = (a.bi || []).map(() => {
         const m = new THREE.Mesh(new THREE.SphereGeometry(a.radius * 0.35 * ex, 16, 12), new THREE.MeshStandardMaterial({ color: c.mass }));
@@ -320,13 +336,18 @@
         const p = A.pa[a].map((v, k) => lerp(v, B.pa[a][k]));
         return p.map((v, k) => xb[body][k] + ex * (v - xb[body][k]));
       };
-      this.chains.forEach((ch, ci) => {
-        const arr = this.cableLines[ci].geometry.attributes.position;
+      const cut = this.anim.cut, broken = cut && t >= cut.t;
+      this.chains.forEach(({ c: ch, phase }, ci) => {
+        const line = this.cableLines[ci];
+        line.visible = phase < 0 || (phase === 1) === Boolean(broken);
+        if (!line.visible) return;
+        const arr = line.geometry.attributes.position;
         ch.forEach((i, k) => { const p = pts(i); arr.setXYZ(k, p[0], p[1], p[2]); });
-        this.cableLines[ci].geometry.setDrawRange(0, ch.length);
+        line.geometry.setDrawRange(0, ch.length);
         arr.needsUpdate = true;
-        this.cableLines[ci].geometry.computeBoundingSphere();
+        line.geometry.computeBoundingSphere();
       });
+      if (this.hubs) this.hubs.forEach(({ i, m }) => m.position.set(...pts(i)));
       // Écart latéral des ergols amplifié (sloshExaggeration) pour rester visible
       if (A.sd) this.slosh.forEach(({ k, sh, ball, rod }) => {
         const d = A.sd[k].map((v, i) => lerp(v, B.sd[k][i]));

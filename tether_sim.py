@@ -284,10 +284,14 @@ class Station:
         if self.hub_m > 0:
             if not args.topology.startswith("triangle"):
                 raise ValueError("le moyeu suppose une topologie en triangle")
-            k_hub = len(topo["attach"])
-            topo["attach"] = topo["attach"] + [(0.0, 0.0)]
             n_sides = len(topo["cables"])
-            topo["cables"] = topo["cables"] + [((b, k_hub), ("hub", 0)) for b in range(len(topo["angles"]))]
+            if getattr(args, "hub_spokes", 1) == 2:
+                # rayons doublés : un depuis chacun des deux points d'attache du nez
+                topo["cables"] = topo["cables"] + [((b, k), ("hub", 0)) for b in range(len(topo["angles"])) for k in range(len(topo["attach"]))]
+            else:
+                k_hub = len(topo["attach"])
+                topo["attach"] = topo["attach"] + [(0.0, 0.0)]
+                topo["cables"] = topo["cables"] + [((b, k_hub), ("hub", 0)) for b in range(len(topo["angles"]))]
             topo["spokes"] = list(range(n_sides, len(topo["cables"])))
         self.topo = topo
         self.T_design = M_design * args.design_g * G0 * topo["tfac"]
@@ -428,7 +432,9 @@ class Station:
         spokes = topo.get("spokes", [])
         self.spoke_seg = np.array([self.cable_first_seg[c] + s for c in spokes for s in range(n)], dtype=int)
         self.side_seg = np.setdiff1d(np.arange(len(segs)), self.spoke_seg)
-        self.spoke_eps = getattr(args, "spoke_tension", 0.0) * M * args.g * G0 * topo["tfac"] / self.EA
+        # (rayons doublés : chacun porte la moitié de la prétension)
+        self.spoke_eps = (getattr(args, "spoke_tension", 0.0) * M * args.g * G0 * topo["tfac"] / self.EA
+                          / (2 if getattr(args, "hub_spokes", 1) == 2 else 1))
 
         # Segments nœud-nœud en groupes sans nœud partagé (amortissement exact
         # par paires) : coloriage glouton des arêtes (deux groupes pour une
@@ -965,7 +971,7 @@ def run(args):
     if st.hub_m > 0:
         sp = st.topo["spokes"]
         L_spoke = float(st.ds0[st.spoke_seg].sum() / len(sp))
-        p(f"Moyeu           : {st.hub_m / 1e3:g} t au centre, 3 rayons de {L_spoke:.1f} m à vide, tension "
+        p(f"Moyeu           : {st.hub_m / 1e3:g} t au centre, {len(sp)} rayons de {L_spoke:.1f} m à vide, tension "
           + ", ".join(f"{T_eq_cables[c] / 1e6:.3f}" for c in sp) + " MN (côtés " + ", ".join(f"{T_eq_cables[c] / 1e6:.3f}" for c in range(sp[0])) + " MN)")
 
     # Prédictions analytiques
@@ -1029,6 +1035,17 @@ def run(args):
             w_diss += E_rel
             st.alive[k_brk] = False
             brk_meta = dict(t=t, cable=brk, seg=int(k_brk), E_seg_J=float(E_rel))
+            F, *_ = st.spring_forces(P)
+        if (brk_meta and args.release_delay >= 0 and "released" not in brk_meta
+                and t >= brk_meta["t"] + args.release_delay):
+            # Coupe-câbles : les deux segments d'attache du câble rompu sont
+            # coupés, les morceaux sont largués
+            f0 = st.cable_first_seg[brk]
+            cut = [k for k in (f0, f0 + ns - 1) if st.alive[k]]
+            _, _, stretch, taut, _ = st.spring_forces(P)
+            w_diss += float(np.sum(np.where(taut[cut], 0.5 * st.k[cut] * stretch[cut] ** 2, 0.0)))
+            st.alive[cut] = False
+            brk_meta["released"] = dict(t=t, segs=[int(k) for k in cut])
             F, *_ = st.spring_forces(P)
         if step % rec_every == 0:
             # Forces réelles (ressort + amortisseur) pour les diagnostics
@@ -1331,6 +1348,8 @@ def make_parser():
     p.add_argument("--spoke-tension", type=float, default=0.15, help="prétension des rayons, en fraction de la tension nominale d'un côté")
     p.add_argument("--break-cable", type=int, default=-1, help="câble qui rompt (indice ; −1 = aucun ; avec moyeu, 3 à 5 = rayons)")
     p.add_argument("--break-time", type=float, default=60.0, help="instant de la rupture (s)")
+    p.add_argument("--release-delay", type=float, default=-1.0, help="coupe-câbles : largage des morceaux du câble rompu après ce délai (s ; −1 = jamais)")
+    p.add_argument("--hub-spokes", type=int, choices=[1, 2], default=1, help="rayons par vaisseau (2 : depuis chacun des deux points d'attache du nez)")
     p.add_argument("--break-at", type=float, default=0.5, help="position de la rupture le long du câble (0 = à la première attache, 0,5 = au milieu)")
     p.add_argument("--cfl", type=float, default=0.3, help="fraction du pas de temps critique")
     p.add_argument("--record-dt", type=float, default=0.05, help="période d'échantillonnage (s)")
