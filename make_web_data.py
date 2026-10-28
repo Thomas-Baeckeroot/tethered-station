@@ -42,9 +42,11 @@ ANIMATIONS = [
     ("amortisseur", "T_perturbation", 0, 600, 1.0),
     ("amortisseur", "R_resonance_z", 0, 900, 0.5),
     ("amortisseur", "T_resonance_z", 0, 900, 0.5),
-    ("rupture", "X_rupture_milieu", 0, 600, 0.5),
-    ("rupture", "X_rupture_attache", 0, 300, 0.5),
-    ("rupture", "Y_moyeu_rupture", 0, 600, 0.5),
+    ("rupture", "X_rupture_milieu", 50, 650, 0.5),
+    ("rupture", "X_rupture_attache", 50, 350, 0.5),
+    ("rupture", "Y_moyeu_rupture", 50, 650, 0.5),
+    ("rupture", "Y_moyeu_rupture_largage", 50, 650, 0.5),
+    ("rupture", "Z_moyeu_double_rupture", 50, 650, 0.5),
 ]
 # Pas des séries exportées (s) : plus fin pour les ruptures (fouet des brins)
 SERIES_STEP = {"rupture": 0.5}

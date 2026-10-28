@@ -44,6 +44,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python run_scenarios.py ballottement # ergols figés / libres / chicanes (~50 min)
 .venv/bin/python run_scenarios.py retenue      # solution retenue : ergols libres, réservoirs à chicanes
 .venv/bin/python run_scenarios.py amortisseur  # bassin d'eau accordé (~3 h)
+.venv/bin/python run_scenarios.py rupture      # rupture d'un câble, moyeu et rayons, coupe-câbles (~1 h 30)
 .venv/bin/python tld_design.py                 # dimensionnement du bassin (modèle linéaire)
 .venv/bin/python slosh_modes.py                # modes couplés vaisseau + ergols (modèle linéaire)
 .venv/bin/python make_web_data.py              # met à jour docs/data/
@@ -77,6 +78,7 @@ Historique de l'étude :
 - Mission Terre–Mars : trois Starships pleins (1 600 t) en orbite basse ; après l'injection vers Mars (Hohmann, 3,6 km/s), ≈ 610 t chacun (560 à 650 t selon l'orbite, l'Isp et la fenêtre). Gravité de Mars 3,711 m/s² → R = 338,4 m. Câbles pour 1 600 t à 1 g : 4,8 % de leur résistance en route. Roulis 0,14° ; 50 t sur un pont : 0,58° ; changement de pont et marche : sans effet mesurable ; pire résonance 1,44° hors du plan de rotation (période 8 s), 2,8° si le centre de masse remonte (h = 15 m).
 - Ballottement des ergols (`--slosh free`, pendules d'Abramson, NASA SP-106) : 139 t de LOX et 47 t de CH4 ballottent par vaisseau. Mode couplé du LOX à 0,25 Hz (vérifié par `slosh_modes.py`). Sans chicanes (ζ ≈ 0,1 %), il résonne et met des minutes à s'éteindre : jusqu'à 4,3° au pire rythme. Avec chicanes (ζ = 3 %), il s'éteint en 20 s, mais le pire balancement double (2,7° contre 1,3° ergols figés) car le liquide n'accompagne plus la coque. Cargaison et marche quasi inchangées.
 - Amortisseur à liquide accordé (`--tld-mass-t`, dimensionné par `tld_design.py`) : bassin de 25 t d'eau, Ø 7,2 m × 0,61 m, à 12 m de la pointe, accordé à 0,117 Hz, ζ = 0,15. Pire balayage hors plan 2,70° → 0,46°, dans le plan 1,28° → 0,44° ; peu sensible à l'accord, à ζ (0,08–0,20) et à la masse du vaisseau (560 t : 0,50°). Placé côté moteurs, il serait presque inutile.
+- Rupture d'un câble (`--break-cable`, `--break-at`, `--release-delay`) : un câble de 11 cm ne craint presque pas les météorites (≈ 10⁻⁶ coupure par voyage, flux de Grün) ; un fil de 2 mm, si (0,3 à 27 %). Sans parade, la rupture d'un côté ouvre le triangle : les câbles restants tiennent (10,5 MN, 38 % de la résistance), mais la station « respire » (période 46 s), à-coups de 2 g et vaisseaux qui tournoient ; la rotation tombe à 0,56 tr/min. Parade (`--hub-mass-t 20 --hub-spokes 2`) : moyeu central relié au nez de chaque vaisseau par deux rayons de 313 m, plus coupe-câbles qui larguent les morceaux : la station garde sa forme et sa rotation (2,1 MN au plus, secousses d'une vingtaine de secondes) ; avec un seul rayon par vaisseau, la perte d'un rayon libère le moyeu (à-coup de 10,7 MN).
 - Validation : énergie et moment cinétique conservés à 10⁻⁸ ou mieux ; Project Chrono reproduit les mêmes trajectoires (écart de temps de doublement 0,03 à 0,13 %).
 
 ## Licence

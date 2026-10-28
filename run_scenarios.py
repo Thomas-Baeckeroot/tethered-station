@@ -66,6 +66,16 @@ RESO8 = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "3.5", 
 # à 15 % de la tension d'un côté
 BRK = ["--break-cable", "0", "--break-time", "60"]
 HUB = ["--hub-mass-t", "20", "--spoke-tension", "0.15"]
+HUB2 = HUB + ["--hub-spokes", "2"]
+# Mise en rotation après l'injection : de 0,1 à 1 tr/min, poussée tangentielle
+# sur chaque vaisseau (propulseurs d'attitude, Isp 300 s), sans perturbation
+SPIN = ["--spin-from", "0.1", "--dv-radial", "0", "--dv-z", "0", "--droll", "0"]
+# Masses inégales : ergols du vaisseau habité transvasés dans les cargos
+# (220 / 805 / 805 t), attaches sur les points d'ancrage réels (9 m de la
+# pointe), vaisseau habité à 3,711 m/s² : 0,87 tr/min
+UNEQ = SV3 + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", "--slosh-zeta", "0.03",
+              "--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "--tld-zeta", "0.15",
+              "--masses-t", "220,805,805", "--attach-x", "9", "--target-ship", "0", "--rpm", "0.87"]
 
 CAMPAIGNS = {
     "rotation": [
@@ -191,6 +201,37 @@ CAMPAIGNS = {
         ("Z_moyeu_double_rupture_rayon", TLD + HUB + ["--hub-spokes", "2", "--break-cable", "3", "--break-time", "60", "--break-at", "0.5",
                                                       "--release-delay", "1", "--duration", "900"]),
         ("Z_moyeu_double_rupture", TLD + HUB + ["--hub-spokes", "2"] + BRK + ["--break-at", "0.5", "--release-delay", "1", "--duration", "900"] + TRAJ),
+    ],
+    # Configuration recommandée (bassin + moyeu à rayons doublés) : le moyeu
+    # change-t-il le confort ?
+    "moyeu": [
+        ("Z_balayage_z", TLD + HUB2 + SWEEP_L + LATZ),
+        ("Z_balayage_t", TLD + HUB2 + SWEEP_L + LAT),
+        ("Z_cargaison_laterale", TLD + HUB2 + CARGO + LAT),
+        ("Z_equipage", TLD + HUB2 + WALK + LAT),
+    ],
+    # Mise en rotation : α = k·ω² (inclinaison ressentie constante), α constant,
+    # poussée à l'arrière plutôt qu'au centre de masse, avec moyeu
+    "montee": [
+        ("S_montee_k005", TLD + SPIN + ["--spin-k", "0.05", "--duration", "2100"] + TRAJ),
+        ("S_montee_k02", TLD + SPIN + ["--spin-k", "0.2", "--duration", "900"]),
+        ("S_montee_alpha", TLD + SPIN + ["--spin-alpha", "5.2e-5", "--duration", "2100"]),
+        ("S_montee_arriere", TLD + SPIN + ["--spin-k", "0.05", "--spin-thrust-x", "45", "--duration", "2100"]),
+        ("S_montee_moyeu", TLD + HUB2 + SPIN + ["--spin-k", "0.05", "--duration", "2100"]),
+    ],
+    # Mode couplé du LOX (pic restant avec le bassin) : chicanes plus
+    # efficaces (ζ = 8 %), ou second bassin de 8 t près des moteurs accordé
+    # sur ce mode (tld_design.py, recherche out/lox_search.log)
+    "lox": [
+        ("V_chicanes8_balayage_z", [a if a != "0.03" else "0.08" for a in TLD] + SWEEP_L + LATZ),
+        ("V_bassin2_balayage_z", TLD + ["--tld2-mass-t", "8", "--tld2-x", "46", "--tld2-radius", "1.8", "--tld2-zeta", "0.1"] + SWEEP_L + LATZ),
+    ],
+    # Masses inégales (transfert d'ergols vers les cargos)
+    "masses": [
+        ("U_perturbation", UNEQ + PERT),
+        ("U_cargaison_laterale", UNEQ + CARGO + LAT),
+        ("U_equipage", UNEQ + WALK + LAT),
+        ("U_balayage_z", UNEQ + SWEEP_L + LATZ),
     ],
 }
 

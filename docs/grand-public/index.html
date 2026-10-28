@@ -368,8 +368,64 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <p>Une astuce pourrait aussi ralentir la rotation : transvaser avant la mise en rotation les ergols du vaisseau habité dans les deux cargos. Plus léger, il tournerait plus loin du centre, à 447 m au lieu de 338 m, et 0,87 tour par minute suffirait pour garder la gravité de Mars à bord, 13 % de moins pour l'oreille interne. Les cargos, eux, tomberaient à 2,5 m/s². Mais un vaisseau plus léger réagit davantage aux mouvements de son équipage : c'est à simuler (<a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi#transfert-ergols" target="_blank" rel="noopener">détails dans le carnet</a>).</p>
 </section>
 
+<section class="col" id="rupture">
+  <span class="eyebrow">6 · La sécurité</span>
+  <h2>Et si un câble cassait&nbsp;?</h2>
+  <p>Dans le triangle, chaque câble retient deux vaisseaux. Un sceptique dira que 540 m de câble, c'est long, et qu'une micrométéorite finit toujours par le couper. Les câbles qui ont volé ont en effet souvent été coupés, mais c'étaient des fils de moins d'un millimètre. Pour couper un câble de 11 cm, il faut une pierre de 2 à 5 cm ; entre la Terre et Mars, la probabilité d'en croiser une pendant le voyage est de l'ordre d'une sur un million.</p>
+  <p>Les vraies menaces sont plus banales : une attache mal faite, l'usure là où le câble frotte, un défaut de fabrication, un câble abîmé en l'enroulant. Une station sûre doit donc survivre à la perte de n'importe quel câble. Nous en avons coupé un, en route.</p>
+</section>
+
+<section class="trap wide" id="rupture-sans">
+  <div class="txt">
+    <span class="tag">Rupture</span>
+    <h3>Le triangle se défait</h3>
+    <p>Le câble cède en son milieu. Ses deux moitiés se rétractent à 15 m/s, comme un élastique lâché, et reviennent frapper les nez des vaisseaux 8 et 14 secondes plus tard. Privés d'un câble, les deux vaisseaux concernés partent vers l'extérieur : en 20 secondes, ils s'éloignent à 570 m du centre, et la station ralentit à un demi-tour par minute, comme une patineuse qui ouvre les bras.</p>
+    <p>Puis la station se met à « respirer » : les deux câbles restants s'ouvrent et se referment toutes les 46 secondes, en se retendant d'un coup à chaque fois, jusqu'à <span data-bind="X_rupture_milieu.break.T_max_MN" data-fmt="mn">—</span>, huit fois leur tension normale.</p>
+    <p class="verdict">Les câbles restants tiennent, avec une marge de 2,6. Mais à bord, c'est la tempête : des à-coups jusqu'à 2 g et des vaisseaux qui tournoient sur eux-mêmes, pendant des dizaines de minutes. Il faut une parade.</p>
+  </div>
+  <figure>
+    <div class="viewer" data-anim="X_rupture_milieu" data-speed="3">
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : le câble entre les vaisseaux 0 et 1 cède en son milieu, 10 s après le début.</b> Vue dans le repère qui tourne avec la station : avant la rupture, tout est immobile. Vaisseaux dessinés trois fois plus gros que nature. Lecture accélérée 3 fois.</figcaption>
+  </figure>
+</section>
+
+<section class="trap wide" id="rupture-moyeu">
+  <div class="txt">
+    <span class="tag">Parade</span>
+    <h3>Une roue de vélo</h3>
+    <p>La parade la plus efficace que nous ayons trouvée : un moyeu au centre de la station, relié au nez de chaque vaisseau par des rayons, comme une roue de vélo. En temps normal, les rayons sont à peine tendus et ne changent rien au confort. Si un côté du triangle casse, ils prennent le relais : les vaisseaux restent à leur place et la rotation ne change pas.</p>
+    <p>Deux détails comptent. Il faut deux rayons par vaisseau : avec un seul, la perte d'un rayon libère le moyeu, qui « tombe » vers l'extérieur et donne un à-coup aussi violent qu'une rupture de côté. Et des coupe-câbles aux attaches doivent larguer les morceaux du câble cassé dans la seconde, avant qu'ils ne reviennent fouetter les coques.</p>
+    <p class="verdict">Avec le moyeu, ses rayons doublés et les coupe-câbles, la station garde sa forme et sa vitesse de rotation. Les câbles ne dépassent pas <span data-bind="Z_moyeu_double_rupture.break.T_max_MN" data-fmt="mn">—</span>, et l'équipage, attaché, subit une vingtaine de secondes de secousses, comme dans un avion qui traverse des turbulences. La perte d'un rayon passe, elle, inaperçue.</p>
+    <p>Le moyeu sert aussi à autre chose. Sur l'axe, en apesanteur, c'est l'endroit idéal pour amarrer un véhicule, loger les treuils qui déroulent les câbles et ajustent leur longueur, et ranger les câbles quand ils ne servent pas.</p>
+  </div>
+  <figure>
+    <div class="viewer" data-anim="Z_moyeu_double_rupture" data-speed="3">
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50,"hub":true}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : même rupture, avec un moyeu et deux rayons par vaisseau.</b> Les morceaux du câble cassé sont largués une seconde après la rupture. Vue dans le repère qui tourne avec la station, vaisseaux dessinés trois fois plus gros. Lecture accélérée 3 fois.</figcaption>
+  </figure>
+</section>
+
+<section class="col" id="parades">
+  <h3>D'autres idées pour des câbles plus sûrs</h3>
+  <ul class="checks">
+    <li><b>Des câbles doublés</b><span>Deux brins par côté, reliés tous les 150 à 200 m par des palonniers et des diagonales : un brin coupé ne lâche qu'un tronçon, son voisin reprend la charge et le morceau libre reste captif. Sans diagonales, l'effort ne passerait pas d'un brin à l'autre. Écartés dans la bonne direction, ils raidiraient aussi le balancement le plus sensible.</span></li>
+    <li><b>Des tronçons remplaçables</b><span>Des câbles faits de tronçons d'environ 180 m, de 1,6 t chacun : plus faciles à fabriquer, contrôler et remplacer. Grâce au moyeu, on pourrait détendre un côté pour en changer un tronçon sans arrêter la rotation. Chaque raccord reste un point faible à soigner.</span></li>
+    <li><b>Un filet plutôt que trois câbles</b><span>En coupant chaque côté en trois et en reliant les points par des câbles intérieurs, on obtient un filet de neuf triangles dont le centre est le moyeu. N'importe quel câble peut céder. La rotation suffit à tendre un filet, comme la voile solaire japonaise IKAROS.</span></li>
+    <li><b>Des amortisseurs aux attaches</b><span>Des sangles qui se déchirent progressivement, comme dans les harnais antichute, plafonneraient les à-coups : 5 MN au lieu de 10, sur quelques mètres de course.</span></li>
+    <li><b>Un câble qui se surveille</b><span>Une fibre optique dans le câble mesure son allongement sur toute sa longueur et signale un brin rompu ou un échauffement. Un robot grimpeur peut l'inspecter, poser un manchon de réparation, ou tirer un câble neuf le long de l'ancien.</span></li>
+    <li><b>Ranger les câbles à l'abri</b><span>Hors service, les câbles doivent être enroulés sous une coiffe : en orbite basse, les débris, l'oxygène atomique et les ultraviolets les abîment bien plus que le vide entre les planètes. Les trois tiennent dans 15 à 20 m³. Un câble laissé déployé sans tension se vrille et s'emmêle.</span></li>
+    <li><b>Une gaine blanche</b><span>Au soleil, une gaine blanche garde le câble vers −70 °C, là où le Dyneema est le plus solide ; une gaine métallique nue le chaufferait à près de 80 °C, ce qui accélère son fluage. Le câble met des heures à changer de température : la rotation d'une minute ne lui impose aucun cycle.</span></li>
+    <li><b>Un axe de rotation fixe</b><span>Faire suivre le Soleil à toute la station pendant le voyage, pour des panneaux solaires fixes, coûterait 70 à 90 t d'ergols. Mieux vaut garder l'axe fixe et orienter les panneaux.</span></li>
+  </ul>
+</section>
+
 <section class="col" id="alternatives">
-  <span class="eyebrow">6 · Les alternatives</span>
+  <span class="eyebrow">7 · Les alternatives</span>
   <h2>Ce que nous avons écarté, et pourquoi</h2>
   <p>La configuration retenue est le résultat d'une série de comparaisons. Avant de choisir les Starships, nous avons étudié des modules génériques&nbsp;: de gros cylindres de 1 600 t, en orbite autour de la Terre. C'est là que sont apparus les pièges qui ont dicté les règles de conception. Puis, avec les Starships, nous avons comparé les vaisseaux debout et couchés, à deux et à trois.</p>
 </section>
@@ -498,13 +554,14 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 </section>
 
 <section class="col">
-  <span class="eyebrow">7 · La suite</span>
+  <span class="eyebrow">8 · La suite</span>
   <h2>Ce qu'il reste à étudier</h2>
   <ul class="todo">
     <li>La mise en rotation après l'injection vers Mars : rapprocher les trois vaisseaux, dérouler les câbles et accélérer sans jamais les laisser se détendre.</li>
     <li>Le clapotis réel du bassin d'eau aux grandes amplitudes (vagues qui déferlent), que nos pendules ne représentent pas.</li>
     <li>Des pattes d'oie sur plusieurs points d'ancrage du nez, pour raidir le balancement perpendiculaire au plan de rotation, aujourd'hui le plus sensible.</li>
-    <li>La rupture d'un câble : un câble tendu stocke l'énergie de plusieurs kilos d'explosif. Le triangle doit survivre à la perte d'un côté.</li>
+    <li>Le moyeu et ses rayons en détail : déploiement des câbles depuis le moyeu, treuils, et le contact des câbles avec les coques, que notre modèle ne représente pas.</li>
+    <li>Des câbles doublés reliés par des palonniers et des diagonales, et des tronçons remplaçables en vol.</li>
     <li>Des vaisseaux de masses différentes : le vaisseau d'équipage et les cargos ne seront pas forcément chargés à l'identique.</li>
     <li>Plus tard, le contrôle actif : les moteurs de manœuvre pour corriger l'axe de rotation et amortir les balancements.</li>
     <li>Le vieillissement des câbles : rayonnement, micrométéorites, fluage du Dyneema sous charge permanente.</li>
@@ -653,14 +710,17 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
       });
     }).catch(() => {});
   getJSON("data/summary.json").then((s) => {
-    const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {}, s.starship || {}, s.mission || {}, s.ballottement || {}, s.retenue || {}, s.amortisseur || {});
+    const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {}, s.starship || {}, s.mission || {}, s.ballottement || {}, s.retenue || {}, s.amortisseur || {}, s.rupture || {});
     document.querySelectorAll("[data-bind]").forEach((n) => {
-      const [name, key] = n.dataset.bind.split(".");
+      // chemin : scénario.clé[.sous-clé][.indice] (résultats, sinon informations)
+      const [name, key, ...sub] = n.dataset.bind.split(".");
       const info = all[name];
       if (!info) return;
-      const v = key in info.results ? info.results[key] : info[key];
+      const v = sub.reduce((o, k) => (o === undefined || o === null ? o : o[k]), key in info.results ? info.results[key] : info[key]);
       if (v === undefined || v === null) return;
-      n.textContent = n.dataset.fmt === "m" ? fr(v) + " m" : n.dataset.fmt === "ms2" ? fr(v * G0, 3) + " m/s²" : key.startsWith("g_") ? fr(v, 3) + " g" : fmtDeg(v);
+      const F = { m: (x) => fr(x) + " m", ms2: (x) => fr(x * G0, 3) + " m/s²", ms2v: (x) => fr(x, 1) + " m/s²", mn: (x) => fr(x, 1) + " MN",
+                  ms: (x) => fr(x) + " m/s", rpm: (x) => fr(x, 2) + " tr/min", s: (x) => fr(x) + " s", dps: (x) => fr(x) + " °/s", deg0: (x) => fr(x) + "°" };
+      n.textContent = F[n.dataset.fmt] ? F[n.dataset.fmt](v) : key.startsWith("g_") ? fr(v, 3) + " g" : fmtDeg(v);
     });
   }).catch(() => {});
 })();

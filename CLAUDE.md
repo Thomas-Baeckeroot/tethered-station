@@ -13,6 +13,8 @@ Personal research project: dynamics of a rotating, cable-connected space station
 - Propellant slosh modelled (Abramson pendulums), tanks with **baffles** (ζ = 3 %).
 - **Tuned liquid damper**: 25 t water pool, Ø 7.2 m × 0.61 m, floor 12 m from the nose, tuned to 0.117 Hz, ζ = 0.15. Cuts the worst out-of-plane resonance from 2.7° to ≈ 0.45°.
 
+- **Cable-break safety** (notebook § 7, campaign `rupture`): a hub (20 t) at the spin centre tied to each nose by two spokes (`--hub-mass-t 20 --hub-spokes 2`), plus cutters that drop the broken cable's pieces (`--release-delay 1`). Recommended addition; not yet part of the comfort campaigns.
+
 Rejected alternatives (keep as chapters, don't reopen unless asked): two ships (roll about the cable is neutral, drifts freely), horizontal ships (need masts, worse resonances), generic modules (preliminary study).
 
 Running list of open questions and future work: `TODO.md`. Results summary: `README.md`.
@@ -30,8 +32,8 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 
 | File | Role |
 |---|---|
-| `tether_sim.py` | Simulator: rigid ships (`starship_mass_model`: element mass model, slosh pendulums, optional water pool `tld=`), discretised unilateral cables, prescribed internal masses, Kane damper |
-| `run_scenarios.py` | Campaigns: `rotation`, `internes`, `final` (generic study), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur` |
+| `tether_sim.py` | Simulator: rigid ships (`starship_mass_model`: element mass model, slosh pendulums, optional water pool `tld=`), discretised unilateral cables, prescribed internal masses, Kane damper; options: hub and spokes (`--hub-*`), cable break and piece release (`--break-*`, `--release-delay`) |
+| `run_scenarios.py` | Campaigns: `rotation`, `internes`, `final` (generic study), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture` |
 | `mission_mass.py` | Starship mass after trans-Mars injection |
 | `slosh_modes.py` | Linear out-of-plane model (attachment, tilt, slosh pendulums): coupled modes |
 | `tld_design.py` | Damped linear model integrated in time (same sweep program as the simulator): TLD design search |
@@ -66,4 +68,7 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 - Felt floor tilt = ship tilt + lateral acceleration of the ship's centre of mass / local g (θ + ü/g). Sanity check: a free simple pendulum feels zero tilt. A sign error here once gave 0.69° instead of ≈ 2.7°.
 - The structure is nearly undamped: steady-state frequency response is meaningless (81° peaks); use the time-domain sweep. The linear model, without cable damping, is conservative by 15–50 % against the simulator.
 - Sweep curves (`sweep_response`, `tld_design.sweep`) must use **contiguous** time windows per frequency. Narrow ±10 s windows spaced ~135 s apart once missed the peaks (2.25° plotted vs 2.67° true).
+- After a cable break without hub, ships tumble and cables would wrap around the noses: the model has no cable–hull contact, so only the first minutes are quantitative.
+- Diagnostics that sum over all masses (L/I) break down once pieces are released and fly away; the spin rate is computed from the ships only.
+- In shell heredocs that embed JavaScript, quote the delimiter (`<<'EOF'`) or write a script file: backticks and `${}` would otherwise be executed by the shell.
 - `tilt_max` in summaries is the global maximum over the run; sweep-curve peaks are per-frequency maxima. Don't mix them when quoting a "peak at f Hz".

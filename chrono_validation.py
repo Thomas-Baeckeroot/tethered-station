@@ -61,7 +61,7 @@ def build_chrono(st, alpha):
     for b in range(st.nb):
         body = ch.ChBody()
         body.SetMass(float(st.Mb[b]))
-        body.SetInertiaXX(V(st.Ib))
+        body.SetInertiaXX(V(st.Ib[b]))
         body.SetPos(V(st.xb[b]))
         body.SetRot(ch.ChQuaterniond(*quat_from_matrix(st.R[b])))
         body.SetPosDt(V(st.vb[b]))
@@ -111,7 +111,7 @@ def chrono_state(st, modules, nodes):
     com = (st.Mb @ xb + st.mn @ xn) / (st.Mb.sum() + st.mn.sum())
     L = st.Mb @ np.cross(xb, vb) + st.mn @ np.cross(xn, vn)
     for b in range(len(modules)):
-        L += R[b] @ (st.Ib * (R[b].T @ wb[b]))
+        L += R[b] @ (st.Ib[b] * (R[b].T @ wb[b]))
     return xb, R, com, L
 
 

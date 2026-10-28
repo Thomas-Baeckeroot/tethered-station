@@ -12,7 +12,7 @@ for p in grand-public technique; do
   cp "$SRC/data/summary.json" "$DEST/$p/data/"
 done
 # Grand public : uniquement les données référencées
-for n in R_perturbation R_cargaison_laterale D_echelle_axial B_haltere_axial B_amortisseur SV2_perturbation L_libre_resonance; do
+for n in R_perturbation R_cargaison_laterale D_echelle_axial B_haltere_axial B_amortisseur SV2_perturbation L_libre_resonance X_rupture_milieu Z_moyeu_double_rupture; do
   cp "$SRC/data/anim/$n.json" "$DEST/grand-public/data/anim/"
   cp "$SRC/data/series/$n.json" "$DEST/grand-public/data/series/"
 done

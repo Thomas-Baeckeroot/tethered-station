@@ -101,19 +101,24 @@ def starship_mass_model(M_t, slosh=True, tld=None):
     réservoir autour de l'axe) et, si slosh=False, masses ballottantes figées
     à leur position d'équilibre. Positions en m depuis la pointe.
 
-    tld : amortisseur à liquide accordé, dict(m_t, x, a, zeta) : bassin d'eau
-    cylindrique de rayon a dont le fond est à x de la pointe ; son eau est
-    prise sur la charge utile (masse totale inchangée). Toujours libre."""
+    tld : amortisseur à liquide accordé, dict(m_t, x, a, zeta) (ou liste de
+    tels dicts) : bassin d'eau cylindrique de rayon a dont le fond est à x de
+    la pointe ; son eau est prise sur la charge utile (masse totale
+    inchangée). Toujours libre. Réservoirs vides (vaisseau sans ergols) :
+    ignorés."""
+    tlds = tld if isinstance(tld, list) else ([tld] if tld else [])
     rigid = []  # (masse kg, x, I_axe propre, I_transverse propre)
     for name, m_t, x0, x1, r, shell in SHIP_PARTS:
-        if name == "charge" and tld:
-            m_t -= tld["m_t"]
+        if name == "charge":
+            m_t -= sum(t["m_t"] for t in tlds)
         m, ell = m_t * 1e3, x1 - x0
         rigid.append((m, (x0 + x1) / 2, m * r * r * (1.0 if shell else 0.5), m * (r * r * (0.5 if shell else 0.25) + ell * ell / 12)))
     prop = (M_t - sum(p[1] for p in SHIP_PARTS)) * 1e3
     tanks, pend = [], []
     for name, rho, x_bottom, length, frac in SHIP_TANKS:
         m = prop * frac
+        if m < 1.0:
+            continue
         depth = m / (rho * math.pi * SHIP_TANK_RADIUS ** 2)
         if depth > length:
             raise ValueError(f"réservoir {name} : {depth:.1f} m de liquide pour {length:g} m de réservoir")
@@ -125,11 +130,12 @@ def starship_mass_model(M_t, slosh=True, tld=None):
             pend.append(tk)
         else:
             rigid.append((tk["ms"], tk["x_bob"], 0.0, 0.0))
-    if tld:
-        m = tld["m_t"] * 1e3
-        tk = slosh_tank(m, m / (1000.0 * math.pi * tld["a"] ** 2), tld["a"])
-        x_bottom = tld["x"]
-        tk.update(name="eau", zeta=tld["zeta"], a=tld["a"], x_hinge=x_bottom - tk["H"], x_bob=x_bottom - tk["hb"], x_fixed=x_bottom - tk["hf"])
+    for k, td in enumerate(tlds):
+        m = td["m_t"] * 1e3
+        tk = slosh_tank(m, m / (1000.0 * math.pi * td["a"] ** 2), td["a"])
+        x_bottom = td["x"]
+        tk.update(name="eau" if k == 0 else f"eau{k + 1}", zeta=td["zeta"], a=td["a"],
+                  x_hinge=x_bottom - tk["H"], x_bob=x_bottom - tk["hb"], x_fixed=x_bottom - tk["hf"])
         tanks.append(tk)
         rigid.append((tk["mf"], tk["x_fixed"], 0.0, 0.0))
         pend.append(tk)
@@ -248,35 +254,56 @@ class Station:
         if getattr(args, "accel", None):
             args.g = args.accel / G0  # tout le reste du code raisonne en g
         self.args = args
-        M = args.mass_t * 1e3
-        M_design = (getattr(args, "design_mass_t", None) or args.mass_t) * 1e3
+        nb = 2 if args.topology in ("dumbbell", "ladder") else 3
+        # Masse de chaque module (t) : identiques, ou --masses-t (ex. 220,805,805)
+        masses_t = [float(v) for v in args.masses_t.split(",")] if getattr(args, "masses_t", None) else [args.mass_t] * nb
+        if len(masses_t) != nb:
+            raise ValueError(f"--masses-t : {nb} masses attendues")
+        self.masses_t = masses_t
+        M = sum(masses_t) / nb * 1e3  # masse moyenne (amortissement des câbles)
+        M_design = (getattr(args, "design_mass_t", None) or max(masses_t)) * 1e3
         a, ell = args.module_radius, args.module_length
         m_int = args.motion_mass_t * 1e3 if args.motion != "none" else 0.0
         self.motion_modules = [int(b) for b in args.motion_modules.split(",")] if args.motion != "none" else []
         # La structure porte la masse totale moins la masse mobile ; inertie
-        # de la structure = cylindre plein de masse M − m.
-        Ms = M - m_int
-        It = Ms * (3 * a * a + ell * ell) / 12
-        self.Ib = np.array([Ms * a * a / 2, It, It])  # axe long, puis transverses
+        # de la structure = cylindre plein de masse M − m (axe long, puis transverses).
+        Ib = []
+        for mt in masses_t:
+            Ms = mt * 1e3 - m_int
+            It = Ms * (3 * a * a + ell * ell) / 12
+            Ib.append([Ms * a * a / 2, It, It])
+        self.Ib = np.array(Ib)
         self.M = M
         self.omega = args.rpm * 2 * math.pi / 60
         self.R_target = args.g * G0 / self.omega ** 2
         self.h = (ell / 2 if args.module == "radial" else a) + args.bridle
         # Starship à ergols : partie rigide (origine du corps = son centre de
-        # masse) + pendules de ballottement ; l'attache reste à h du centre de
-        # masse total, comme dans le modèle homogène
-        h_att, M_rigid, self.ship = self.h, M, None
+        # masse) + pendules de ballottement. Attache : à h du centre de masse
+        # total, comme dans le modèle homogène, ou à --attach-x de la pointe
+        # (points d'ancrage réels, nécessaire si les masses diffèrent)
+        h_att, M_rigid, off = [self.h] * nb, [mt * 1e3 for mt in masses_t], [0.0] * nb
+        self.ship = self.ships = None
+        self.spin_active, self.spin_done = False, None
         slosh = getattr(args, "slosh", "off")
         if slosh != "off":
             if args.module != "radial":
                 raise ValueError("le modèle de ballottement suppose des vaisseaux debout (--module radial)")
-            tld = None
+            tld = []
             if getattr(args, "tld_mass_t", 0) > 0:
-                tld = dict(m_t=args.tld_mass_t, x=args.tld_x, a=args.tld_radius, zeta=args.tld_zeta)
-            self.ship = starship_mass_model(args.mass_t, slosh=slosh == "free", tld=tld)
-            M_rigid = self.ship["M_rigid"]
-            h_att = self.h + self.ship["x_c"] - self.ship["x_tot"]
-            self.Ib = np.array([self.ship["I_ax"], self.ship["I_tr"], self.ship["I_tr"]])
+                tld.append(dict(m_t=args.tld_mass_t, x=args.tld_x, a=args.tld_radius, zeta=args.tld_zeta))
+            if getattr(args, "tld2_mass_t", 0) > 0:
+                tld.append(dict(m_t=args.tld2_mass_t, x=args.tld2_x, a=args.tld2_radius, zeta=args.tld2_zeta))
+            self.ships = [starship_mass_model(mt, slosh=slosh == "free", tld=tld) for mt in masses_t]
+            self.ship = self.ships[0]
+            x_att = getattr(args, "attach_x", None)
+            h_att, M_rigid, off = [], [], []
+            for shp in self.ships:
+                h_att.append(shp["x_c"] - (x_att if x_att is not None else shp["x_tot"] - self.h))
+                M_rigid.append(shp["M_rigid"])
+                off.append(shp["x_tot"] - shp["x_c"])
+            if x_att is not None:
+                self.h = self.ship["x_tot"] - x_att  # vaisseau 0 : centre de masse total sous l'attache
+            self.Ib = np.array([[shp["I_ax"], shp["I_tr"], shp["I_tr"]] for shp in self.ships])
         topo = build_topology(args.topology, args.spread)
         # Moyeu central : un point d'attache de plus au milieu du nez de chaque
         # module, et un rayon vers le moyeu (câbles d'indice 3 à 5)
@@ -309,19 +336,45 @@ class Station:
             et = np.cross(ez, er)
             R = np.column_stack(ORIENTATIONS[args.module](er, et, ez))
             # centre de masse total du module (ergols compris) au rayon visé
-            xb.append((self.R_target - ((self.ship["x_tot"] - self.ship["x_c"]) if self.ship else 0.0)) * er)
+            xb.append((self.R_target - off[b]) * er)
             R0.append(R)
             up.append(R.T @ -er)  # « haut » du module (vers le centre), repère du corps
             for st, sz in topo["attach"]:
                 att_body.append(b)
-                att_r.append(R.T @ (-h_att * er + st * et + sz * ez))
+                att_r.append(R.T @ (-h_att[b] * er + st * et + sz * ez))
         self.xb = np.array(xb)
         self.R = np.array(R0)
         self.R_init = self.R.copy()
         self.up_body = np.array(up)
         self.att_body = np.array(att_body)
         self.att_r = np.array(att_r)
-        self.Mb = np.array([M_rigid - (m_int if b in self.motion_modules else 0.0) for b in range(nb)])
+        self.Mb = np.array([M_rigid[b] - (m_int if b in self.motion_modules else 0.0) for b in range(nb)])
+        # Masses inégales : le centre de rotation se déplace vers les modules
+        # lourds ; on y recentre les modules et on les oriente vers lui
+        self.unequal = len(set(masses_t)) > 1
+        if self.unequal:
+            if nb != 3:
+                raise ValueError("masses différentes : topologie en triangle seulement")
+            # Triangle équilatéral des centres de masse, de côté choisi pour
+            # placer le module visé (0 par défaut) au rayon R_target autour du
+            # centre de masse commun ; modules orientés vers ce centre
+            mt = np.array(masses_t)
+            k0 = max(getattr(args, "target_ship", -1), 0)
+            ang = np.array(topo["angles"])
+            u = np.column_stack([np.cos(ang), np.sin(ang), np.zeros(nb)]) / math.sqrt(3)  # sommets pour un côté 1
+            c = mt @ u / mt.sum()
+            side = self.R_target / np.linalg.norm((u[k0] - c)[:2])
+            pc = (u - c) * side  # centres de masse totaux
+            er = pc / np.linalg.norm(pc, axis=1)[:, None]
+            self.xb = pc - np.array(off)[:, None] * er
+            self._orient_radial()
+            att_r_new = []
+            for b in range(nb):
+                e_r = er[b]
+                e_t = np.cross(np.array([0.0, 0.0, 1.0]), e_r)
+                for st_, sz_ in topo["attach"]:
+                    att_r_new.append(self.R[b].T @ (-h_att[b] * e_r + st_ * e_t + sz_ * np.array([0.0, 0.0, 1.0])))
+            self.att_r = np.array(att_r_new)
 
         # Ballottement : un pendule sphérique par réservoir et par module. Tige
         # = ressort raide (3 Hz) ; amortisseur latéral 2ζω·m par rapport à la
@@ -329,20 +382,21 @@ class Station:
         # chicanes) ; tige amortie seulement si ζ > 0 (sinon système conservatif).
         zeta = getattr(args, "slosh_zeta", 0.0)
         sb, sm, sL, sh, se, sz = [], [], [], [], [], []
-        for b in range(nb if self.ship else 0):
-            for tk in self.ship["pendulums"]:
+        for b in range(nb if self.ships else 0):
+            shp = self.ships[b]
+            for tk in shp["pendulums"]:
                 sb.append(b)
                 sm.append(tk["ms"])
                 sL.append(tk["L"])
-                sh.append([tk["x_hinge"] - self.ship["x_c"], 0.0, 0.0])
-                se.append([tk["x_bob"] - self.ship["x_c"], 0.0, 0.0])
+                sh.append([tk["x_hinge"] - shp["x_c"], 0.0, 0.0])
+                se.append([tk["x_bob"] - shp["x_c"], 0.0, 0.0])
                 sz.append(tk.get("zeta", zeta))
         self.sb = np.array(sb, dtype=int)
         self.sm = np.array(sm)
         self.sL = np.array(sL)
         self.sh = np.array(sh).reshape(-1, 3)
         self.s_eq = np.array(se).reshape(-1, 3)
-        r_bob = self.R_target + (self.s_eq[:, 0] - ((self.ship["x_tot"] - self.ship["x_c"]) if self.ship else 0.0))
+        r_bob = self.R_target + self.s_eq[:, 0] - np.array([off[b] for b in sb])
         self.s_w = np.sqrt(self.omega ** 2 * r_bob / self.sL) if len(sm) else np.zeros(0)
         self.s_zeta = np.array(sz)
         self.s_c = 2 * self.s_zeta * self.sm * self.s_w
@@ -433,6 +487,27 @@ class Station:
         self.spoke_seg = np.array([self.cable_first_seg[c] + s for c in spokes for s in range(n)], dtype=int)
         self.side_seg = np.setdiff1d(np.arange(len(segs)), self.spoke_seg)
         # (rayons doublés : chacun porte la moitié de la prétension)
+        if self.unequal:
+            # Tensions d'équilibre des côtés (forces centripètes des modules
+            # vers le centre de masse, câbles droits entre les attaches), puis
+            # longueur à vide de chaque côté : L / (1 + T/EA)
+            P0, _ = self._attach_points(self.xb, self.R)
+            mt = np.array(masses_t) * 1e3
+            pc = self.xb + np.array(off)[:, None] * self.R[:, :, 0]
+            A, rhs = np.zeros((2 * nb, len(topo["cables"]))), np.zeros(2 * nb)
+            for c_, ((bA, kA), (bB, kB)) in enumerate(topo["cables"][:3]):
+                d = P0[bB * na + kB] - P0[bA * na + kA]
+                L_ = np.linalg.norm(d)
+                A[2 * bA:2 * bA + 2, c_] += (d / L_)[:2]
+                A[2 * bB:2 * bB + 2, c_] -= (d / L_)[:2]
+            for b in range(nb):
+                rhs[2 * b:2 * b + 2] = -mt[b] * self.omega ** 2 * pc[b, :2]
+            T_sides = np.linalg.lstsq(A[:, :3], rhs, rcond=None)[0]
+            for c_ in range(3):
+                f0 = self.cable_first_seg[c_]
+                self.ds0[f0:f0 + n] = self.ds0[f0:f0 + n] / (1 + max(T_sides[c_], 0.0) / self.EA)
+            self.T_sides_init = T_sides
+            self._update_stiffness()
         self.spoke_eps = (getattr(args, "spoke_tension", 0.0) * M * args.g * G0 * topo["tfac"] / self.EA
                           / (2 if getattr(args, "hub_spokes", 1) == 2 else 1))
 
@@ -460,6 +535,16 @@ class Station:
 
         # Pas de temps : stabilité de Verlet dt < 2/ω_max, ω_max ≈ 2·sqrt(k/m_min)
         self.dt = args.cfl * 2 / (2 * math.sqrt(self.k.max() / self.mn.min()))
+
+    def _orient_radial(self):
+        """Oriente chaque module radialement par rapport à l'origine (centre
+        de masse), sans changer ses coordonnées propres (attaches, ergols)."""
+        ez = np.array([0.0, 0.0, 1.0])
+        for b in range(self.nb):
+            er = self.xb[b] * np.array([1.0, 1.0, 0.0])
+            er /= np.linalg.norm(er)
+            self.R[b] = np.column_stack(ORIENTATIONS[self.args.module](er, np.cross(ez, er), ez))
+        self.R_init = self.R.copy()
 
     def _update_stiffness(self):
         self.k = self.EA / self.ds0
@@ -585,7 +670,7 @@ class Station:
 
     def _rotate(self, k, h):
         """Flot exact de H_k = π_k²/(2 I_k) : rotation autour de l'axe k du corps."""
-        th = h * self.pi[:, k] / self.Ib[k]
+        th = h * self.pi[:, k] / self.Ib[:, k]
         c, s = np.cos(th), np.sin(th)
         p, q = (k + 1) % 3, (k + 2) % 3
         Rk = np.zeros((self.nb, 3, 3))
@@ -642,7 +727,7 @@ class Station:
         l = np.linalg.norm(d, axis=1)
         e = d / l[:, None]
         u = np.einsum("aji,aj->ai", self.R[b], np.cross(rw, e))
-        m_eff = 1 / (1 / self.Mb[b] + np.sum(u ** 2 / self.Ib, axis=1))
+        m_eff = 1 / (1 / self.Mb[b] + np.sum(u ** 2 / self.Ib[b], axis=1))
         va = self.vb[b] + np.cross(self.omega_world()[b], rw)
         vrel = np.einsum("ij,ij->i", self.vn[nd] - va, e)
         mu = 1 / (1 / self.mn[nd] + 1 / m_eff)
@@ -660,14 +745,16 @@ class Station:
         return ke0 - self.kinetic()
 
     # --- équilibre en rotation ------------------------------------------
-    def relax(self, verbose=True):
+    def relax(self, verbose=True, adjust=True):
         """Relaxation dynamique dans le repère tournant à ω fixé (masses
         fictives uniformes, fort amortissement, orientation des modules
         figée — équilibre symétrique), puis ajustement de la longueur à vide
         des câbles pour placer le centre de masse des modules à R_target.
         Les masses internes sont au centre du module (s = 0) et comptées
         avec lui ; les masses ballottantes sont à leur position d'équilibre.
-        R est mesuré au centre de masse total de chaque module."""
+        R est mesuré au centre de masse total de chaque module (moyenne, ou
+        module --target-ship). adjust=False : positions seules, longueurs
+        inchangées (équilibre à une autre vitesse de rotation)."""
         w2 = self.omega ** 2
         mf = self.mn.min()
         dt = 1.6 / (2 * math.sqrt(self.k.max() / mf))
@@ -683,28 +770,57 @@ class Station:
             c = Mb_tot[:, None] * self.xb
             np.add.at(c, self.sb, self.sm[:, None] * (self.xb[self.sb] + rs))
             return c / Mmod[:, None]
+        mb = mf
         for it in range(40):
+            wz = np.zeros(self.nb)
             vn = np.zeros_like(self.xn)
             vb = np.zeros_like(self.xb)
-            for step in range(100000):
+            # basse vitesse (mise en rotation) : efforts ∝ ω², tolérance en
+            # proportion ; câbles peu tendus, donc lents à prendre leur flèche
+            w_nom2 = (self.args.rpm * 2 * math.pi / 60) ** 2
+            vtol = 1e-8 * min(1.0, w2 / w_nom2)
+            for step in range(400000 if self.unequal else (100000 if w2 >= w_nom2 else 2000000)):
                 P, rw = self.points()
                 F, *_ = self.spring_forces(P)
                 Fn = F[: self.nf] + self.mn[:, None] * w2 * self.xn * xy
                 Fb, _ = self.wrench(F[self.nf:], rw)
                 Fb += Mmod[:, None] * w2 * module_com() * xy
                 vn = 0.995 * (vn + Fn / mf * dt)
-                vb = 0.995 * (vb + Fb / mf * dt)
+                vb = 0.995 * (vb + Fb / mb * dt)
                 self.xn += vn * dt
                 self.xb += vb * dt
-                # La translation d'ensemble est instable dans le repère tournant
-                # (centrifuge sur le centre de masse décalé, aucun câble ne s'y
-                # oppose) : on recentre le centre de masse à chaque pas.
                 com = (self.mn @ self.xn + Mmod @ module_com()) / Mtot
                 self.xn -= com
                 self.xb -= com
-                if step % 1000 == 999 and max(np.abs(vn).max(), np.abs(vb).max()) < 1e-8:
+                if self.unequal:
+                    # masses différentes : partant de la géométrie d'équilibre
+                    # calculée, chaque module pivote aussi dans le plan (lacet)
+                    # jusqu'à l'équilibre des couples : câbles, et force
+                    # centrifuge sur les ergols
+                    _, Tb = self.wrench(F[self.nf:], rw)
+                    tz = Tb[:, 2].copy()
+                    if len(self.sm):
+                        fc = self.sm[:, None] * w2 * (self.xb[self.sb] + rs) * xy
+                        np.add.at(tz, self.sb, np.cross(rs, fc)[:, 2])
+                    wz = 0.995 * (wz + tz / 1e6 * dt)
+                    for b in range(self.nb):
+                        c_, s_ = math.cos(wz[b] * dt), math.sin(wz[b] * dt)
+                        self.R[b] = np.array([[c_, -s_, 0.0], [s_, c_, 0.0], [0.0, 0.0, 1.0]]) @ self.R[b]
+                    rs = np.einsum("bij,bj->bi", self.R[self.sb], self.s_eq)
+                    if step % 1000 == 999 and max(np.abs(vn).max(), np.abs(vb).max()) < 1e-8 and np.abs(wz).max() < 1e-9:
+                        break
+                    continue
+                # La translation d'ensemble est instable dans le repère tournant
+                # (centrifuge sur le centre de masse décalé, aucun câble ne s'y
+                # oppose) : on recentre le centre de masse à chaque pas (fait
+                # ci-dessus).
+                if step % 1000 == 999 and max(np.abs(vn).max(), np.abs(vb).max()) < vtol:
                     break
-            R = np.linalg.norm(module_com()[:, :2], axis=1).mean()
+            rc = np.linalg.norm(module_com()[:, :2], axis=1)
+            target = getattr(self.args, "target_ship", -1)
+            R = rc[target] if target >= 0 else rc.mean()
+            if not adjust or self.unequal:
+                break
             # Rayons : longueur à vide recalée sur la géométrie pour garder
             # l'allongement de prétension visé ; seuls les côtés fixent R
             spoke_ok = True
@@ -719,11 +835,19 @@ class Station:
                       + (f", allongement des rayons {eps:.2e} (visé {self.spoke_eps:.2e})" if len(self.spoke_seg) else ""))
             if abs(R - self.R_target) < 1e-4 and spoke_ok:
                 break
-            self.ds0[self.side_seg] += (self.R_target - R) / self.topo["dRdL"] / self.n
+            if target >= 0:
+                # longueurs et géométrie mises à l'échelle ensemble (l'équilibre
+                # se déforme peu, la relaxation repart de près)
+                self.ds0[self.side_seg] *= self.R_target / R
+                self.xn *= self.R_target / R
+                self.xb *= self.R_target / R
+            else:
+                self.ds0[self.side_seg] += (self.R_target - R) / self.topo["dRdL"] / self.n
             if len(self.spoke_seg):
                 self.ds0[self.spoke_seg] = l / (1 + self.spoke_eps)
             self._update_stiffness()
-        self.R_eq = R
+        if adjust:
+            self.R_eq = R
 
     def set_rigid_rotation(self):
         w = np.array([0.0, 0.0, self.omega])
@@ -742,6 +866,11 @@ class Station:
             rh = np.einsum("bij,bj->bi", self.R[b], self.sh)
             u = np.einsum("bij,bj->bi", self.R[b], self.s_eq - self.sh)
             u /= np.linalg.norm(u, axis=1)[:, None]
+            if self.unequal:
+                # modules pivotés : le liquide pend selon la gravité ressentie
+                # (radiale), pas selon l'axe du vaisseau
+                u = (self.xb[b] + rh) * np.array([1.0, 1.0, 0.0])
+                u /= np.linalg.norm(u, axis=1)[:, None]
             x0 = self.xb[b] + rh + self.sL[:, None] * u
             stretch = self.sm * self.omega ** 2 * np.linalg.norm(x0[:, :2], axis=1) / (self.s_k - self.sm * self.omega ** 2)
             self.xs = x0 + stretch[:, None] * u
@@ -771,21 +900,52 @@ class Station:
             L += self.hs.sum(axis=0)
         return L
 
+    def spin_thrust(self, t):
+        """Mise en rotation : poussée tangentielle sur chaque vaisseau, part
+        égale du moment d'inertie (F = M_tot/nb · α · r), appliquée au centre
+        de masse ou à --spin-thrust-x de la pointe. α = k·ω² (inclinaison
+        ressentie constante, tan θ = k) ou α constant ; coupée une fois la
+        vitesse visée atteinte. Renvoie forces, couples et α."""
+        F = np.zeros((self.nb, 3))
+        T = np.zeros((self.nb, 3))
+        if not self.spin_active or self.spin_done is not None:
+            return F, T, 0.0
+        w = self.spin_rate()
+        if w >= 0.999 * self.omega:
+            self.spin_done = t
+            return F, T, 0.0
+        a = self.args
+        alpha = a.spin_alpha if a.spin_alpha > 0 else a.spin_k * w * w
+        # fin progressive sur les derniers 5 % de vitesse (pas d'à-coup à la coupure)
+        alpha *= min(1.0, (self.omega - w) / (0.05 * self.omega))
+        xy = np.array([1.0, 1.0, 0.0])
+        c = self.Mb @ self.xb / self.Mb.sum()
+        r = (self.xb - c) * xy
+        rn = np.linalg.norm(r, axis=1)
+        et = np.cross(np.array([0.0, 0.0, 1.0]), r / rn[:, None])
+        F = (self.m_total / self.nb) * alpha * rn[:, None] * et
+        if a.spin_thrust_x is not None:
+            x_c = np.array([shp["x_c"] for shp in self.ships]) if self.ships else np.full(self.nb, a.module_length / 2)
+            arm = self.R[:, :, 0] * (a.spin_thrust_x - x_c)[:, None]
+            T = np.cross(arm, F)
+        return F, T, alpha
+
     def hull_axes(self):
         """Axe de chaque coque (pointe, arrière), en repère inertiel."""
         L = self.args.module_length
-        x_c = self.ship["x_c"] if self.ship else L / 2
+        x_c = np.array([shp["x_c"] for shp in self.ships])[:, None] if self.ships else L / 2
         ax = self.R[:, :, 0]
         return self.xb - x_c * ax, self.xb + (L - x_c) * ax
 
-    def spin_rate(self, com):
-        """Vitesse de rotation d'ensemble ω = L_z / I_z (rad/s), I_z compté
-        comme si tout tournait d'un bloc autour du centre de masse."""
-        ez = np.array([0.0, 0.0, 1.0])
-        rp = lambda x: np.sum(((x - com) * np.array([1.0, 1.0, 0.0])) ** 2, axis=1)
-        Iz = self.mn @ rp(self.xn) + self.Mb @ rp(self.xb) + self.sm @ rp(self.xs) + self.mi @ rp(self.xi)
-        Iz += np.einsum("bi,i,bi->", self.R[:, 2, :], self.Ib, self.R[:, 2, :])
-        return float(self.angular_momentum() @ ez / Iz)
+    def spin_rate(self):
+        """Vitesse de rotation des vaisseaux autour de leur centre de masse
+        commun (rad/s) : ω = Σ m (r × v)_z / Σ m r² dans le plan. Les câbles
+        ne sont pas comptés (un morceau largué s'éloigne et fausserait L/I)."""
+        xy = np.array([1.0, 1.0, 0.0])
+        c = self.Mb @ self.xb / self.Mb.sum()
+        v = self.Mb @ self.vb / self.Mb.sum()
+        r, u = (self.xb - c) * xy, self.vb - v
+        return float(self.Mb @ np.cross(r, u)[:, 2] / (self.Mb @ np.sum(r * r, axis=1)))
 
     def local_inertia(self, b=0):
         """Inerties du module dans le repère local (e_r, e_t, e_z) à l'état initial."""
@@ -793,7 +953,7 @@ class Station:
         er = np.array([math.cos(th), math.sin(th), 0.0])
         ez = np.array([0.0, 0.0, 1.0])
         et = np.cross(ez, er)
-        Iw = self.R_init[b] @ np.diag(self.Ib) @ self.R_init[b].T
+        Iw = self.R_init[b] @ np.diag(self.Ib[b]) @ self.R_init[b].T
         return [float(v @ Iw @ v) for v in (er, et, ez)]
 
 
@@ -861,7 +1021,8 @@ def static_tilt_prediction(args, h):
         return None
     if args.motion_axis == "r" or (args.motion_axis == "long" and args.module == "radial"):
         return 0.0
-    delta = args.motion_mass_t * args.motion_amp / args.mass_t
+    m0 = float(args.masses_t.split(",")[0]) if getattr(args, "masses_t", None) else args.mass_t
+    delta = args.motion_mass_t * args.motion_amp / m0
     tangential_move = (args.motion_axis == "t") or (args.motion_axis == "long" and args.module == "tangential")
     if args.topology == "triangle2" and tangential_move:
         s = 20.0 if args.spread is None else args.spread
@@ -877,7 +1038,7 @@ def apply_perturbation(st, args):
     ez = np.array([0.0, 0.0, 1.0])
     dv = args.dv_radial * er0 + args.dv_z * ez
     st.vb[0] += dv
-    Iw0 = st.R[0] @ np.diag(st.Ib) @ st.R[0].T
+    Iw0 = st.R[0] @ np.diag(st.Ib[0]) @ st.R[0].T
     Lw0 = st.R[0] @ st.pi[0] + Iw0 @ (args.droll * er0)
     st.pi[0] = st.R[0].T @ Lw0
     # Les masses internes du module 0 suivent sa coque (sinon l'asservissement
@@ -988,10 +1149,29 @@ def run(args):
     p(f"Prédiction      : roulis autour du câble {roll_pred} ; balancement dans le plan ≈ {f_pitch:.3f} Hz, hors plan ≈ {f_swing:.3f} Hz")
     tilt_static = static_tilt_prediction(args, st.h)
     if tilt_static is not None:
-        delta = args.motion_mass_t * 1e3 * args.motion_amp / st.M
+        delta = args.motion_mass_t * 1e3 * args.motion_amp / (st.masses_t[0] * 1e3)
         p(f"Prédiction      : décalage du centre de masse {delta * 100:.0f} cm → inclinaison statique du plancher ≈ {tilt_static:.2f}°")
 
-    st.set_rigid_rotation()
+    # Mise en rotation : équilibre à la vitesse de départ, longueurs inchangées
+    spin = getattr(args, "spin_from", 0.0) > 0
+    st.spin_active, st.spin_done = spin, None
+    if spin:
+        w_target = st.omega
+        # continuation : la vitesse descend par paliers (ω² divisé par 2 au
+        # plus), chaque équilibre partant du précédent
+        w0 = args.spin_from * 2 * math.pi / 60
+        n_st = max(1, math.ceil(math.log2((w_target / w0) ** 2)))
+        for k in range(1, n_st + 1):
+            st.omega = w_target * (w0 / w_target) ** (k / n_st)
+            st.relax(verbose=False, adjust=False)
+        st.set_rigid_rotation()
+        st.omega = w_target
+        p(f"Mise en rotation: de {args.spin_from:g} à {args.rpm:g} tr/min, " + (f"α = {args.spin_alpha:g} rad/s²" if args.spin_alpha > 0 else
+          f"α = {args.spin_k:g}·ω² (inclinaison ressentie {math.degrees(math.atan(args.spin_k)):.1f}°, durée prévue "
+          f"{(60 / (2 * math.pi)) * (1 / args.spin_from - 1 / args.rpm) / args.spin_k:.0f} s)")
+          + (f", poussée à {args.spin_thrust_x:g} m de la pointe" if args.spin_thrust_x is not None else ", poussée au centre de masse"))
+    else:
+        st.set_rigid_rotation()
     apply_perturbation(st, args)
     Mtot = st.m_total
 
@@ -1005,7 +1185,9 @@ def run(args):
     L0v = st.angular_momentum()
     eL = L0v / np.linalg.norm(L0v)
     rec = {k: [] for k in ("t", "g", "T", "tilt", "roll", "wrel", "z", "plane", "E", "L", "s", "slosh",
-                           "Tc", "rship", "wsys", "gap", "clear", "vwhip")}
+                           "Tc", "rship", "wsys", "gap", "clear", "vwhip", "thrust")}
+    Fth, Tth, _ = st.spin_thrust(0.0)
+    impulse = 0.0
     # Rupture : segment qui cède, nœuds libres du câble rompu
     nc, ns = st.n_cables, st.n
     brk = getattr(args, "break_cable", -1)
@@ -1058,13 +1240,13 @@ def run(args):
             np.add.at(Fd, i_s, f)
             np.add.at(Fd, j_s, -f)
             Fb, _ = st.wrench(Fd[st.nf:], rw)
-            Fb = Fb + Fbi + Fbs  # force spécifique de la structure : câbles + réactions des masses internes et des ergols
+            Fb = Fb + Fbi + Fbs + Fth  # force spécifique de la structure : câbles, poussée, réactions des masses internes et des ergols
             Fn = np.linalg.norm(Fb, axis=1)
             up = np.einsum("bij,bj->bi", st.R, st.up_body)
             tilt = np.degrees(np.arccos(np.clip(np.sum(up * Fb, axis=1) / Fn, -1, 1)))
             com = (st.mn @ st.xn + st.Mb @ st.xb + st.mi @ st.xi + st.sm @ st.xs) / Mtot
             roll, zc = roll_angles(st.xb, st.R, com, eL, args.module)
-            wrel = np.degrees(np.linalg.norm(st.omega_world() - st.omega * eL, axis=1))
+            wrel = np.degrees(np.linalg.norm(st.omega_world() - (st.spin_rate() if spin else st.omega) * eL, axis=1))
             if nb == 2:
                 d = st.xb[1] - st.xb[0]
                 plane = math.degrees(math.asin(min(1.0, abs(d @ eL) / np.linalg.norm(d))))
@@ -1086,7 +1268,8 @@ def run(args):
             rec["Tc"].append(np.maximum(tpk, t_tot.reshape(nc, ns).max(axis=1)))
             tpk[:] = 0.0
             rec["rship"].append(np.linalg.norm((st.xb - com)[:, :2], axis=1))
-            rec["wsys"].append(st.spin_rate(com))
+            rec["wsys"].append(st.spin_rate())
+            rec["thrust"].append(float(np.linalg.norm(Fth, axis=1).sum()))
             hA, hB = st.hull_axes()
             rec["gap"].append([segment_segment_dist(hA[a], hB[a], hA[b], hB[b]) - 2 * args.module_radius for a, b in pairs])
             if k_brk is not None:
@@ -1103,7 +1286,7 @@ def run(args):
             traj["pa"].append(P[st.nf:].copy())
             traj["xi"].append(st.xi.copy())
             traj["xs"].append(st.xs.copy())
-        st.kick(dt / 2, F, rw, Fi, Fbi + Fbs, Tbi + Tbs, Td, Fs)
+        st.kick(dt / 2, F, rw, Fi, Fbi + Fbs + Fth, Tbi + Tbs + Tth, Td, Fs)
         st.drift(dt)
         P, rw = st.points()
         F, t_spr, *_ = st.spring_forces(P)
@@ -1111,7 +1294,10 @@ def run(args):
         Fi, Fbi, Tbi = st.internal_forces(t + dt)
         Fs, Fbs, Tbs = st.slosh_forces()
         Td = st.damper_torque()
-        st.kick(dt / 2, F, rw, Fi, Fbi + Fbs, Tbi + Tbs, Td, Fs)
+        if spin:
+            Fth, Tth, _ = st.spin_thrust(t + dt)
+            impulse += dt * float(np.linalg.norm(Fth, axis=1).sum())
+        st.kick(dt / 2, F, rw, Fi, Fbi + Fbs + Fth, Tbi + Tbs + Tth, Td, Fs)
         w_diss += st.damp(dt)
         if st.cd:
             w_diss += dt * np.sum(Td * (st.omega_world() - st.hs / st.J))
@@ -1127,6 +1313,12 @@ def run(args):
                 hub_mass_t=st.hub_m / 1e3, spokes=st.topo.get("spokes", []), args=vars(args))
     if brk_meta:
         info["break"] = brk_meta
+    info["masses_t"] = st.masses_t
+    if st.ships:
+        x_att = [shp["x_c"] - float(-st.att_r[b * len(st.topo["attach"])] @ np.array([1.0, 0.0, 0.0])) for b, shp in enumerate(st.ships)]
+        info["h_ships"] = [shp["x_tot"] - xa for shp, xa in zip(st.ships, x_att)]
+    if spin:
+        info["spin"] = dict(t_reach=st.spin_done, impulse_Ns=impulse, propellant_t=impulse / (args.isp * G0) / 1e3)
     if st.ship:
         sh = st.ship
         info["ship"] = dict(M_rigid_t=sh["M_rigid"] / 1e3, x_c=sh["x_c"], x_tot=sh["x_tot"], x_attach=sh["x_tot"] - st.h,
@@ -1164,7 +1356,8 @@ def break_results(rec, info, args):
     b = info["break"]
     t = rec["t"]
     after = t >= b["t"]
-    whip = after & (t <= b["t"] + 60)
+    # fouet : jusqu'au largage des morceaux (ensuite ils filent en ligne droite)
+    whip = after & (t <= (b["released"]["t"] if "released" in b else b["t"] + 60))
     tail = t >= t[-1] - 300
     keep = [c for c in range(rec["Tc"].shape[1]) if c != b["cable"]]
     Tk = rec["Tc"][:, keep]
@@ -1176,7 +1369,10 @@ def break_results(rec, info, args):
     a = info["args"]
     E_cable = 0.5 * info["T_eq_cables"][b["cable"]] ** 2 * info["L_eq"] / (MATERIALS[a["material"]]["E"] * info["area_cm2"] * 1e-4)
     w = rec["wsys"]
+    hit = np.where(after & np.any(rec["clear"] < 0, axis=1))[0]
     return dict(t=b["t"], cable=b["cable"], E_seg_kJ=b["E_seg_J"] / 1e3, E_cable_kJ=E_cable / 1e3,
+                contact_t=float(t[hit[0]] - b["t"]) if len(hit) else None,
+                contact_ship=int(np.argmin(rec["clear"][hit[0]])) if len(hit) else None,
                 v_whip_max=float(rec["vwhip"][whip].max()),
                 clear_min=float(cl[i_c]), clear_ship=int(i_c[1]), clear_t=float(t[i_c[0]] - b["t"]),
                 gap_min=float(gp.min()), gap_t=float(t[np.argmin(gp)] - b["t"]),
@@ -1192,7 +1388,7 @@ def break_results(rec, info, args):
 def report(st, rec, E0, L0v, args, info, p):
     t = rec["t"]
     # Énergie non conservée : travail des masses asservies, ou amortissement des ergols
-    forced = args.motion != "none" or bool(np.any(st.s_zeta > 0))
+    forced = args.motion != "none" or bool(np.any(st.s_zeta > 0)) or "spin" in info
     dE = (rec["E"] - E0) / E0
     dL = np.linalg.norm(rec["L"] - L0v, axis=1) / np.linalg.norm(L0v)
     roll_abs = np.abs(rec["roll"]).max(axis=1)
@@ -1215,6 +1411,15 @@ def report(st, rec, E0, L0v, args, info, p):
     res["rpm_mean"] = float(rec["wsys"].mean() * 60 / (2 * math.pi))
     if "break" in info:
         res["break"] = break_results(rec, info, args)
+    if "spin" in info:
+        sp = info["spin"]
+        # inclinaison pendant la poussée, quand la gravité ressentie dépasse
+        # 0,5 m/s² (en deçà, quasi-apesanteur : l'angle n'a plus de sens)
+        on = (rec["thrust"] > 0)[:, None] & (rec["g"] * G0 > 0.5)
+        after = (rec["thrust"] == 0) & (rec["t"] > (sp["t_reach"] or rec["t"][-1]))
+        res["spin"] = dict(sp, tilt_max_on=float(rec["tilt"][on].max()) if on.any() else None,
+                           tilt_max_after=float(rec["tilt"][after].max()) if after.any() else None,
+                           T_min_MN=float(rec["T"][rec["t"] > 5].min() / 1e6), rpm_final=float(rec["wsys"][-200:].mean() * 60 / (2 * math.pi)))
     info["results"] = res
 
     p("\n--- Résultats ---")
@@ -1234,6 +1439,11 @@ def report(st, rec, E0, L0v, args, info, p):
       + f"moment cinétique {res['dL_max']:.1e}")
     p(f"Câbles          : tension de crête " + ", ".join(f"{v:.2f}" for v in res["Tc_max_MN"]) + " MN ; écart min entre coques "
       f"{res['gap_min']:.1f} m")
+    if "spin" in res:
+        sp = res["spin"]
+        p(f"Mise en rotation: atteinte à t = {sp['t_reach'] or float('nan'):.0f} s ; impulsion {sp['impulse_Ns']:.3g} N·s, soit "
+          f"{sp['propellant_t']:.1f} t d'ergols (Isp {args.isp:g} s) ; plancher max pendant la poussée (g > 0,5 m/s²) {sp['tilt_max_on'] or 0:.2f}°, après {sp['tilt_max_after'] or 0:.2f}° ; "
+          f"tension min {sp['T_min_MN']:.3f} MN ; vitesse finale {sp['rpm_final']:.3f} tr/min")
     if "break" in res:
         b = res["break"]
         p(f"Rupture         : t = {b['t']:g} s, énergie du segment {b['E_seg_kJ']:.0f} kJ, énergie élastique du câble {b['E_cable_kJ']:.0f} kJ ; "
@@ -1292,7 +1502,7 @@ def report(st, rec, E0, L0v, args, info, p):
     plt.close(fig)
     np.savez_compressed(base + ".npz", t=t, roll=rec["roll"], tilt=rec["tilt"], wrel=rec["wrel"], g=rec["g"], slosh=rec["slosh"],
                         s=rec["s"], T=rec["T"], z=rec["z"], Tc=rec["Tc"], rship=rec["rship"], wsys=rec["wsys"], gap=rec["gap"],
-                        clear=rec["clear"], vwhip=rec["vwhip"])
+                        clear=rec["clear"], vwhip=rec["vwhip"], thrust=rec["thrust"])
     with open(base + ".json", "w") as fh:
         json.dump(info, fh, indent=2, ensure_ascii=False)
     p(f"Graphiques      : {os.path.abspath(base + '.png')}")
@@ -1305,6 +1515,9 @@ def make_parser():
     p.add_argument("--module", choices=list(ORIENTATIONS), default="tangential",
                    help="orientation de l'axe long des modules : tangential (sens du mouvement), axial (parallèle à l'axe de rotation), radial (tour)")
     p.add_argument("--mass-t", type=float, default=1600, help="masse de chaque module (t)")
+    p.add_argument("--masses-t", help="masses différentes par module (t), ex. 220,805,805 (remplace --mass-t)")
+    p.add_argument("--attach-x", type=float, help="Starship : points d'attache à cette distance de la pointe (m) ; défaut : à h du centre de masse total")
+    p.add_argument("--target-ship", type=int, default=-1, help="module dont le centre de masse est placé au rayon visé (−1 = moyenne)")
     p.add_argument("--module-radius", type=float, default=6.0, help="rayon du cylindre (m)")
     p.add_argument("--module-length", type=float, default=40.0, help="longueur du cylindre (m)")
     p.add_argument("--bridle", type=float, default=0.0, help="hauteur de patte d'oie au-dessus de la coque (m)")
@@ -1343,6 +1556,15 @@ def make_parser():
     p.add_argument("--tld-x", type=float, default=46.0, help="fond du bassin, en m depuis la pointe")
     p.add_argument("--tld-radius", type=float, default=4.5, help="rayon du bassin (m) ; la profondeur, donc l'accord, en découle")
     p.add_argument("--tld-zeta", type=float, default=0.15, help="amortissement du clapotis du bassin (grilles, écrans perforés)")
+    p.add_argument("--tld2-mass-t", type=float, default=0.0, help="second bassin accordé : masse d'eau (t)")
+    p.add_argument("--tld2-x", type=float, default=46.0, help="second bassin : fond, en m depuis la pointe")
+    p.add_argument("--tld2-radius", type=float, default=4.5, help="second bassin : rayon (m)")
+    p.add_argument("--tld2-zeta", type=float, default=0.15, help="second bassin : amortissement")
+    p.add_argument("--spin-from", type=float, default=0.0, help="mise en rotation : vitesse de départ (tr/min ; 0 = sans)")
+    p.add_argument("--spin-k", type=float, default=0.05, help="mise en rotation : α = k·ω² (inclinaison ressentie arctan k)")
+    p.add_argument("--spin-alpha", type=float, default=0.0, help="mise en rotation : accélération angulaire constante (rad/s² ; remplace --spin-k)")
+    p.add_argument("--spin-thrust-x", type=float, help="mise en rotation : poussée appliquée à cette distance de la pointe (m) ; défaut : centre de masse")
+    p.add_argument("--isp", type=float, default=300.0, help="impulsion spécifique des propulseurs de mise en rotation (s)")
     p.add_argument("--slosh-zeta", type=float, default=0.001, help="amortissement du ballottement (parois : ~1e-4 à 1e-3 ; chicanes : 0,02 à 0,05)")
     p.add_argument("--hub-mass-t", type=float, default=0.0, help="moyeu central (t) relié au nez de chaque module par un rayon (0 = sans)")
     p.add_argument("--spoke-tension", type=float, default=0.15, help="prétension des rayons, en fraction de la tension nominale d'un côté")

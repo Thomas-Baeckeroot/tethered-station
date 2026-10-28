@@ -166,16 +166,17 @@ figcaption b { color: var(--ink); }
     <li><a href="#validation"><span class="num">4</span>Validation</a></li>
     <li><a href="#solution"><span class="num">5</span>Solution retenue</a></li>
     <li><a href="#ballottement"><span class="num">6</span>Ballottement des ergols</a></li>
-    <li><a href="#alternatives"><span class="num">7</span>Alternatives</a></li>
-    <li><a href="#configurations"><span class="num">8</span>Étude préliminaire</a></li>
-    <li><a href="#stabilite"><span class="num">9</span>Stabilité en rotation</a></li>
-    <li><a href="#dissipation"><span class="num">10</span>Dissipation interne</a></li>
-    <li><a href="#modes"><span class="num">11</span>Modes propres</a></li>
-    <li><a href="#internes"><span class="num">12</span>Mouvements internes</a></li>
-    <li><a href="#final"><span class="num">13</span>Config. générique</a></li>
-    <li><a href="#non-simule"><span class="num">14</span>Effets estimés</a></li>
-    <li><a href="#limites"><span class="num">15</span>Limites et suite</a></li>
-    <li><a href="#reproduire"><span class="num">16</span>Reproduire</a></li>
+    <li><a href="#rupture"><span class="num">7</span>Rupture d'un câble</a></li>
+    <li><a href="#alternatives"><span class="num">8</span>Alternatives</a></li>
+    <li><a href="#configurations"><span class="num">9</span>Étude préliminaire</a></li>
+    <li><a href="#stabilite"><span class="num">10</span>Stabilité en rotation</a></li>
+    <li><a href="#dissipation"><span class="num">11</span>Dissipation interne</a></li>
+    <li><a href="#modes"><span class="num">12</span>Modes propres</a></li>
+    <li><a href="#internes"><span class="num">13</span>Mouvements internes</a></li>
+    <li><a href="#final"><span class="num">14</span>Config. générique</a></li>
+    <li><a href="#non-simule"><span class="num">15</span>Effets estimés</a></li>
+    <li><a href="#limites"><span class="num">16</span>Limites et suite</a></li>
+    <li><a href="#reproduire"><span class="num">17</span>Reproduire</a></li>
   </ol>
 </nav>
 
@@ -183,7 +184,7 @@ figcaption b { color: var(--ink); }
 <header style="display:grid;gap:14px">
   <span class="eyebrow">tethered-station · carnet de calcul</span>
   <h1>Carnet de calcul de la station</h1>
-  <p class="lede">Trois Starships en route vers Mars, reliés par des câbles en Dyneema et tournant à 1 tr/min pour recréer la gravité de Mars (3,711 m/s²). Ce carnet donne la solution retenue, le dimensionnement, le modèle numérique et sa validation, puis les résultats des simulations, ergols compris. Les alternatives écartées (vaisseaux couchés, deux vaisseaux) et l'étude préliminaire à modules génériques, qui a établi les règles de conception, suivent à partir du § 7.</p>
+  <p class="lede">Trois Starships en route vers Mars, reliés par des câbles en Dyneema et tournant à 1 tr/min pour recréer la gravité de Mars (3,711 m/s²). Ce carnet donne la solution retenue, le dimensionnement, le modèle numérique et sa validation, puis les résultats des simulations, ergols compris. Les alternatives écartées (vaisseaux couchés, deux vaisseaux) et l'étude préliminaire à modules génériques, qui a établi les règles de conception, suivent à partir du § 8.</p>
   <div class="meta"><span>25–26 octobre 2026</span><span>modèle : tether_sim.py (NumPy)</span><span>validation : Project Chrono 10.0</span><span id="meta-count"></span><span><a href="https://claude.ai/artifact/AhFHVxf86G4P5S4H4s9cXx" target="_blank" rel="noopener">version grand public</a></span></div>
 </header>
 
@@ -199,6 +200,7 @@ figcaption b { color: var(--ink); }
     <li><span class="k">Ergols</span><span>186 t de liquide ballottent par vaisseau (30 % de la masse). Sans chicanes, le ballottement du LOX résonne vers 4 s de période et met des minutes à se calmer (jusqu'à 4,3°). Avec chicanes (ζ = 3 %), il s'éteint en 20 s.</span></li>
     <li><span class="k">Amortisseur</span><span>Le point faible était le balancement hors du plan de rotation (période ≈ 8 s) : 4 t oscillant au pire rythme inclinaient le plancher de 2,7°. Un bassin de 25 t d'eau (Ø 7,2 m, 0,61 m de profondeur), placé à 12 m de la pointe, accordé à 0,117 Hz et amorti à 15 % par des grilles, ramène ce pire cas à <span data-bind="amortisseur.T_balayage_z.tilt_max" data-fmt="deg">—</span> (<span data-bind="amortisseur.T_balayage_t.tilt_max" data-fmt="deg">—</span> dans le plan), sans rien changer aux mouvements ordinaires (§ 6.1).</span></li>
     <li><span class="k">Alternatives</span><span>Couchés, les vaisseaux demandent des mâts et un intérieur refait, pour une pire résonance plus forte (0,86° contre 0,57° à 1 600 t ; 2,6° sans mâts). À deux vaisseaux, le roulis est neutre : 205° de dérive en 30 min. Modules génériques : un module allongé parallèle à l'axe de rotation est instable (doublement 7,1 s) ; l'haltère est sujet à l'effet Djanibekov.</span></li>
+    <li><span class="k">Rupture</span><span>Un câble de 11 cm ne craint presque pas les météorites (≈ 10⁻⁶ coupure par voyage) ; les causes plausibles sont les attaches, l'usure, les défauts. Si un côté casse, les câbles restants tiennent (<span data-bind="rupture.X_rupture_milieu.break.T_max_MN" data-fmt="mn">—</span>, 38 % de leur résistance), mais le triangle s'ouvre et « respire » : à-coups de 2 g, vaisseaux qui tournoient. Parade simulée : un moyeu central relié au nez de chaque vaisseau par deux rayons, et des coupe-câbles qui larguent les morceaux ; la station garde alors sa forme et sa rotation, et les secousses durent une vingtaine de secondes (§ 7).</span></li>
     <li><span class="k">Validation</span><span>Conservation de l'énergie et du moment cinétique à 10⁻⁹ ; temps de doublement analytique retrouvé à 0,1 % ; Project Chrono, moteur indépendant, donne le même roulis (écart de temps de doublement <span data-bind="validation.B_haltere_axial.doubling_rel" data-fmt="pct">—</span>) ; ballottement : énergie conservée à 10⁻⁸, fréquence couplée à 1 % du modèle linéaire.</span></li>
   </ul>
 </section>
@@ -206,7 +208,7 @@ figcaption b { color: var(--ink); }
 <section id="dimensionnement">
   <h2>2 · Mission et dimensionnement</h2>
   <div class="prose">
-    <p><b>Scénario.</b> Trois Starships quittent l'orbite basse pleins (1 600 t chacun, structure, charge et ergols compris), s'injectent sur un transfert de Hohmann vers Mars, puis se relient par des câbles et se mettent en rotation. Un vaisseau emporte l'équipage, les deux autres sont des cargos. Les câbles sont dimensionnés pour la masse maximale (1 600 t à 1 g, facteur 3) ; la dynamique est calculée à la masse après l'injection. Gravité visée : celle de la surface de Mars, 3,711 m/s², à 1 tr/min. En transit, la précession par effet de marée (§ 14) et l'amarrage de nouveaux véhicules deviennent secondaires.</p>
+    <p><b>Scénario.</b> Trois Starships quittent l'orbite basse pleins (1 600 t chacun, structure, charge et ergols compris), s'injectent sur un transfert de Hohmann vers Mars, puis se relient par des câbles et se mettent en rotation. Un vaisseau emporte l'équipage, les deux autres sont des cargos. Les câbles sont dimensionnés pour la masse maximale (1 600 t à 1 g, facteur 3) ; la dynamique est calculée à la masse après l'injection. Gravité visée : celle de la surface de Mars, 3,711 m/s², à 1 tr/min. En transit, la précession par effet de marée (§ 15) et l'amarrage de nouveaux véhicules deviennent secondaires.</p>
   </div>
 
   <h3>2.1 Masse après l'injection vers Mars</h3>
@@ -227,7 +229,7 @@ figcaption b { color: var(--ink); }
 
   <h3>2.2 Gravité visée et rayon</h3>
   <div class="prose">
-    <p>3,711 m/s² est la valeur la plus citée pour la gravité de surface de Mars ; la fiche de la NASA donne 3,69 m/s² à l'équateur et 3,73 m/s² en moyenne. En unités de pesanteur standard (<var>g</var><sub>0</sub> = 9,80665 m/s²), 3,711 m/s² vaut 0,3784 <var>g</var><sub>0</sub> ; le « 0,379 g » souvent associé est rapporté à la pesanteur équatoriale terrestre (9,78 m/s²). Avec ω = 1 tr/min : <var>R</var> = 3,711 / 0,010966 = <b>338,4 m</b>, contre 339,8 m pour 0,38 <var>g</var><sub>0</sub> dans l'étude préliminaire (§ 8).</p>
+    <p>3,711 m/s² est la valeur la plus citée pour la gravité de surface de Mars ; la fiche de la NASA donne 3,69 m/s² à l'équateur et 3,73 m/s² en moyenne. En unités de pesanteur standard (<var>g</var><sub>0</sub> = 9,80665 m/s²), 3,711 m/s² vaut 0,3784 <var>g</var><sub>0</sub> ; le « 0,379 g » souvent associé est rapporté à la pesanteur équatoriale terrestre (9,78 m/s²). Avec ω = 1 tr/min : <var>R</var> = 3,711 / 0,010966 = <b>338,4 m</b>, contre 339,8 m pour 0,38 <var>g</var><sub>0</sub> dans l'étude préliminaire (§ 9).</p>
     <p>Un vaisseau de 50 m de haut, debout, voit la gravité varier de ±7,4 % entre la pointe (3,44 m/s²) et la base (3,98 m/s²). La gravité visée est atteinte au centre de masse ; pour l'obtenir au pont principal de la section habitée, 6 m plus haut, il suffit d'allonger les câbles de √3 × 6 ≈ 10 m.</p>
     <p><b>Câbles.</b> Dimensionnés pour 1 600 t à 1 g (90,6 cm², Ø 10,7 cm, 9,06 MN de conception) : <span id="mission-cable">—</span>. En route, ils travaillent donc à 4,8 % de leur résistance, et s'allongent de 0,14 %.</p>
   </div>
@@ -264,7 +266,7 @@ figcaption b { color: var(--ink); }
   </table></div>
   <div class="prose">
     <p><b>Fluage et thermique.</b> Sur 259 jours de charge permanente, le fluage du Dyneema est le point à surveiller. Il croît très vite avec la charge et la température ; à moins de 5 % de la résistance, il reste faible pour les nuances à faible fluage (DM20, SK99), mais il faut le chiffrer avec les données du fabricant à la température réelle du câble. Ses conséquences restent modestes. Un allongement commun des trois câbles agrandit le triangle : 1 % d'allongement éloigne les coiffes de 3,1 m de l'axe et augmente la gravité de 0,9 %. Un allongement inégal fait pivoter les vaisseaux en roulis, sans incliner le plancher. Des treuils aux points d'attache suffisent à compenser. Le câble passe aussi du soleil à l'ombre à chaque tour ; la gaine fixe sa température, et le Dyneema a une dilatation thermique négative.</p>
-    <p><b>Bilan.</b> Le choix du matériau ne remet pas la station en cause. Même en Kevlar avec redondance, les câbles pèsent moins de 50 t, soit 2,7 % de la masse de la station en route. Le Dyneema SK99 tressé et gainé, avec redondance (24 t), reste le meilleur candidat, sous réserve du fluage ; le Vectran est la solution de repli s'il s'avère trop important. Restent à étudier les ancrages sur la coiffe et la rupture d'un câble (§ 15).</p>
+    <p><b>Bilan.</b> Le choix du matériau ne remet pas la station en cause. Même en Kevlar avec redondance, les câbles pèsent moins de 50 t, soit 2,7 % de la masse de la station en route. Le Dyneema SK99 tressé et gainé, avec redondance (24 t), reste le meilleur candidat, sous réserve du fluage ; le Vectran est la solution de repli s'il s'avère trop important. La rupture d'un câble est traitée au § 7 ; restent à étudier les ancrages sur la coiffe (§ 16).</p>
   </div>
   <h3>2.4 Gabarit du vaisseau et modèle</h3>
   <div class="prose">
@@ -297,7 +299,7 @@ figcaption b { color: var(--ink); }
   <div class="prose">
     <p>Quatre niveaux de contrôle :</p>
     <ol>
-      <li><b>Invariants.</b> Sans forçage, énergie (cinétique + élastique + dissipée) et moment cinétique sont conservés à 10⁻⁹ ou mieux sur 30 min simulées (tableaux § 9). Avec masses internes asservies, l'énergie n'est plus un invariant (travail de l'asservissement). Le moment cinétique dérive de ~10⁻⁶, parce que la force d'amortissement de l'asservissement n'est pas colinéaire au ressort.</li>
+      <li><b>Invariants.</b> Sans forçage, énergie (cinétique + élastique + dissipée) et moment cinétique sont conservés à 10⁻⁹ ou mieux sur 30 min simulées (tableaux § 10). Avec masses internes asservies, l'énergie n'est plus un invariant (travail de l'asservissement). Le moment cinétique dérive de ~10⁻⁶, parce que la force d'amortissement de l'asservissement n'est pas colinéaire au ressort.</li>
       <li><b>Solutions analytiques.</b> Temps de doublement du roulis (7,09 s mesuré, 7,09 s prédit), fréquence du mode longitudinal (0,274 Hz mesuré, 0,275 Hz prédit), inclinaison statique sous cargaison (4,41° mesuré, 4,47° prédit).</li>
       <li><b>Convergence.</b> Doubler le nombre de segments ou diviser le pas de temps par deux ne change pas le résultat (tableau ci-dessous).</li>
       <li><b>Moteur indépendant.</b> Les mêmes scénarios, partant du même état initial, sont intégrés par <b>Project Chrono 10</b> (PyChrono) : modules en <code>ChBody</code> (quaternions, couple gyroscopique), câble en chaîne de <code>ChBody</code> ponctuels reliés par des <code>ChLinkTSDA</code>, intégrateur implicite HHT (α = −0,02), solveur direct creux, pas de 2 ms.</li>
@@ -342,7 +344,7 @@ figcaption b { color: var(--ink); }
   </div>
   <h3>5.3 Comportement en route</h3>
   <div class="prose">
-    <p>Vaisseaux de 610 t, modèle de masse par éléments (§ 6), ergols libres, réservoirs à chicanes. Perturbation initiale du vaisseau 0 (2 cm/s radial, 2 cm/s hors plan, 0,11°/s en roulis) ; mouvements internes comme au § 12.2, déplacements latéraux limités au rayon d'un pont (±3,5 m).</p>
+    <p>Vaisseaux de 610 t, modèle de masse par éléments (§ 6), ergols libres, réservoirs à chicanes. Perturbation initiale du vaisseau 0 (2 cm/s radial, 2 cm/s hors plan, 0,11°/s en roulis) ; mouvements internes comme au § 13.2, déplacements latéraux limités au rayon d'un pont (±3,5 m).</p>
   </div>
   <div class="tbl"><table id="t-retenue"><thead><tr><th>Scénario</th><th>Plancher max</th><th>Roulis max</th><th>Ballottement max (LOX / CH4)</th><th>Rotation parasite max</th><th>Gravité ressentie</th><th>Tension</th></tr></thead><tbody></tbody>
   <caption>Solution retenue. Les résonances (balayages en fréquence) sont au § 6.</caption></table></div>
@@ -350,13 +352,13 @@ figcaption b { color: var(--ink); }
     <p><b>Modèle homogène.</b> Avant le modèle par éléments, la même station a été simulée avec des vaisseaux en cylindres homogènes, ergols figés. Ces résultats restent utiles pour isoler la dynamique de la structure :</p>
   </div>
   <div class="prose">
-    <p>Triangle debout, vaisseaux de 610 t, câbles de conception 1 600 t. Mêmes perturbations et mêmes programmes de mouvement qu'au § 12 ; déplacements latéraux limités à ±3,5 m.</p>
+    <p>Triangle debout, vaisseaux de 610 t, câbles de conception 1 600 t. Mêmes perturbations et mêmes programmes de mouvement qu'au § 13 ; déplacements latéraux limités à ±3,5 m.</p>
   </div>
   <div class="tbl"><table id="t-mission"><thead><tr><th>Scénario</th><th>Plancher prédit (statique)</th><th>Plancher max</th><th>Roulis max</th><th>Rotation parasite max</th><th>Gravité ressentie</th><th>Tension</th></tr></thead><tbody></tbody></table></div>
   <div class="chartbox"><h4>Balayage en fréquence (4 t) : mission, et vaisseaux pleins pour comparaison</h4><div id="ch-ss-sweep"></div></div>
   <div class="prose" id="mission-analysis">
-    <p><b>Mouvements lents.</b> 50 t déplacées de ±3,5 m sur un pont inclinent le plancher de <span data-bind="mission.M_cargaison_laterale.tilt_max" data-fmt="deg">—</span>, pour 0,61° prédit par la formule du palonnier (§ 12.1, <var>s</var> = 3,5 m, <var>h</var> = 25 m). C'est 2,6 fois plus qu'à 1 600 t, le rapport des masses. Le changement de pont (50 t sur ±15 m le long de l'axe) et la marche de l'équipage ne se distinguent pas de la réponse à la perturbation initiale (<span data-bind="mission.M_perturbation.tilt_max" data-fmt="deg">—</span>).</p>
-    <p><b>Résonances.</b> Chaque vaisseau est un pendule de 25 m sous 3,7 m/s². Dans le plan de rotation, le palonnier limite la réponse : pic de <span data-bind="mission.M_balayage_t.tilt_max" data-fmt="deg">—</span>. Hors du plan, les attaches ne sont pas écartées et seul le rappel pendulaire agit : pic de <b>1,44° à 0,12 Hz</b> (période 8,1 s). C'est le point faible de la configuration. Les réponses varient comme 1/<var>M</var> : à 1 600 t, le même balayage donne <span data-bind="starship.SV3_balayage_z.tilt_max" data-fmt="deg">—</span>. La hauteur du centre de masse compte autant : avec <var>h</var> = 15 m, les pics montent à 1,57° (dans le plan) et 2,79° (hors plan, 8,7 s). Au pic, la masse de 4 t oscille de ±1,7 m, l'amplitude étant limitée par l'accélération de 1 m/s² (§ 12.3).</p>
+    <p><b>Mouvements lents.</b> 50 t déplacées de ±3,5 m sur un pont inclinent le plancher de <span data-bind="mission.M_cargaison_laterale.tilt_max" data-fmt="deg">—</span>, pour 0,61° prédit par la formule du palonnier (§ 13.1, <var>s</var> = 3,5 m, <var>h</var> = 25 m). C'est 2,6 fois plus qu'à 1 600 t, le rapport des masses. Le changement de pont (50 t sur ±15 m le long de l'axe) et la marche de l'équipage ne se distinguent pas de la réponse à la perturbation initiale (<span data-bind="mission.M_perturbation.tilt_max" data-fmt="deg">—</span>).</p>
+    <p><b>Résonances.</b> Chaque vaisseau est un pendule de 25 m sous 3,7 m/s². Dans le plan de rotation, le palonnier limite la réponse : pic de <span data-bind="mission.M_balayage_t.tilt_max" data-fmt="deg">—</span>. Hors du plan, les attaches ne sont pas écartées et seul le rappel pendulaire agit : pic de <b>1,44° à 0,12 Hz</b> (période 8,1 s). C'est le point faible de la configuration. Les réponses varient comme 1/<var>M</var> : à 1 600 t, le même balayage donne <span data-bind="starship.SV3_balayage_z.tilt_max" data-fmt="deg">—</span>. La hauteur du centre de masse compte autant : avec <var>h</var> = 15 m, les pics montent à 1,57° (dans le plan) et 2,79° (hors plan, 8,7 s). Au pic, la masse de 4 t oscille de ±1,7 m, l'amplitude étant limitée par l'accélération de 1 m/s² (§ 13.3).</p>
   </div>
   <div class="callout"><b>Conséquences pratiques</b><span>Garder le centre de masse bas : ranger l'eau, les réserves et les ergols restants côté moteurs augmente <var>h</var> et raidit tous les balancements. Raidir le balancement hors plan : répartir chaque câble en patte d'oie sur plusieurs points d'ancrage du nez, écartés aussi selon l'axe de rotation. Éviter les activités collectives rythmées sur des périodes de 5 à 9 s. Ces résultats supposent les ergols figés ; leur ballottement est traité au § 6.</span></div>
 
@@ -375,11 +377,18 @@ figcaption b { color: var(--ink); }
         <option value="M_perturbation">Modèle homogène · perturbation</option>
         <option value="M_cargaison_laterale">Modèle homogène · cargaison 50 t sur un pont</option>
         </optgroup>
-        <optgroup label="Alternatives (§ 7)">
+        <optgroup label="Rupture d'un câble (§ 7)">
+        <option value="X_rupture_milieu">Rupture au milieu d'un côté</option>
+        <option value="X_rupture_attache">Rupture à une attache (câble entier pendu au vaisseau 1)</option>
+        <option value="Y_moyeu_rupture">Moyeu à 3 rayons · rupture d'un côté</option>
+        <option value="Y_moyeu_rupture_largage">Moyeu à 3 rayons + coupe-câbles · rupture d'un côté</option>
+        <option value="Z_moyeu_double_rupture">Rayons doublés + coupe-câbles · rupture d'un côté</option>
+        </optgroup>
+        <optgroup label="Alternatives (§ 8)">
         <option value="SV3_perturbation">SV3 · triangle vertical, 1 600 t, perturbation</option>
         <option value="SV2_perturbation">SV2 · haltère vertical (dérive du roulis)</option>
         </optgroup>
-        <optgroup label="Étude préliminaire (§ 8 à 13)">
+        <optgroup label="Étude préliminaire (§ 9 à 14)">
         <option value="B_haltere_axial">B · haltère, modules axiaux</option>
         <option value="D_echelle_axial">D · haltère à 2 câbles, modules axiaux (Djanibekov)</option>
         <option value="F_triangle_axial">F · triangle, attache unique, modules axiaux</option>
@@ -477,14 +486,83 @@ figcaption b { color: var(--ink); }
 
 </section>
 
-<section id="alternatives">
-  <h2>7 · Alternatives : couché, deux vaisseaux</h2>
+<section id="rupture">
+  <h2>7 · Rupture d'un câble</h2>
   <div class="prose">
-    <p>Comparaison à masse maximale (1 600 t, 0,38 <var>g</var><sub>0</sub>), avec les mêmes scénarios qu'aux § 9 et 12. Les déplacements latéraux sont limités au rayon d'un pont (±3,5 m). Pour un vaisseau debout, un déplacement le long de l'axe est un changement de pont, sur la verticale du câble.</p>
+    <p>Dans le triangle, chaque câble retient deux vaisseaux, et aucun autre chemin ne reprend son effort. Cette section estime d'abord ce qui peut casser un câble, puis simule une rupture dans la solution retenue (chicanes et bassin d'eau, § 6.1), et enfin des parades : un moyeu central relié aux vaisseaux par des rayons, et des coupe-câbles qui larguent les morceaux. Les autres pistes, non simulées, sont discutées au § 7.4.</p>
+  </div>
+
+  <h3>7.1 Ce qui peut casser un câble</h3>
+  <div class="prose">
+    <p><b>Météorites.</b> Les câbles qui ont volé ont souvent été coupés (SEDS-2 en quelques jours, § 2.3), mais c'étaient des fils de moins d'un millimètre. Un impact coupe un câble rond lorsque la particule mesure de 20 à 50 % de son diamètre. Avec le flux interplanétaire de Grün et al. (1985) à 1 UA, pour 3 × 539 m de câble exposés pendant les 259 jours du transfert :</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Câble</th><th>Particule qui le coupe</th><th>Masse (1 à 2,5 g/cm³)</th><th>Coupures attendues par voyage</th></tr></thead>
+    <tbody>
+      <tr><td>Ø 10,7 cm (dimensionnement, § 2.3)</td><td class="n">2,1 à 5,4 cm</td><td class="n">5 à 200 g</td><td class="n"><b>2·10⁻⁸ à 3·10⁻⁶</b></td></tr>
+      <tr><td>Ø 13 cm (tressé, gainé, redondant)</td><td class="n">2,6 à 6,5 cm</td><td class="n">9 à 360 g</td><td class="n">1·10⁻⁸ à 2·10⁻⁶</td></tr>
+      <tr><td>Fil Ø 2 mm, même longueur</td><td class="n">0,4 à 1 mm</td><td class="n">0,03 à 1,3 mg</td><td class="n">0,3 à 27 %</td></tr>
+    </tbody>
+    <caption>Flux cumulé F(&gt; m) de Grün et al. (1985), surface latérale des câbles π·d·L. Le modèle est établi jusqu'à 1 g ; au-delà, c'est une extrapolation. Le flux diminue en s'éloignant du Soleil : l'estimation à 1 UA est prudente pour le trajet vers Mars.</caption>
+  </table></div>
+  <div class="prose">
+    <p>Un câble épais n'a donc presque rien à craindre des météorites ; l'expérience des fils fins ne se transpose pas. Les causes plausibles sont ailleurs : une épissure ou une terminaison mal faite, l'usure et la fatigue aux points d'attache (le balancement de 8 s fait près de 3 millions de cycles par voyage), un défaut de fabrication, un câble abîmé à l'enroulement, une gaine dégradée par les ultraviolets ou la chaleur, une surcharge pendant la mise en rotation. On conçoit donc la station pour qu'elle survive à la perte de n'importe quel câble.</p>
+  </div>
+
+  <h3>7.2 Rupture dans la solution retenue</h3>
+  <div class="prose">
+    <p><b>Scénario.</b> Solution retenue (610 t, chicanes, bassin de 25 t). À t = 60 s, le câble 0 (entre les vaisseaux 0 et 1) cède en son milieu ; variante : il cède à l'attache du vaisseau 0 et reste entier, pendu au vaisseau 1. Le simulateur retire le segment rompu ; son énergie élastique est comptée comme dissipée (contrôle sans ballottement : bilan d'énergie fermé à 1,5·10⁻⁵ à travers la rupture). Le câble stockait <span data-bind="rupture.X_rupture_milieu.break.E_cable_kJ" data-fmt="kj">—</span> d'énergie élastique.</p>
+    <p><b>Retour élastique.</b> Les deux bouts libres se rétractent vers leurs attaches à 14,6 m/s, la vitesse prévue ε·<var>c</var> (allongement 0,145 % × vitesse des ondes √(<var>E</var>/ρ) = 10,2 km/s → 14,7 m/s). Le brin revient frapper la coiffe du vaisseau 0 après 8 s, celle du vaisseau 1 après 14 s, puis il fouette autour du vaisseau, projeté vers l'extérieur par la force centrifuge, à des vitesses de plusieurs dizaines de m/s (jusqu'à <span data-bind="rupture.X_rupture_milieu.break.v_whip_max" data-fmt="ms">—</span> dans le repère tournant ; valeur de pointe sensible à la discrétisation du câble en 16 segments).</p>
+    <p><b>Le triangle s'ouvre.</b> Privés d'un câble, les vaisseaux 0 et 1 ne reçoivent plus de force centripète que d'un côté. La force de Coriolis les pousse vers l'arrière : le vaisseau 0, dont le câble restant part vers l'arrière, retombe sur son ancrage : son câble se détend presque (0,3 MN) et il flotte en quasi-apesanteur (moins de 0,5 m/s²) une quinzaine de secondes ; le vaisseau 1 s'éloigne du sien, et son câble monte à 3 puis 4,5 MN. En 22 s, les deux vaisseaux libérés partent à 570 m du centre, le vaisseau 2 vient à quelques dizaines de mètres de l'axe, et la rotation ralentit à 0,53 tr/min (moment cinétique conservé, inertie presque doublée).</p>
+    <p><b>Puis la station « respire ».</b> L'énergie de rotation libérée (le moment cinétique est fixé, l'inertie augmente) ne se dissipe presque pas : le V formé par les deux câbles restants se referme et se rouvre avec une période régulière de 46 s, les vaisseaux d'extrémité allant de 336 à 572 m du centre. À chaque cycle, les câbles se retendent d'un coup : jusqu'à <span data-bind="rupture.X_rupture_milieu.break.T_max_MN" data-fmt="mn">—</span> (38 % de la résistance, huit fois la tension normale). Les vaisseaux encaissent des à-coups jusqu'à <span data-bind="rupture.X_rupture_milieu.break.g_max.1" data-fmt="ms2">—</span> au centre de masse et tournoient sur eux-mêmes (jusqu'à <span data-bind="rupture.X_rupture_milieu.wrel_max" data-fmt="dps">—</span>). Après 30 min, rien ne s'est calmé ; la station tourne en moyenne à <span data-bind="rupture.X_rupture_milieu.break.rpm_final" data-fmt="rpm">—</span>.</p>
+    <p><b>Validité.</b> Les premières minutes sont fiables. Ensuite, les vaisseaux tournent de plusieurs tours sur eux-mêmes alors que le modèle n'a pas de contact : en réalité, les câbles s'enrouleraient autour des coiffes et les brins frotteraient les coques. Les pendules de ballottement sortent aussi de leur domaine (jusqu'à 6 m d'écart). La suite est qualitative.</p>
+  </div>
+  <div class="tbl"><table id="t-rupture"><thead><tr><th>Scénario</th><th>Tension max des câbles restants</th><th>Gravité ressentie après rupture (min–max, m/s²)</th><th>Plancher max</th><th>Rotation parasite max</th><th>Premier contact du brin avec une coque</th><th>Rotation finale (tr/min)</th><th>Distance au centre finale (vaisseaux 0 / 1 / 2)</th></tr></thead><tbody></tbody>
+  <caption>Rupture à t = 60 s, solution retenue (610 t, chicanes, bassin). Résistance d'un câble : 27,2 MN ; tension normale : 1,31 MN (1,21 MN avec moyeu). Valeurs finales : moyenne des 5 dernières minutes.</caption></table></div>
+  <div class="grid2">
+    <div class="chartbox"><h4>Distance des vaisseaux au centre de rotation</h4><div id="ch-rup-r"></div></div>
+    <div class="chartbox"><h4>Tension de crête des câbles restants</h4><div id="ch-rup-T"></div></div>
+  </div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Une rupture ne détruit pas la station : les câbles restants tiennent avec une marge de 2,6. Mais sans parade, l'équipage subit des à-coups de 2 g et des vaisseaux qui tournoient, pendant des dizaines de minutes ; les attaches du nez encaissent des efforts de 5 à 10 MN à chaque cycle, et les brins frappent les coques. Il faut une structure qui reste en place après la perte d'un câble.</span></div>
+
+  <h3>7.3 Parade : moyeu et rayons</h3>
+  <div class="prose">
+    <p><b>Principe.</b> Un moyeu de 20 t (treuils et structure) au centre de rotation, relié au nez de chaque vaisseau par un rayon de 313 m, du même câble que les côtés. Les rayons sont prétendus à 15 % de la tension d'un côté (0,19 MN) : en temps normal, les côtés portent l'essentiel (1,21 MN au lieu de 1,31 MN). La structure devient hyperstatique : chaque vaisseau est tenu par trois câbles. Masse ajoutée : 8 t de rayons et le moyeu.</p>
+    <p><b>En temps normal</b>, rien ne change : après la même perturbation qu'au § 5.3, le plancher s'incline au plus de <span data-bind="rupture.Y_moyeu_perturbation.tilt_max" data-fmt="deg">—</span> (<span data-bind="amortisseur.T_perturbation.tilt_max" data-fmt="deg">—</span> sans moyeu) ; les rayons restent tendus entre 0,19 et 0,21 MN.</p>
+    <p><b>Rupture d'un côté.</b> Les rayons prennent le relais en quelques secondes et montent à <span data-bind="rupture.Y_moyeu_rupture.break.T_max_MN" data-fmt="mn">—</span>. Les vaisseaux restent à 323–347 m du centre ; la rotation passe de 1 à <span data-bind="rupture.Y_moyeu_rupture.break.rpm_final" data-fmt="rpm">—</span>. Pendant les 30 premières secondes, la gravité ressentie varie entre 2,2 et 5,3 m/s² et le plancher s'incline jusqu'à 35° ; il revient vers 10° après 2 min et sous 3° après 10 min. Reste un défaut : les moitiés du câble rompu restent pendues aux vaisseaux 0 et 1, frappent leurs coiffes et les font tourner autour de leur axe (roulis jusqu'à <span data-bind="rupture.Y_moyeu_rupture.roll_max" data-fmt="deg0">—</span>, encore une dizaine de °/s après 30 min).</p>
+    <p><b>Rupture d'un rayon.</b> Surprise : avec un seul rayon par vaisseau, la perte d'un rayon libère le moyeu. Le centre de rotation est un équilibre instable pour une masse libre (la force centrifuge l'en écarte) : le moyeu « tombe » vers l'extérieur et ses deux autres rayons se retendent d'un coup, à <span data-bind="rupture.Y_moyeu_rupture_rayon.break.T_max_MN" data-fmt="mn">—</span> ; le vaisseau 1 encaisse <span data-bind="rupture.Y_moyeu_rupture_rayon.break.g_max.1" data-fmt="ms2">—</span>. Le moyeu doit rester tenu après la perte d'un rayon.</p>
+    <p id="rupture-parades-sim"><b>Coupe-câbles.</b> Si les deux attaches du câble rompu sont coupées une seconde après la rupture, les morceaux s'éloignent en ligne droite et la station se calme plus vite : roulis max <span data-bind="rupture.Y_moyeu_rupture_largage.roll_max" data-fmt="deg0">—</span> au lieu de 62°, rotation parasite de quelques °/s. Le premier passage ne peut pas être évité : la moitié qui se rétracte vers le vaisseau 0 a déjà son élan et vient toucher sa coiffe 6 s après la rupture. Seul un frein près de l'attache, comme ceux qui arrêtent le retour des amarres rompues sur les navires, ou un brin captif (câbles doublés, § 7.4) l'empêcherait.</p>
+    <p><b>Rayons doublés.</b> Deux rayons par vaisseau, depuis chacun des deux points d'attache du nez (6 × 313 m, 16,5 t), prétendus chacun à 0,095 MN. La perte d'un rayon passe alors inaperçue : son jumeau reprend la charge, la gravité ressentie reste entre 3,5 et 3,8 m/s² et le plancher s'incline de moins de 1°. La rupture d'un côté se passe comme avec trois rayons, avec des efforts plus faibles : tension max <span data-bind="rupture.Z_moyeu_double_rupture.break.T_max_MN" data-fmt="mn">—</span>, roulis <span data-bind="rupture.Z_moyeu_double_rupture.roll_max" data-fmt="deg0">—</span>. La gravité ressentie varie de 2,2 à 5,4 m/s² pendant une vingtaine de secondes ; le plancher s'incline jusqu'à 37°, revient vers 10° après 2 min et sous 3° après 10 min.</p>
+  </div>
+  <div class="chartbox"><h4>Gravité ressentie par le vaisseau 1 après la rupture d'un côté</h4><div id="ch-rup-g"></div></div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Configuration recommandée : le triangle, plus un moyeu de 20 t relié à chaque vaisseau par deux rayons (16,5 t de câble), plus des coupe-câbles déclenchés par la chute de tension. N'importe quel câble peut alors céder : la station garde sa forme et sa vitesse de rotation, aucun câble ne dépasse 8 % de sa résistance, et l'équipage subit une vingtaine de secondes de secousses, à vivre attaché. Restent à traiter le premier retour du brin sur une coiffe (frein ou brin captif, § 7.4), le contact câble–coque et le déploiement des rayons depuis le moyeu.</span></div>
+
+  <h3>7.4 Autres parades et pistes</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Parade</th><th>Ce qu'elle apporte</th><th>Limites</th></tr></thead>
+    <tbody>
+      <tr><td>Câbles doublés, palonniers intermédiaires et diagonales</td><td>Deux brins par côté, reliés tous les 150 à 200 m : un brin coupé ne lâche qu'une travée, le brin voisin reprend la charge, et le morceau libre reste captif au lieu de fouetter. Écartés selon l'axe de rotation, les deux brins raidissent aussi le balancement hors plan, le point faible du § 6.</td><td>Des palonniers seuls forment des rectangles déformables : sans diagonales, l'effort du brin coupé ne passe pas dans l'autre. Masse des câbles × 1,5 à 2 (brins dimensionnés pour la charge entière ou pour la moitié chacun, à trois brins). Risque d'emmêlement du brin rompu avec le brin sain.</td></tr>
+      <tr><td>Tronçons remplaçables (par exemple 3 × 180 m par côté)</td><td>Fabrication, contrôle et manutention par éléments de 1,6 t ; pièces de rechange légères ; un tronçon abîmé se change sans tout remplacer. Avec le moyeu, on peut détendre un côté au treuil et le réparer sans arrêter la rotation.</td><td>Chaque raccord (épissure, cosse, manille) est un point faible et un lieu de fatigue ; les raccords mécaniques sont lourds. Sans redondance (moyeu ou brin doublé), un tronçon ne peut pas être déchargé en rotation.</td></tr>
+      <tr><td>Maillage triangulaire</td><td>Les côtés coupés en trois et reliés par des membrures intérieures forment un filet de 9 triangles de 180 m dont le nœud central est le moyeu ; tout membre peut céder. Un filet tendu par la rotation est un principe éprouvé (voile solaire IKAROS, filets déployés par rotation).</td><td>Deux fois plus de câble ; les membrures intérieures sont peu tendues et la répartition des efforts dépend des longueurs : sensible au fluage et aux écarts de température entre membrures. Le moyeu à rayons en est le cas minimal.</td></tr>
+      <tr><td>Absorbeurs d'énergie aux attaches</td><td>Sangles à déchirement progressif (comme dans les harnais antichute) ou freins à friction qui plafonnent l'effort : les à-coups de 10 MN du § 7.2 deviennent 5 MN pour une course de quelques mètres.</td><td>Usage unique ou à réarmer ; course à prévoir dans la géométrie des attaches.</td></tr>
+      <tr><td>Surveillance du câble</td><td>Fibre optique dans le câble, qui mesure l'allongement sur toute sa longueur (diffusion Brillouin) : brins rompus, fluage, échauffements. Robot grimpeur qui parcourt le câble pour l'inspecter, poser un manchon de réparation ou tirer un câble neuf le long de l'ancien.</td><td>À qualifier sur des câbles en Dyneema de cette taille.</td></tr>
+      <tr><td>Stockage enroulé hors service</td><td>En orbite basse, débris, oxygène atomique et ultraviolets abîment un câble bien plus que le vide interplanétaire, et il subit 16 cycles jour-nuit par jour. Enroulés sous une coiffe, les trois câbles tiennent dans 15 à 20 m³ (tambours de 1,5 à 2 m). Un câble déployé sans tension se vrille et s'emmêle.</td><td>Enroulage sous charge : rayon de courbure, usure des tambours ; il faut un treuil par câble, que le moyeu peut porter.</td></tr>
+      <tr><td>Gaine blanche</td><td>Un câble éclairé de côté se met à l'équilibre radiatif : vers −70 °C avec une gaine blanche (α/ε = 0,2/0,9) à 1 UA, −110 °C près de Mars ; le Dyneema y est plus résistant et ne flue presque plus. Sa constante de temps thermique (≈ 6 h) dépasse de loin la période de rotation : pas de cycles thermiques.</td><td>Une gaine métallisée nue (α/ε = 0,1/0,05) le porterait à +78 °C, où le fluage s'emballe.</td></tr>
+      <tr><td>Axe de rotation fixe</td><td>Garder l'axe pointé vers le Soleil pendant le transfert, pour des panneaux fixes, impose de le faire tourner de 180° : 2,6·10⁸ N·s d'impulsion hors plan, soit 70 à 90 t d'ergols. Axe fixe et panneaux orientables (un tour par minute) : aucun ergol.</td><td>Un joint tournant par vaisseau pour les panneaux.</td></tr>
+      <tr><td>Câbles plus courts</td><td>À 2 tr/min, <var>R</var> = 85 m et des câbles d'une centaine de mètres.</td><td>Coriolis deux fois plus fort, vertiges plus probables ; ni le risque météoritique (négligeable) ni la masse (14 à 47 t) ne justifient de raccourcir.</td></tr>
+    </tbody>
+    <caption>Pistes non simulées. Les deux premières lignes et le maillage reprennent des idées de conception proposées en cours d'étude.</caption>
+  </table></div>
+</section>
+
+<section id="alternatives">
+  <h2>8 · Alternatives : couché, deux vaisseaux</h2>
+  <div class="prose">
+    <p>Comparaison à masse maximale (1 600 t, 0,38 <var>g</var><sub>0</sub>), avec les mêmes scénarios qu'aux § 10 et 13. Les déplacements latéraux sont limités au rayon d'un pont (±3,5 m). Pour un vaisseau debout, un déplacement le long de l'axe est un changement de pont, sur la verticale du câble.</p>
   </div>
   <div class="grid2" id="ss-schemas"></div>
   <div class="tbl"><table id="t-ss"><thead><tr><th></th><th>Configuration</th><th>Câble à vide</th><th>Roulis max (perturbation, 30 min)</th><th>Prédiction roulis</th><th>Cargaison 50 t</th><th>Pire résonance (4 t)</th></tr></thead><tbody></tbody>
-  <caption>Starships de 1 600 t, Ø 9 × 50 m. Résonance : maximum de la réponse au balayage en fréquence (§ 12.3).</caption></table></div>
+  <caption>Starships de 1 600 t, Ø 9 × 50 m. Résonance : maximum de la réponse au balayage en fréquence (§ 13.3).</caption></table></div>
   <div class="prose">
     <p><b>Debout.</b> L'intérieur reste utilisable tel quel, la structure travaille selon son axe (en traction plutôt qu'en compression), et les points d'ancrage existants sont à 25 m au-dessus du centre de masse : le vaisseau tient lieu des mâts de Z+. Les grands déplacements deviennent des changements de pont, sans effet sur l'inclinaison. Couché, il faudrait refaire l'intérieur (les ponts deviendraient des murs), faire travailler en flexion une coque de 50 m, et ajouter des mâts pour égaler la version debout.</p>
     <p><b>Trois vaisseaux.</b> Debout et axisymétrique, un vaisseau a <var>I</var><sub>t</sub> = <var>I</var><sub>z</sub> : son roulis autour d'un câble unique est neutre. Dans l'haltère, la petite poussée initiale (0,11°/s) se transforme en dérive linéaire : 205° en 30 min. Avec deux câbles parallèles, le roulis différentiel est retenu, mais la station entière tourne autour de la ligne des câbles : la vitesse varie au cours du tour (0,11 à 0,29°/s), la station passant par-dessus une très faible bosse d'énergie liée à l'orientation des câbles. Dans le triangle, le rappel <var>T s</var> (§ 5.2) donne une période de roulis de 7,2 s, prédite comme mesurée, indépendante de la masse puisque <var>T</var> et <var>I</var><sub>r</sub> lui sont proportionnels. Le triangle offre en outre une redondance : la perte d'un câble laisse les trois vaisseaux reliés.</p>
@@ -494,11 +572,11 @@ figcaption b { color: var(--ink); }
 </section>
 
 <section id="configurations">
-  <h2>8 · Étude préliminaire : modules génériques</h2>
+  <h2>9 · Étude préliminaire : modules génériques</h2>
   <div class="prose">
-    <p>Avant le choix des Starships, l'étude a porté sur trois modules habités génériques : cylindres de 1 600 t, Ø 12 m × 40 m, 0,38 g à 1 tr/min, en orbite terrestre à 1 600 km. Elle a établi les règles de conception reprises par la solution retenue : triangle plutôt qu'haltère, attaches écartées, orientation des modules. Les §§ 8 à 13 en donnent le détail ; « configuration retenue » y désigne Z+, la meilleure configuration à modules génériques.</p>
+    <p>Avant le choix des Starships, l'étude a porté sur trois modules habités génériques : cylindres de 1 600 t, Ø 12 m × 40 m, 0,38 g à 1 tr/min, en orbite terrestre à 1 600 km. Elle a établi les règles de conception reprises par la solution retenue : triangle plutôt qu'haltère, attaches écartées, orientation des modules. Les §§ 9 à 14 en donnent le détail ; « configuration retenue » y désigne Z+, la meilleure configuration à modules génériques.</p>
   </div>
-  <h3>8.1 Cahier des charges et dimensionnement</h3>
+  <h3>9.1 Cahier des charges et dimensionnement</h3>
   <div class="prose">
     <p>La gravité ressentie au centre de masse d'un module est l'accélération centripète <var>a</var> = ω²<var>R</var>. Le cahier des charges fixe <var>a</var> = 0,38 g = 3,727 m/s² (gravité martienne) et ω = 1 tr/min = 0,1047 rad/s :</p>
   </div>
@@ -520,17 +598,17 @@ figcaption b { color: var(--ink); }
     </tbody>
   </table></div>
   <div class="prose">
-    <p><b>Gravité terrestre.</b> En chute libre orbitale, seule la marée (gradient de gravité) subsiste, d'ordre 3<var>n</var>²<var>R</var>, avec <var>n</var> le mouvement moyen orbital. Rapportée à la centrifuge ω²<var>R</var> : <var>n</var>²/ω² = 7,2·10⁻⁵ à 1 600 km (1,2·10⁻⁴ à 400 km). Elle est négligée dans les simulations ; son effet cumulé sur l'axe de rotation est estimé au § 14.</p>
+    <p><b>Gravité terrestre.</b> En chute libre orbitale, seule la marée (gradient de gravité) subsiste, d'ordre 3<var>n</var>²<var>R</var>, avec <var>n</var> le mouvement moyen orbital. Rapportée à la centrifuge ω²<var>R</var> : <var>n</var>²/ω² = 7,2·10⁻⁵ à 1 600 km (1,2·10⁻⁴ à 400 km). Elle est négligée dans les simulations ; son effet cumulé sur l'axe de rotation est estimé au § 15.</p>
     <p><b>Modules.</b> Cylindres pleins équivalents de 1 600 t, Ø 12 m × 40 m : <var>I</var><sub>axe long</sub> = <var>M a</var>²/2 = 18·<var>M</var> m², <var>I</var><sub>transverse</sub> = <var>M</var>(3<var>a</var>² + ℓ²)/12 = 142,3·<var>M</var> m². Point d'attache sur la coque, à <var>h</var> = 6 m du centre de masse (20 m pour un module en tour, attaché par son extrémité).</p>
   </div>
-  <h3>8.2 Configurations étudiées</h3>
+  <h3>9.2 Configurations étudiées</h3>
   <div class="prose"><p>Trois paramètres définissent une configuration : la topologie (haltère, haltère à deux câbles parallèles, triangle), le mode d'attache (un point ou deux points écartés) et l'orientation de l'axe long des modules (tangentiel, axial, radial). Les lettres A à H désignent les configurations de la campagne de stabilité, Z la configuration retenue.</p></div>
   <div class="grid3" id="schemas"></div>
 </section>
 
 <section id="stabilite">
-  <h2>9 · Stabilité en rotation</h2>
-  <h3>9.1 Théorème de l'axe intermédiaire (effet Djanibekov)</h3>
+  <h2>10 · Stabilité en rotation</h2>
+  <h3>10.1 Théorème de l'axe intermédiaire (effet Djanibekov)</h3>
   <div class="prose">
     <p>Pour un solide libre d'inerties <var>I</var><sub>1</sub> &lt; <var>I</var><sub>2</sub> &lt; <var>I</var><sub>3</sub>, la rotation autour de l'axe 1 ou 3 est stable et celle autour de l'axe 2 instable, avec un taux de croissance :</p>
   </div>
@@ -542,7 +620,7 @@ figcaption b { color: var(--ink); }
   <div class="prose">
     <p>Le taux est du même ordre que la rotation elle-même : ce n'est pas une dérive lente. Pour le triangle, plan, <var>I</var><sub>Z</sub> = <var>I</var><sub>X</sub> + <var>I</var><sub>Y</sub> ≈ 2<var>I</var><sub>X</sub> : l'axe de rotation est l'axe majeur avec une marge de 100 %, que l'inertie des modules ne peut pas renverser.</p>
   </div>
-  <h3>9.2 Résultats de la campagne de stabilité</h3>
+  <h3>10.2 Résultats de la campagne de stabilité</h3>
   <div class="prose"><p>Huit configurations, 30 min simulées chacune, perturbation initiale du module 0 : 2 cm/s radial, 2 cm/s hors plan, 0,11°/s en roulis.</p></div>
   <div class="tbl"><table id="t-rotation"><thead><tr><th></th><th>Configuration</th><th>Prédiction roulis</th><th>Doublement mesuré</th><th>Roulis max</th><th>Plancher max</th><th>Rotation parasite max</th><th>g ressenti</th><th>Dérive E</th><th>Dérive L</th></tr></thead><tbody></tbody></table></div>
   <div class="grid2">
@@ -552,7 +630,7 @@ figcaption b { color: var(--ink); }
 </section>
 
 <section id="dissipation">
-  <h2>10 · Dissipation interne et règle de l'axe majeur</h2>
+  <h2>11 · Dissipation interne et règle de l'axe majeur</h2>
   <div class="prose">
     <p>À moment cinétique <var>L</var> fixé, l'énergie de rotation <var>L</var>²/(2<var>I</var>) est minimale autour de l'axe d'inertie maximale. Un système qui dissipe de l'énergie migre donc vers cet axe. C'est ce qui a fait culbuter Explorer 1 en 1958 : il tournait autour de son axe mineur, et ses antennes souples dissipaient de l'énergie. Ici, la règle est favorable. Avec un amortisseur interne (sphère de Kane, <var>J</var> = 5 % de l'inertie transverse, τ = 30 s), le module axial instable culbute, puis se stabilise dans l'orientation tangentielle : roulis final <span data-bind="internes.B_amortisseur.roll_final" data-fmt="deg">—</span>, contre 90° attendu. Le bilan d'énergie (énergie + dissipée) reste fermé à <span data-bind="internes.B_amortisseur.dE_max" data-fmt="sci">—</span>.</p>
     <p>La dissipation ne protège pas pour autant : la phase de culbute dure plusieurs minutes, avec des rotations parasites de 5,5°/s. Il faut concevoir l'orientation stable dès le départ.</p>
@@ -561,7 +639,7 @@ figcaption b { color: var(--ink); }
 </section>
 
 <section id="modes">
-  <h2>11 · Modes propres</h2>
+  <h2>12 · Modes propres</h2>
   <div class="prose">
     <p>Formules utilisées. Les balancements sont calculés dans le modèle du « câble long », où le point d'attache est libre latéralement et la direction du câble ne change presque pas :</p>
   </div>
@@ -574,26 +652,26 @@ figcaption b { color: var(--ink); }
       <tr><td>Corde, 1ᵉʳ mode</td><td>haltère / triangle</td><td class="n">0,47 / 0,54 Hz</td><td class="n">—</td><td>non excité dans les mesures retenues</td></tr>
       <tr><td>Balancement hors plan</td><td>A (tangentiel)</td><td class="n">0,177 Hz</td><td class="n" data-bind="rotation.A_haltere_tangentiel.f_tilt" data-fmt="hz">—</td><td>pic du spectre d'inclinaison</td></tr>
       <tr><td>Balancement (tour)</td><td>C (radial)</td><td class="n">0,115 Hz</td><td class="n" data-bind="rotation.C_haltere_tour.f_tilt" data-fmt="hz">—</td><td>idem</td></tr>
-      <tr><td>Balancement dans le plan</td><td>A (tangentiel)</td><td class="n">0,063 Hz</td><td class="n">0,071 Hz</td><td>pic de réponse du balayage (§ 12.3)</td></tr>
-      <tr><td>Balancement hors plan</td><td>G (axial)</td><td class="n">0,061 Hz</td><td class="n">0,062 Hz</td><td>pic de réponse du balayage (§ 12.3)</td></tr>
+      <tr><td>Balancement dans le plan</td><td>A (tangentiel)</td><td class="n">0,063 Hz</td><td class="n">0,071 Hz</td><td>pic de réponse du balayage (§ 13.3)</td></tr>
+      <tr><td>Balancement hors plan</td><td>G (axial)</td><td class="n">0,061 Hz</td><td class="n">0,062 Hz</td><td>pic de réponse du balayage (§ 13.3)</td></tr>
       <tr><td>Roulis</td><td>A (tangentiel)</td><td class="n">64,2 s</td><td class="n" id="roll-period">—</td><td>période d'oscillation du roulis</td></tr>
       <tr><td>Roulis</td><td>G (palonnier, axial)</td><td class="n">11,2 s</td><td class="n">10,3 s</td><td>pic du spectre du roulis (§ 5.2)</td></tr>
       <tr><td>Roulis</td><td>Z+ (palonnier, tangentiel)</td><td class="n">10,9 s</td><td class="n">11,1 s</td><td>idem</td></tr>
       <tr><td>Roulis</td><td>Starships verticaux (§ 5)</td><td class="n">7,2 s</td><td class="n">7,2 s</td><td>idem</td></tr>
     </tbody>
   </table></div>
-  <div class="prose"><p>Le mode longitudinal fait varier la gravité ressentie de ±0,5 % pour une perturbation de 2 cm/s. Il est amorti à 2 % par construction (constante de temps ~30 s). Les balancements ne sont amortis que par leur couplage aux câbles : à concevoir avec soin (§ 12).</p></div>
+  <div class="prose"><p>Le mode longitudinal fait varier la gravité ressentie de ±0,5 % pour une perturbation de 2 cm/s. Il est amorti à 2 % par construction (constante de temps ~30 s). Les balancements ne sont amortis que par leur couplage aux câbles : à concevoir avec soin (§ 13).</p></div>
 </section>
 
 <section id="internes">
-  <h2>12 · Mouvements internes</h2>
-  <h3>12.1 Inclinaison statique</h3>
+  <h2>13 · Mouvements internes</h2>
+  <h3>13.1 Inclinaison statique</h3>
   <div class="prose">
     <p>Déplacer une masse <var>m</var> de <var>d</var> dans un module de masse <var>M</var> décale son centre de masse de δ = <var>md</var>/<var>M</var>. Le module tourne jusqu'à ce que le couple de rappel des câbles équilibre le couple <var>M a</var>δ. Avec une attache unique à la hauteur <var>h</var>, le rappel vaut <var>T h</var> = <var>M a h</var>, d'où tan θ = δ/<var>h</var>. Avec le palonnier du triangle (attaches à ±<var>s</var>, câbles à 30° de la verticale), la raideur devient <var>k</var> = 2<var>T</var>(<var>s</var> cos 60° + <var>h</var> cos 30°) = <var>T</var>(<var>s</var> + √3<var>h</var>), d'où :</p>
   </div>
   <div class="eq">attache unique : θ = arctan(δ/<var>h</var>) &nbsp;&nbsp;&nbsp; palonnier : θ = √3 δ / (<var>s</var> + √3 <var>h</var>)</div>
   <div class="prose"><p>Pour 50 t déplacées de 15 m dans un module de 1 600 t, δ = 47 cm : θ = 4,47° (attache unique, <var>h</var> = 6 m), 1,53° (palonnier, <var>s</var> = 20 m, <var>h</var> = 6 m), 0,72° (palonnier surélevé, <var>h</var> = 26 m). Pour un déplacement hors du plan (module axial de G), le palonnier n'aide pas et θ = δ/<var>h</var>.</p></div>
-  <h3>12.2 Cargaison et équipage</h3>
+  <h3>13.2 Cargaison et équipage</h3>
   <div class="prose"><p><b>Cargaison</b> : 50 t, centre → +15 m → −15 m → centre, déplacements de 120 s. <b>Équipage</b> : 4 t (50 personnes) en allers-retours sur ±15 m le long de l'axe long, à 1,2 m/s, avec une accélération limitée à 0,5 m/s² au départ et à l'arrêt, soit une traversée toutes les 27,4 s. Mouvements appliqués au module 0 (aux trois modules dans le cas « 3 modules »).</p></div>
   <div class="tbl"><table id="t-internes"><thead><tr><th>Scénario</th><th>Masse</th><th>Plancher prédit (statique)</th><th>Plancher max</th><th>Roulis max</th><th>Rotation parasite max</th><th>g ressenti</th><th>Dérive L</th></tr></thead><tbody></tbody></table></div>
   <div class="grid2">
@@ -605,7 +683,7 @@ figcaption b { color: var(--ink); }
     <p>Pour A et H, la marche donne 0,45° et 0,62°, proches de la réponse statique (0,36°). G se distingue avec 1,71° : la marche s'y fait parallèlement à l'axe de rotation et excite le balancement hors plan du module axial (0,061 Hz), proche de la troisième harmonique de la marche (période 54,8 s, harmoniques impaires à 0,018, 0,055, 0,091 Hz…). Z+ reste à 0,17°.</p>
     <p><b>Artefact rencontré.</b> Une première version du programme faisait faire demi-tour aux marcheurs instantanément. Les 4 t passaient de +1,2 à −1,2 m/s en ~0,1 s, ce qui imposait à la structure une poussée horizontale de ~120 kN, soit une inclinaison apparente de la gravité de 1,2° indépendante de la configuration. Les programmes imposent désormais des accélérations bornées.</p>
   </div>
-  <h3>12.3 Balayage en fréquence</h3>
+  <h3>13.3 Balayage en fréquence</h3>
   <div class="prose"><p>Pour cartographier les résonances, 4 t oscillent le long de l'axe long avec une fréquence croissant linéairement de 0,004 à 0,25 Hz en une heure, avec des rampes de 60 s au début et à la fin. L'amplitude est limitée à ±15 m et à 1 m/s² d'accélération. La courbe donne l'inclinaison maximale du plancher dans une fenêtre d'une période et demie autour de chaque fréquence. Le balayage étant lent mais non quasi statique, les pics sont légèrement décalés vers les hautes fréquences et sous-estimés.</p></div>
   <div class="chartbox"><div id="ch-sweep"></div></div>
   <div class="tbl"><table id="t-sweep"><thead><tr><th>Balayage</th><th>Pic d'inclinaison</th><th>Fréquence du pic</th><th>Amplitude du mouvement</th><th>Mode prédit le plus proche</th></tr></thead><tbody></tbody></table></div>
@@ -613,20 +691,20 @@ figcaption b { color: var(--ink); }
 </section>
 
 <section id="final">
-  <h2>13 · Configuration générique retenue</h2>
+  <h2>14 · Configuration générique retenue</h2>
   <div class="prose">
-    <p><b>Z</b> : triangle, modules tangentiels, chaque câble attaché à une extrémité de module (palonnier <var>s</var> = ±20 m, <var>h</var> = 6 m). <b>Z+</b> : idem avec points d'attache surélevés de 20 m (<var>h</var> = 26 m, mâts ou pattes d'oie), configuration retenue. Deux protections indépendantes contre le roulis : l'orientation (stable par inertie) et le palonnier (stable par rappel des câbles). L'axe de rotation est l'axe majeur avec 100 % de marge. Surélever les attaches multiplie la raideur en tangage par 2,1 (formule du § 12.1) et relève les fréquences de balancement : le pic de réponse du balayage passe à 0,16 Hz, contre 0,071 Hz pour A, et son amplitude est divisée par 3 à 6.</p>
+    <p><b>Z</b> : triangle, modules tangentiels, chaque câble attaché à une extrémité de module (palonnier <var>s</var> = ±20 m, <var>h</var> = 6 m). <b>Z+</b> : idem avec points d'attache surélevés de 20 m (<var>h</var> = 26 m, mâts ou pattes d'oie), configuration retenue. Deux protections indépendantes contre le roulis : l'orientation (stable par inertie) et le palonnier (stable par rappel des câbles). L'axe de rotation est l'axe majeur avec 100 % de marge. Surélever les attaches multiplie la raideur en tangage par 2,1 (formule du § 13.1) et relève les fréquences de balancement : le pic de réponse du balayage passe à 0,16 Hz, contre 0,071 Hz pour A, et son amplitude est divisée par 3 à 6.</p>
   </div>
   <div class="tbl"><table id="t-final"><thead><tr><th>Scénario</th><th>Plancher prédit</th><th>Plancher max</th><th>Roulis max</th><th>Rotation parasite max</th><th>g ressenti</th><th>Tension</th><th>Dérive</th></tr></thead><tbody></tbody></table></div>
   <div class="chartbox"><h4>Balayage en fréquence : configuration retenue contre attache unique</h4><div id="ch-sweep-final"></div></div>
 </section>
 
 <section id="non-simule">
-  <h2>14 · Effets estimés, non simulés</h2>
+  <h2>15 · Effets estimés, non simulés</h2>
   <div class="prose">
     <p><b>En transit vers Mars.</b> Sur l'orbite héliocentrique, le mouvement moyen vaut <var>n</var> = 2,0·10⁻⁷ rad/s à 1 UA (1,1·10⁻⁷ rad/s à 1,52 UA) : <var>n</var>²/ω² ≈ 3,6·10⁻¹², vingt millions de fois moins qu'à 1 600 km d'altitude. La précession tombe à ~10⁻⁶ °/jour, soit 3·10⁻⁴ ° sur les 259 jours du transfert : l'axe de rotation reste fixe dans l'espace. La direction du Soleil, elle, tourne de 180° autour de la station pendant le transfert, ce qui compte pour l'orientation des panneaux et des radiateurs.</p>
     <p id="transfert-ergols"><b>Transfert d'ergols vers les cargos.</b> En route, chaque vaisseau garde ≈ 390 t d'ergols (305 t de LOX, 85 t de CH4). Si, avant la mise en rotation, le vaisseau habité transvase les siens à parts égales dans les deux cargos, les masses deviennent 220, 805 et 805 t. Câbles inchangés, centres de masse aux mêmes sommets du triangle (calcul statique, points matériels) : le centre de rotation se décale de 108 m vers les cargos ; le vaisseau habité tourne à 447 m, les cargos à 299 m. Pour 3,711 m/s² à bord du vaisseau habité, ω = √(<var>a</var>/<var>R</var>) donne <b>0,87 tr/min</b> au lieu de 1 (−13 %) ; à 1 tr/min, il aurait 4,90 m/s². Les cargos descendent à 2,49 m/s². Tensions : 0,47 MN sur les deux câbles du vaisseau habité, 1,73 MN entre les cargos (6,4 % de la résistance), contre 1,31 MN partout aujourd'hui.</p>
-    <p>À vérifier par simulation (vaisseaux de masses inégales, § 15) : à 220 t, les inclinaisons dues aux mouvements internes croissent comme 1/<var>M</var>, soit ≈ 2,8 fois plus pour la cargaison et les balancements ; le bassin d'eau (25 t, μ ≈ 11 %) et son accord sont à revoir ; l'alignement des vaisseaux sur le centre décalé, et le ballottement accru dans les cargos.</p>
+    <p>À vérifier par simulation (vaisseaux de masses inégales, § 16) : à 220 t, les inclinaisons dues aux mouvements internes croissent comme 1/<var>M</var>, soit ≈ 2,8 fois plus pour la cargaison et les balancements ; le bassin d'eau (25 t, μ ≈ 11 %) et son accord sont à revoir ; l'alignement des vaisseaux sur le centre décalé, et le ballottement accru dans les cargos.</p>
     <p>Les effets suivants concernent l'orbite terrestre de l'étude préliminaire.</p>
   </div>
   <div class="prose">
@@ -642,15 +720,15 @@ figcaption b { color: var(--ink); }
 </section>
 
 <section id="limites">
-  <h2>15 · Limites et suite</h2>
+  <h2>16 · Limites et suite</h2>
   <div class="prose">
     <ul>
       <li>Structures rigides : pas de flexibilité de coque. Le ballottement des ergols est réduit au premier mode de chaque réservoir (§ 6) ; l'étude préliminaire n'avait que l'amortisseur de Kane.</li>
       <li>Câbles sans raideur en flexion ni en torsion, discrétisés en 16 segments : suffisant pour les modes bas, pas pour les ondes rapides. Un câble réel a une raideur en torsion qui ajouterait un faible rappel au roulis ; ce rappel est négligé, ce qui va dans le sens de la sécurité.</li>
-      <li>Pas de gravité terrestre dans les simulations : précession estimée analytiquement (§ 14).</li>
+      <li>Pas de gravité terrestre dans les simulations : précession estimée analytiquement (§ 15).</li>
       <li>Pas de contrôle actif ni de mise en rotation. L'amarrage d'un véhicule en route n'est pas prévu par le scénario Terre–Mars.</li>
       <li>Starships : structure rigide ; ergols réduits au premier mode de ballottement, linéaire, réservoirs équivalents à fond plat, partie fixe ponctuelle (§ 6) ; ailerons absents de l'inertie (ils favorisent faiblement l'orientation ailerons dans le plan de rotation) ; capacité des points d'ancrage non publiée. En route, chaque câble tire 1,31 MN et chaque vaisseau 2,26 MN au total ; à 1 600 t et 1 g, ce serait 9,1 et 15,7 MN.</li>
-      <li>À simuler ensuite, par priorité pour le scénario Terre–Mars : mise en rotation après l'injection (rapprochement, déroulement des câbles sans détente) ; pattes d'oie sur plusieurs points d'ancrage du nez pour raidir le balancement hors plan ; rupture d'un câble (énergie élastique stockée ≈ 1/2 · <var>T</var>·ε·<var>L</var>, 3,8 MJ par câble à 1 600 t, 0,5 MJ en route) ; vaisseaux de masses inégales (équipage contre cargos). Moins prioritaires : gradient de gravité complet en orbite terrestre (repère de Hill), câbles ANCF continus dans Chrono.</li>
+      <li>À simuler ensuite, par priorité pour le scénario Terre–Mars : mise en rotation après l'injection (rapprochement, déroulement des câbles sans détente) ; pattes d'oie sur plusieurs points d'ancrage du nez pour raidir le balancement hors plan ; vaisseaux de masses inégales (équipage contre cargos) ; contact des câbles avec les coques et enroulement autour des coiffes, absents du modèle (§ 7.2) ; câbles doublés à palonniers et diagonales (§ 7.4). Moins prioritaires : gradient de gravité complet en orbite terrestre (repère de Hill), câbles ANCF continus dans Chrono.</li>
     </ul>
         <h3>Corrections apportées en cours d'étude</h3>
   <div class="prose">
@@ -664,7 +742,7 @@ figcaption b { color: var(--ink); }
 </section>
 
 <section id="reproduire">
-  <h2>16 · Reproduire</h2>
+  <h2>17 · Reproduire</h2>
   <div class="prose"><p>Projet <code>~/Workspace/perso/tethered-station</code>. Environnement Python : <code>.venv</code> (NumPy, Matplotlib, SciPy). Chrono : <code>tools/chrono-env</code> (PyChrono 10.0.0, installé par micromamba).</p></div>
 <pre>.venv/bin/python run_scenarios.py rotation      # 8 scénarios de stabilité, ~8 min (M1 Max)
 .venv/bin/python run_scenarios.py internes      # 11 scénarios de mouvements internes, ~30 min
@@ -675,6 +753,7 @@ figcaption b { color: var(--ink); }
 .venv/bin/python run_scenarios.py ballottement  # ergols figés / libres / chicanes (15 scénarios, ~50 min)
 .venv/bin/python run_scenarios.py retenue       # solution retenue : ergols libres, chicanes (4 scénarios)
 .venv/bin/python run_scenarios.py amortisseur   # bassin d'eau accordé (9 scénarios, ~3 h à 2 en parallèle)
+.venv/bin/python run_scenarios.py rupture       # rupture d'un câble, moyeu, coupe-câbles (8 scénarios, ~1 h 30 à 2 en parallèle)
 .venv/bin/python tld_design.py --json out/tld_search.json   # dimensionnement du bassin (modèle linéaire)
 .venv/bin/python slosh_modes.py                 # modes couplés vaisseau + ergols (modèle linéaire)
 tools/chrono-env/bin/python chrono_validation.py --name B --module axial --duration 300
@@ -698,7 +777,10 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
   const sci = (v) => v === null || v === undefined ? "—" : v.toExponential(0).replace("e", "·10^").replace(/\^\+?(-?\d+)/, (m, e) => toSup(e));
   const toSup = (e) => e.split("").map((c) => "⁰¹²³⁴⁵⁶⁷⁸⁹"["0123456789".indexOf(c)] || (c === "-" ? "⁻" : c)).join("");
   const deg = (v) => v === null || v === undefined ? "—" : fr(v, v < 1 ? 2 : 1) + "°";
-  const fmt = { deg, sci, hz: (v) => fr(v, 3) + " Hz", pct: (v) => fr(v * 100, 2) + " %", g: (v) => fr(v, 3) };
+  const fmt = { deg, sci, hz: (v) => fr(v, 3) + " Hz", pct: (v) => fr(v * 100, 2) + " %", g: (v) => fr(v, 3),
+                mn: (v) => fr(v, 2) + " MN", ms: (v) => fr(v, 0) + " m/s", ms2: (v) => fr(v, 1) + " m/s²", m: (v) => fr(v, 0) + " m",
+                s: (v) => fr(v, 0) + " s", kj: (v) => fr(v, 0) + " kJ", rpm: (v) => fr(v, 2) + " tr/min", deg0: (v) => fr(v, 0) + "°",
+                dps: (v) => fr(v, 0) + " °/s" };
   const cache = {};
   const getJSON = (p) => cache[p] || (cache[p] = fetch(p).then((r) => { if (!r.ok) throw new Error(p); return r.json(); }));
   const series = (n) => getJSON(`data/series/${n}.json`);
@@ -749,7 +831,8 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
       if (parts[0] === "validation") return;
       const info = all[parts[0]] && all[parts[0]][parts[1]];
       if (!info) return;
-      const v = info.results[parts[2]];
+      // chemin imbriqué : campagne.scénario.clé[.sous-clé][.indice]
+      const v = parts.slice(2).reduce((o, k) => (o === undefined || o === null ? o : o[k]), info.results);
       if (v === undefined || v === null) return;
       n.textContent = (fmt[n.dataset.fmt] || ((x) => fr(x, 2)))(v);
     });
@@ -971,6 +1054,53 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
   chartT("ch-slosh-ring", [
     ["L_libre_resonance", "libres (ζ 0,1 %)", (d) => envelope(d.tilt[0])], ["L_chicanes_resonance", "chicanes (ζ 3 %)", (d) => envelope(d.tilt[0])],
   ], { yLabel: "inclinaison du plancher, vaisseau 0, enveloppe (°)", yUnit: "°", vrefs: [{ x: 4, label: "arrêt du forçage" }] });
+
+  /* Rupture d'un câble (§ 7) */
+  getJSON("data/summary.json").then((S) => {
+    const R = S.rupture || {};
+    const ROWS = [
+      ["X_rupture_milieu", "Rupture au milieu d'un côté"], ["X_rupture_attache", "Rupture à une attache"],
+      ["Y_moyeu_rupture", "Moyeu à 3 rayons, rupture d'un côté"], ["Y_moyeu_rupture_largage", "Moyeu à 3 rayons + coupe-câbles, rupture d'un côté"],
+      ["Y_moyeu_rupture_rayon", "Moyeu à 3 rayons, rupture d'un rayon"],
+      ["Z_moyeu_double_rupture", "Rayons doublés + coupe-câbles, rupture d'un côté"], ["Z_moyeu_double_rupture_rayon", "Rayons doublés + coupe-câbles, rupture d'un rayon"],
+    ];
+    const tb = document.querySelector("#t-rupture tbody");
+    ROWS.forEach(([name, lab]) => {
+      const info = R[name];
+      if (!info || !info.results.break) return;
+      const b = info.results.break;
+      const clr = b.contact_t !== null && b.contact_t !== undefined ? `contact (vaisseau ${b.contact_ship}, +${fr(b.contact_t, 0)} s)` : fr(b.clear_min, 0) + " m";
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${lab}</td><td class="n"><b>${fr(b.T_max_MN, 1)} MN</b></td>
+        <td class="n">${fr(Math.min(...b.g_min), 1)}–${fr(Math.max(...b.g_max), 1)}</td><td class="n">${fr(Math.max(...b.tilt_max), 0)}°</td>
+        <td class="n">${fr(Math.max(...b.wrel_max), 0)} °/s</td><td class="n">${clr}</td><td class="n">${fr(b.rpm_final, 2)}</td>
+        <td class="n">${b.r_final.map((v) => fr(v, 0)).join(" / ")} m</td></tr>`);
+    });
+  }).catch(() => {});
+  // Courbes sur les premières minutes
+  const rupChart = (el, list, o) => Promise.all(list.map(([n]) => series(n))).then((ds) => {
+    lineChart(document.getElementById(el), Object.assign({
+      xLabel: "minutes", xName: "t =", xUnit: " min",
+      series: ds.map((d, i) => {
+        const k = d.t.findIndex((v) => v > (o.tMax || 600));
+        const n = k < 0 ? d.t.length : k;
+        return { name: list[i][1], x: d.t.slice(0, n).map((v) => v / 60), y: list[i][2](d).slice(0, n) };
+      }),
+    }, o));
+  }).catch(() => {});
+  const restMax = (c) => (d) => d.t.map((_, k) => Math.max(...d.Tc.filter((_, j) => j !== c).map((a) => a[k])));
+  const gMs2 = (b) => (d) => d.g[b].map((v) => v * 9.80665);
+  rupChart("ch-rup-r", [
+    ["X_rupture_milieu", "sans moyeu, vaisseau 0 (libéré)", (d) => d.rship[0]], ["X_rupture_milieu", "sans moyeu, vaisseau 2", (d) => d.rship[2]],
+    ["Y_moyeu_rupture", "avec moyeu, vaisseau 0", (d) => d.rship[0]], ["Y_moyeu_rupture", "avec moyeu, vaisseau 2", (d) => d.rship[2]],
+  ], { yLabel: "distance au centre (m)", yUnit: " m", vrefs: [{ x: 1, label: "rupture" }] });
+  rupChart("ch-rup-T", [
+    ["X_rupture_milieu", "sans moyeu, côté rompu", restMax(0)], ["Y_moyeu_rupture", "moyeu, côté rompu", restMax(0)],
+    ["Y_moyeu_rupture_rayon", "moyeu, rayon rompu", restMax(3)], ["Z_moyeu_double_rupture_rayon", "rayons doublés, rayon rompu", restMax(3)],
+  ], { yLabel: "tension de crête (MN)", yUnit: " MN", vrefs: [{ x: 1, label: "rupture" }] });
+  rupChart("ch-rup-g", [
+    ["X_rupture_milieu", "sans moyeu", gMs2(1)], ["Y_moyeu_rupture", "moyeu à 3 rayons", gMs2(1)],
+    ["Z_moyeu_double_rupture", "rayons doublés + coupe-câbles", gMs2(1)],
+  ], { tMax: 300, yLabel: "gravité ressentie (m/s²)", yUnit: " m/s²", refs: [{ y: 3.711, label: "Mars" }], vrefs: [{ x: 1, label: "rupture" }] });
 
   /* Amortisseur à liquide accordé (§ 6.1) */
   getJSON("data/summary.json").then((S) => {
