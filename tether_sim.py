@@ -305,18 +305,37 @@ class Station:
                 self.h = self.ship["x_tot"] - x_att  # vaisseau 0 : centre de masse total sous l'attache
             self.Ib = np.array([[shp["I_ax"], shp["I_tr"], shp["I_tr"]] for shp in self.ships])
         topo = build_topology(args.topology, args.spread)
-        # Câbles multiples : N brins par côté, répartis sur ±écart/2 selon e_z
-        # (0 : sur la même ferrure), chacun dimensionné pour 1/N de la charge
-        # (même masse de câble au total)
+        # Câbles multiples : N brins par côté, chacun dimensionné pour 1/N de
+        # la charge (même masse de câble au total), répartis sur ±écart/2 :
+        # - ferrure : selon e_z (0 : sur la même ferrure) ;
+        # - plan : selon e_t, chaque brin restant du côté de son voisin ;
+        # - croise : comme ferrure, mais un brin sur deux relie les points
+        #   d'attache éloignés (ceux du côté de l'autre voisin) ;
+        # - lie : brins croisés, amarrés l'un à l'autre là où ils se croisent,
+        #   sur l'axe du vaisseau à 6 m devant le nez : la patte d'oie ainsi
+        #   formée tire selon l'axe, comme une ferrure unique au centre du nez
+        #   (modèle retenu, sans les 6 m)
         ns_ = getattr(args, "side_strands", 1)
+        lay = getattr(args, "strand_layout", "ferrure")
         if ns_ > 1:
             if not args.topology.startswith("triangle"):
                 raise ValueError("les câbles multiples supposent une topologie en triangle")
             if len(set(masses_t)) > 1:
                 raise ValueError("câbles multiples et masses inégales : non prévu")
+            if lay != "ferrure" and args.topology != "triangle2":
+                raise ValueError("dispositions plan, croise et lie : topologie triangle2 seulement")
             na0, cab0 = len(topo["attach"]), topo["cables"]
-            topo["attach"] = [(s_, dz) for dz in np.linspace(args.strand_gap / 2, -args.strand_gap / 2, ns_) for s_, _ in topo["attach"]]
-            topo["cables"] = [((bA, kA + q * na0), (bB, kB + q * na0)) for q in range(ns_) for (bA, kA), (bB, kB) in cab0]
+            offs = np.linspace(args.strand_gap / 2, -args.strand_gap / 2, ns_)
+            if lay == "plan":
+                topo["attach"] = [(s_ + math.copysign(d, s_), 0.0) for d in offs for s_, _ in topo["attach"]]
+            elif lay == "lie":
+                topo["attach"] = [(0.0 if q % 2 else s_, d) for q, d in enumerate(offs) for s_, _ in topo["attach"]]
+            else:
+                topo["attach"] = [(s_, d) for d in offs for s_, _ in topo["attach"]]
+
+            def sw(k, q):
+                return 1 - k if lay == "croise" and q % 2 else k
+            topo["cables"] = [((bA, sw(kA, q) + q * na0), (bB, sw(kB, q) + q * na0)) for q in range(ns_) for (bA, kA), (bB, kB) in cab0]
             topo["tfac"] /= ns_
         # Moyeu central : un point d'attache de plus au milieu du nez de chaque
         # module, et un rayon vers le moyeu (câbles d'indice 3 à 5)
@@ -975,20 +994,24 @@ class Station:
         return [float(v @ Iw @ v) for v in (er, et, ez)]
 
 
-def roll_prediction(topology, spread, I_r, I_t, I_z, omega, T, L):
+def roll_prediction(topology, spread, I_r, I_t, I_z, omega, T, L, strands=(1, 0)):
     """Roulis d'un module autour de la verticale (tangage verrouillé) :
     I_r φ'' = (ω² (I_t − I_z) − k_att) φ, où k_att est la raideur apportée par
     des attaches écartées de ±s :
     - triangle2 (câbles vers les deux voisins, à ±30° de la verticale) : la
       composante tangentielle T/2 de chaque câble agit au bras de levier s·φ
       → T·s, plus la raideur latérale des câbles 2·T·s²/L (second ordre) ;
+      avec plusieurs brins par côté (strands = brins directs, brins croisés,
+      T = tension d'un brin), un brin croisé tire sa ferrure vers l'autre
+      côté et retranche T·s au lieu de l'ajouter ;
     - ladder (câbles parallèles) : 2·T·s²/L ne retient que le roulis
       différentiel des deux modules ; le roulis commun (toute la station
       autour de la ligne) reste libre → k_att = 0."""
     k_att = 0.0
     if topology == "triangle2":
         s = 20.0 if spread is None else spread
-        k_att = T * s + 2 * T * s * s / L
+        nd, nc = strands
+        k_att = (nd - nc) * T * s + (nd + nc) * 2 * T * s * s / L
     s2 = (omega ** 2 * (I_t - I_z) - k_att) / I_r
     if abs(I_t - I_z) < 1e-9 * I_r and k_att == 0:
         return "neutre (I_t = I_z) : aucun couple de rappel"
@@ -1022,7 +1045,16 @@ def roll_prediction_from_info(info):
     a = info["args"]
     M = a["mass_t"] * 1e3
     I_r, I_t, I_z = (x * M for x in info["I_local_over_M"])
-    return roll_prediction(a["topology"], a.get("spread"), I_r, I_t, I_z, a["rpm"] * 2 * math.pi / 60, info["T_eq"], info["L_eq"])
+    return roll_prediction(a["topology"], a.get("spread"), I_r, I_t, I_z, a["rpm"] * 2 * math.pi / 60, info["T_eq"], info["L_eq"],
+                           strand_split(a.get("side_strands", 1), a.get("strand_layout", "ferrure")))
+
+
+def strand_split(n, layout):
+    """Brins d'un côté (directs, croisés) : avec les dispositions croise et
+    lie, un brin sur deux est croisé ; amarré au croisement (lie), il tire
+    selon l'axe du vaisseau et n'apporte aucune raideur de roulis."""
+    nc = n // 2 if layout in ("croise", "lie") else 0
+    return n - nc, (nc if layout == "croise" else 0)
 
 
 def static_tilt_prediction(args, h):
@@ -1159,7 +1191,8 @@ def run(args):
     #   dans le plan Ω² = M·a·h / I_z ; hors plan Ω² = (M·a·h + ω²(I_z − I_r)) / I_t
     I_r, I_t, I_z = st.local_inertia()
     w2 = st.omega ** 2
-    roll_pred = roll_prediction(args.topology, args.spread, I_r, I_t, I_z, st.omega, t_eq[0], L_eq)
+    roll_pred = roll_prediction(args.topology, args.spread, I_r, I_t, I_z, st.omega, t_eq[0], L_eq,
+                                strand_split(args.side_strands, args.strand_layout))
     Mah = st.M * args.g * G0 * st.h
     f_pitch = math.sqrt(Mah / I_z) / (2 * math.pi)
     f_swing = math.sqrt(max(Mah + w2 * (I_z - I_r), 0.0) / I_t) / (2 * math.pi)
@@ -1595,7 +1628,11 @@ def make_parser():
     p.add_argument("--release-delay", type=float, default=-1.0, help="coupe-câbles : largage des morceaux du câble rompu après ce délai (s ; −1 = jamais)")
     p.add_argument("--hub-spokes", type=int, choices=[1, 2], default=1, help="rayons par vaisseau (2 : depuis chacun des deux points d'attache du nez)")
     p.add_argument("--side-strands", type=int, choices=[1, 2, 3], default=1, help="brins par côté du triangle (chacun pour 1/N de la charge)")
-    p.add_argument("--strand-gap", type=float, default=0.0, help="câbles multiples : écart entre brins extrêmes aux attaches, selon l'axe de rotation (m ; 0 = même ferrure)")
+    p.add_argument("--strand-gap", type=float, default=0.0, help="câbles multiples : écart entre brins extrêmes aux attaches (m ; 0 = même ferrure), "
+                   "selon l'axe de rotation (ferrure, croise) ou dans le plan de rotation (plan)")
+    p.add_argument("--strand-layout", choices=["ferrure", "plan", "croise", "lie"], default="ferrure",
+                   help="câbles multiples : brins aux mêmes points d'attache (ferrure), écartés dans le plan du côté de leur voisin (plan), "
+                   "un brin sur deux vers les points d'attache éloignés (croise), ou croisés et amarrés au croisement (lie)")
     p.add_argument("--break-at", type=float, default=0.5, help="position de la rupture le long du câble (0 = à la première attache, 0,5 = au milieu)")
     p.add_argument("--cfl", type=float, default=0.3, help="fraction du pas de temps critique")
     p.add_argument("--record-dt", type=float, default=0.05, help="période d'échantillonnage (s)")

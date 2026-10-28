@@ -245,6 +245,15 @@ CAMPAIGNS = {
         ("W_brins2_attache", TLD + BRK + ["--side-strands", "2", "--break-at", "0", "--release-delay", "1", "--duration", "900"]),
         ("W_brins2_ecartes", TLD + BRK + ["--side-strands", "2", "--strand-gap", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
         ("W_brins3_rupture", TLD + BRK + ["--side-strands", "3", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
+        # Dispositions : brins écartés dans le plan (du côté de leur voisin),
+        # brins croisés sous le nez (libres, puis amarrés au croisement)
+        ("W_brins2_plan", TLD + BRK + ["--side-strands", "2", "--strand-layout", "plan", "--strand-gap", "2", "--break-at", "0.5",
+                                       "--release-delay", "1", "--duration", "900"]),
+        ("W_brins2_croises", TLD + ["--side-strands", "2", "--strand-layout", "croise", "--duration", "900"]),
+        ("W_brins2_croises_rupture", TLD + BRK + ["--side-strands", "2", "--strand-layout", "croise", "--break-at", "0.5", "--release-delay", "1",
+                                                  "--duration", "900"]),
+        ("W_brins2_lies", TLD + BRK + ["--side-strands", "2", "--strand-layout", "lie", "--break-at", "0.5", "--release-delay", "1",
+                                       "--duration", "900"]),
     ],
 }
 
