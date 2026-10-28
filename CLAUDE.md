@@ -73,4 +73,6 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 - After a cable break without hub, ships tumble and cables would wrap around the noses: the model has no cable–hull contact, so only the first minutes are quantitative.
 - Diagnostics that sum over all masses (L/I, centre of mass) break down once pieces are released and fly away; the spin rate and the diagnostic centre (distances to centre, roll) use the ships, internal masses, propellant and hub only, not the cable nodes.
 - In shell heredocs that embed JavaScript, quote the delimiter (`<<'EOF'`) or write a script file: backticks and `${}` would otherwise be executed by the shell.
+- The 3D viewer redraws cable chains at each event: the break (`anim.cut`) and the cutter release (`anim.release`). Without the latter, the cut attachment segments are still drawn and the released pieces look like they stretch back to the ships.
+- `make_web_data.py` treats every `.json` in `out/<campaign>/` as a scenario: keep ad-hoc analysis outputs elsewhere (scratch dir).
 - `tilt_max` in summaries is the global maximum over the run; sweep-curve peaks are per-frequency maxima. Don't mix them when quoting a "peak at f Hz".

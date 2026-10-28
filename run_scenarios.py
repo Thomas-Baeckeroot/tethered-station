@@ -245,6 +245,10 @@ CAMPAIGNS = {
         ("W_brins2_attache", TLD + BRK + ["--side-strands", "2", "--break-at", "0", "--release-delay", "1", "--duration", "900"]),
         ("W_brins2_ecartes", TLD + BRK + ["--side-strands", "2", "--strand-gap", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
         ("W_brins3_rupture", TLD + BRK + ["--side-strands", "3", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
+        # Recul du brin rompu le long du brin intact : câble plus finement découpé,
+        # trajectoires toutes les 0,05 s, 30 s après la rupture
+        ("W_brins2_recul", TLD + BRK + ["--side-strands", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "90",
+                                        "--segments", "48", "--traj-dt", "0.05"]),
         # Dispositions : brins écartés dans le plan (du côté de leur voisin),
         # brins croisés sous le nez (libres, puis amarrés au croisement)
         ("W_brins2_plan", TLD + BRK + ["--side-strands", "2", "--strand-layout", "plan", "--strand-gap", "2", "--break-at", "0.5",

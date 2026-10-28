@@ -136,6 +136,11 @@ figcaption b { color: var(--ink); }
 .sc-bad { stroke: var(--bad); }
 text.sc-bad { fill: var(--bad); stroke: none; }
 .sc-cut { stroke: var(--bad); stroke-width: 1.3; stroke-dasharray: 3 2; }
+.sc-broken { stroke: var(--bad); stroke-width: 1.6; fill: none; stroke-dasharray: 5 3; }
+.sc-broken-arrow { stroke: var(--bad); stroke-width: 1.6; }
+.sc-zone { fill: none; stroke: var(--warn); stroke-width: 1.6; stroke-dasharray: 4 3; }
+.sc-plate { fill: var(--surface); stroke: var(--ink); stroke-width: 1.6; }
+.sc-dim { stroke: var(--muted); stroke-width: 1; }
 .sl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 .sl-grid figure { gap: 4px; align-content: start; }
 .sl-grid h5 { margin: 0; font: 600 0.95rem var(--f-display); color: var(--ink); }
@@ -639,6 +644,8 @@ text.sc-bad { fill: var(--bad); stroke: none; }
       <li><b>⑤ Croisés et amarrés au croisement</b> : le nœud se trouve sur l'axe du vaisseau, 6 m devant le nez. Les brins intérieurs y forment une patte d'oie dont la traction passe par l'axe : plus de couple de chavirement, mais plus de rappel non plus. Seuls les brins extérieurs rappellent, à moitié (période 6 s). Après la rupture d'un brin extérieur, le roulis reste faible (0,1°), mais toute la charge du côté passe par le nœud, face au brin extérieur de l'autre côté resté seul : les vaisseaux 0 et 1 restent penchés de 1,9° dans le plan. Modèle approché : nœud ramené au centre du nez.</li>
     </ul>
     <p>Les deux brins d'un côté doivent donc partir ensemble de la ferrure de ce côté. Les écarter dans le plan coûte une inclinaison permanente après une rupture ; les superposer ou les croiser est à proscrire. Simulateur : option <code>--strand-layout</code> (<code>ferrure</code>, <code>plan</code>, <code>croise</code>, <code>lie</code>).</p>
+    <p><b>Brins voisins.</b> Sur une ferrure commune, les deux brins sont proches : la rupture de l'un menace-t-elle l'autre ? Un brin tendu stocke 255 kJ d'énergie élastique (allongement de 0,15 %). Quand il cède, chaque moitié file vers son vaisseau à 15 m/s (allongement × vitesse du son dans le Dyneema, ≈ 10 km/s), le long de son propre axe : elle ne frappe pas le brin voisin de face, elle glisse contre lui. Une simulation détaillée le montre (segments de 11 m au lieu de 34 m, positions toutes les 0,05 s, brins confondus au départ : le cas le plus défavorable). La force de Coriolis, ≈ 3 m/s², pousse les deux moitiés en sens contraires, perpendiculairement au côté. Pour la moitié qui file vers le vaisseau 1, elle s'ajoute à la force centrifuge : cette moitié quitte le brin intact en 1 s. Pour celle qui file vers le vaisseau 0, elle s'y oppose : cette moitié glisse le long du brin intact pendant 2 à 3 s et arrive sur la ferrure commune vers t + 3 s, toujours à 15 m/s. Le frottement lui-même est bénin, car le brin rompu n'est plus tendu et n'appuie que d'une dizaine de newtons par mètre. Le danger est à la ferrure : la moitié qui arrive peut frapper la terminaison du brin intact ou s'y emmêler. Deux brins jointifs ont d'autres défauts : ils s'usent l'un contre l'autre pendant les 259 jours du voyage, et un même impact ou un même échauffement peut les atteindre ensemble.</p>
+    <p><b>Parade : un palonnier sur la ferrure.</b> Une plaque pivotante, montée sur l'axe de la ferrure, tient les deux brins écartés de 0,5 à 1 m ; tendus, ils restent droits et écartés sur toute leur longueur. L'effort sur le vaisseau passe toujours par un seul point, l'axe du palonnier. Après une rupture, le palonnier pivote et le brin restant tire par cet axe : ni couple de roulis, ni inclinaison permanente, contrairement aux dispositions ② et ③. Un déflecteur autour de la ferrure et une gaine sur les derniers mètres de chaque brin protègent des morceaux qui reviennent. Le palonnier n'est pas dans le modèle ; pour le vaisseau, il équivaut à la ferrure commune (①).</p>
     <p><b>Trois brins.</b> Avec des brins de tiers de section (Ø 6,2 cm), chaque vaisseau ne perd qu'un tiers de sa traction ; le plancher monte à 9,5° au lieu de 16°, repasse sous 3° en 36 s et sous 1° en 2,3 min, et les deux brins restants montent à <span data-bind="brins.W_brins3_rupture.break.T_max_MN" data-fmt="mn">—</span> (9 % de leur résistance). Les secousses diminuent avec le nombre de brins, au prix de plus de raccords et d'un brin plus fin.</p>
   </div>
   <figure id="fig-brins-dispo">
@@ -650,6 +657,10 @@ text.sc-bad { fill: var(--bad); stroke: none; }
       <figure><h5>⑤ Croisés et amarrés</h5><div data-strands="lie" data-top="nœud sur l'axe, 6 m" data-service="~ rappel ÷ 2" data-rupture="~ rappel ÷ 4"></div><figcaption>Rappel moitié ; rupture : roulis 0,1°, plancher penché de 1,9° en permanence.</figcaption></figure>
     </div>
     <figcaption><b>Où attacher les deux brins d'un côté ?</b> En haut de chaque carte, le nez de M0 vu de dessus : le centre de la station est vers le bas, M1 à gauche, M2 à droite. En dessous, le même nez vu dans son axe depuis le centre de la station, axe de rotation vertical : vaisseau roulé de 18° en service, puis après la rupture du brin extérieur gauche (×), roulé lui aussi quand la question est la stabilité. Flèches : traction de chaque brin sur sa ferrure, dans le plan de rotation (épaisse : deux brins, ou le brin qui reprend la charge du brin rompu). Arc vert : couple qui ramène le vaisseau ; arc rouge : couple qui le fait rouler. Roulis et ferrures non à l'échelle.</figcaption>
+  </figure>
+  <figure>
+    <div class="grid2" id="fig-recul"></div>
+    <figcaption><b>Brins voisins.</b> À gauche, le brin rompu d'après la simulation détaillée : ses deux moitiés reculent à 15 m/s. Pour la moitié qui file vers M1, la force centrifuge (vers l'extérieur) et la force de Coriolis s'ajoutent, et elle s'écarte en 1 s ; pour celle qui file vers M0, elles se contrarient, et elle longe le brin intact jusqu'à la ferrure. À droite, la parade : un palonnier pivotant garde les brins écartés et un seul point d'effort.</figcaption>
   </figure>
   <div class="chartbox"><h4>Inclinaison du plancher du vaisseau 1 après la rupture : moyeu ou câbles doublés</h4><div id="ch-brins-tilt"></div></div>
   <div class="callout"><b>Conséquences pratiques</b><span>Deux brins de demi-section par côté, convergeant sur une ferrure commune, et des coupe-câbles : pour la même masse de câble, la perte d'un brin ne déforme pas la station et ne change pas sa rotation ; le plancher repasse sous 3° en un peu plus d'une minute. C'est la meilleure parade simulée. Le moyeu (§ 7.3) reste le seul recours si une ferrure s'arrache, puisque les deux brins partent alors ensemble ; il sert aussi aux treuils et à l'amarrage.</span></div>
@@ -924,6 +935,7 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
   ];
   document.querySelectorAll("[data-strands]").forEach((d) => drawStrandLayout(d, d.dataset.strands,
     { top: d.dataset.top, service: d.dataset.service, rupture: d.dataset.rupture, aria: d.parentNode.querySelector("h5").textContent }));
+  drawStrandRecoil(document.getElementById("fig-recul"));
   const sch = document.getElementById("schemas");
   CONFIGS.forEach(([k, topo, mod, cap]) => {
     const d = document.createElement("div");

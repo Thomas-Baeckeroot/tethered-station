@@ -306,6 +306,112 @@
     container.appendChild(svg);
   }
 
+  /* Brins voisins (§ 7.4) : à gauche, recul du brin rompu le long du brin
+     intact (côté M0–M1 étiré, vue de dessus, centre de la station en haut :
+     la force centrifuge pousse vers le bas) ; à droite, palonnier pivotant
+     sur la ferrure commune, en service et après la rupture d'un brin. */
+  function drawStrandRecoil(container) {
+    const W = 320, H = 380, x0 = 26, x1 = 294, xm = (x0 + x1) / 2;
+    const mk = (title, sub, aria) => {
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "sc-svg", role: "img", "aria-label": aria });
+      const id = "r" + Math.random().toString(36).slice(2);
+      const defs = el("defs", {}, svg);
+      for (const c of ["ink", "bad"]) {
+        const m = el("marker", { id: `${id}-${c}`, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, markerUnits: "userSpaceOnUse",
+          orient: "auto-start-reverse" }, defs);
+        el("path", { d: "M0,0 L10,5 L0,10 z", class: `sc-head-${c}` }, m);
+      }
+      el("text", { x: 8, y: 17, class: "sc-title" }, svg, title);
+      el("text", { x: 8, y: 32, class: "sc-small" }, svg, sub);
+      return [svg, (c) => `url(#${id}-${c})`];
+    };
+
+    // Recul
+    const [a, A] = mk("Recul du brin rompu", "côté M0–M1 vu de dessus, étiré", "Recul du brin rompu le long du brin intact, en trois instants");
+    el("text", { x: W - 8, y: 46, class: "sc-small", "text-anchor": "end" }, a, "↑ centre de la station");
+    const row = (y, label) => {
+      el("text", { x: 8, y: y - 26, class: "sc-small" }, a, label);
+      el("line", { x1: x0, y1: y, x2: x1, y2: y, class: "sc-cable" }, a);
+      el("circle", { cx: x0, cy: y, r: 3, class: "sc-attach" }, a);
+      el("circle", { cx: x1, cy: y, r: 3, class: "sc-attach" }, a);
+      el("text", { x: x0 - 6, y: y + 4, class: "sc-small", "text-anchor": "end" }, a, "M0");
+      el("text", { x: x1 + 6, y: y + 4, class: "sc-small" }, a, "M1");
+    };
+    const red = (d) => el("path", { d, class: "sc-broken" }, a);
+    const arrow = (xa, ya, xb, yb, c = "bad") => el("line", { x1: xa, y1: ya, x2: xb, y2: yb, class: c === "bad" ? "sc-broken-arrow" : "sc-force", "marker-end": A(c) }, a);
+    // t = 0
+    let y = 96;
+    row(y, "t = 0 : un brin cède au milieu");
+    red(`M ${x0} ${y + 4} L ${x1} ${y + 4}`);
+    el("text", { x: xm, y: y + 8, class: "sc-small sc-bad", "text-anchor": "middle" }, a, "×");
+    el("text", { x: xm, y: y + 24, class: "sc-small", "text-anchor": "middle" }, a, "255 kJ libérés");
+    // t + 1 s : forces sur chaque moitié, centrifuge (vers le bas) et Coriolis
+    y = 206;
+    row(y, "t + 1 s : recul à 15 m/s, coupe-câbles");
+    red(`M ${x0 + 14} ${y + 4} L ${xm - 22} ${y + 4}`);
+    arrow(x0 + 40, y + 4, x0 + 14, y + 4);
+    red(`M ${xm + 22} ${y + 6} Q ${xm + 80} ${y + 10} ${x1 - 16} ${y + 30}`);
+    arrow(x1 - 44, y + 23, x1 - 16, y + 30);
+    el("text", { x: x0 + 44, y: y - 7, class: "sc-small" }, a, "15 m/s");
+    el("text", { x: x1 - 8, y: y - 7, class: "sc-small", "text-anchor": "end" }, a, "s'écarte en 1 s");
+    arrow(xm - 52, y + 12, xm - 52, y + 28, "ink");
+    arrow(xm - 40, y + 28, xm - 40, y + 12, "ink");
+    el("text", { x: xm - 46, y: y + 42, class: "sc-small", "text-anchor": "middle" }, a, "se contrarient");
+    arrow(xm + 50, y + 14, xm + 50, y + 30, "ink");
+    arrow(xm + 62, y + 14, xm + 62, y + 30, "ink");
+    el("text", { x: xm + 56, y: y + 42, class: "sc-small", "text-anchor": "middle" }, a, "s'ajoutent");
+    // t + 3 s
+    y = 316;
+    row(y, "t + 3 s : la moitié côté M0 arrive à la ferrure");
+    red(`M ${x0 + 2} ${y + 3} q 6 6 12 0 q 6 -7 12 1 L ${xm - 40} ${y + 9}`);
+    arrow(x0 + 30, y + 5, x0 + 6, y + 3);
+    el("circle", { cx: x0 + 10, cy: y + 2, r: 14, class: "sc-zone" }, a);
+    el("text", { x: x0 + 26, y: y - 8, class: "sc-small" }, a, "zone à protéger");
+    red(`M ${xm + 60} ${y + 30} Q ${xm + 100} ${y + 34} ${x1 - 8} ${y + 42}`);
+    el("text", { x: x1 - 8, y: y + 26, class: "sc-small", "text-anchor": "end" }, a, "déjà loin");
+
+    // Palonnier
+    const [b] = mk("Parade : palonnier", "détail d'une ferrure, non à l'échelle", "Palonnier pivotant sur la ferrure commune, en service et après la rupture d'un brin");
+    const plate = (y, broken) => {
+      const px = 70, L = 56, e = 20;
+      // coque et ferrure
+      el("rect", { x: 8, y: y - 34, width: 26, height: 68, rx: 6, class: "sc-module" }, b);
+      el("line", { x1: 34, y1: y, x2: px, y2: y, class: "sc-spreader" }, b);
+      // en service, palonnier symétrique ; après rupture du brin du haut, il
+      // tourne jusqu'à aligner le brin restant sur son axe
+      const th = broken ? -Math.atan2(e, L) : 0;
+      const R = ([u, v]) => [px + u * Math.cos(th) - v * Math.sin(th), y + u * Math.sin(th) + v * Math.cos(th)];
+      const c1 = R([L, -e]), c2 = R([L, e]);
+      el("path", { d: `M ${px} ${y} L ${c1[0]} ${c1[1]} L ${c2[0]} ${c2[1]} Z`, class: "sc-plate" }, b);
+      if (broken) {
+        el("path", { d: `M ${c1[0]} ${c1[1]} l 34 -6`, class: "sc-broken" }, b);
+        el("text", { x: c1[0] + 38, y: c1[1] - 3, class: "sc-small sc-bad" }, b, "×");
+        el("line", { x1: c2[0], y1: c2[1], x2: W - 8, y2: c2[1], class: "sc-cable" }, b);
+        el("text", { x: W - 8, y: y + 18, class: "sc-small", "text-anchor": "end" }, b, "le brin restant tire par l'axe");
+      } else {
+        for (const c of [c1, c2]) el("line", { x1: c[0], y1: c[1], x2: W - 8, y2: c[1], class: "sc-cable" }, b);
+        el("line", { x1: W - 40, y1: c1[1], x2: W - 40, y2: c2[1], class: "sc-dim" }, b);
+        el("text", { x: W - 44, y: y + 4, class: "sc-small", "text-anchor": "end" }, b, "0,5 à 1 m");
+      }
+      for (const c of [c1, c2]) el("circle", { cx: c[0], cy: c[1], r: 2.4, class: "sc-attach" }, b);
+      el("circle", { cx: px, cy: y, r: 4, class: "sc-knot" }, b);
+      el("text", { x: px, y: y + 18, class: "sc-small", "text-anchor": "middle" }, b, "axe");
+    };
+    el("text", { x: 8, y: 70, class: "sc-small" }, b, "en service");
+    plate(116, false);
+    el("text", { x: 8, y: 184, class: "sc-small" }, b, "brins écartés sur 539 m, un seul point");
+    el("text", { x: 8, y: 198, class: "sc-small" }, b, "d'effort : l'axe du palonnier");
+    el("text", { x: 8, y: 222, class: "sc-small" }, b, "après rupture d'un brin");
+    plate(282, true);
+    el("text", { x: 8, y: 350, class: "sc-small" }, b, "le palonnier pivote : ni couple de");
+    el("text", { x: 8, y: 364, class: "sc-small" }, b, "roulis, ni inclinaison permanente");
+
+    container.innerHTML = "";
+    container.appendChild(a);
+    container.appendChild(b);
+  }
+
   window.drawSchema = drawSchema;
   window.drawStrandLayout = drawStrandLayout;
+  window.drawStrandRecoil = drawStrandRecoil;
 })();
