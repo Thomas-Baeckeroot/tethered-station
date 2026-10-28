@@ -149,24 +149,33 @@
       this.tStart = f[0].t;
       this.tEnd = f[f.length - 1].t;
       this.time = this.tStart;
-      // Polylignes des câbles : chaînes de segments consécutifs. Rupture
-      // (anim.cut) : avant l'instant de rupture, le câble entier ; après, ses
-      // deux morceaux (phase : -1 toujours, 0 avant, 1 après)
+      // Polylignes des câbles : chaînes de segments consécutifs, recalculées
+      // à chaque événement : rupture (anim.cut), puis largage des morceaux
+      // par les coupe-câbles (anim.release : segments d'attache coupés).
+      // Chaque chaîne garde la liste des étapes où elle existe.
       const build = (skip) => {
         const out = [];
         let cur = null;
         anim.seg.forEach(([i, j], k) => {
-          if (k === skip) { cur = null; return; }
+          if (skip.has(k)) { cur = null; return; }
           if (cur && cur[cur.length - 1] === i) cur.push(j);
           else { cur = [i, j]; out.push(cur); }
         });
         return out;
       };
-      const before = build(-1), key = (c) => c.join(",");
-      const after = anim.cut ? build(anim.cut.seg) : before;
-      const kb = new Set(before.map(key)), ka = new Set(after.map(key));
-      this.chains = before.map((c) => ({ c, phase: ka.has(key(c)) ? -1 : 0 }))
-        .concat(after.filter((c) => !kb.has(key(c))).map((c) => ({ c, phase: 1 })));
+      const events = [];
+      if (anim.cut) events.push({ t: anim.cut.t, segs: [anim.cut.seg] });
+      if (anim.release) events.push({ t: anim.release.t, segs: anim.release.segs });
+      this.stageTimes = events.map((e) => e.t);
+      const skip = new Set(), stages = [build(skip)];
+      events.forEach((e) => { e.segs.forEach((k) => skip.add(k)); stages.push(build(skip)); });
+      const byKey = new Map();
+      stages.forEach((chs, si) => chs.forEach((c) => {
+        const key = c.join(",");
+        if (!byKey.has(key)) byKey.set(key, { c, stages: new Set() });
+        byKey.get(key).stages.add(si);
+      }));
+      this.chains = [...byKey.values()];
       this._buildObjects();
       this._frameCamera();
       this._setFrameTime(this.time);
@@ -336,10 +345,10 @@
         const p = A.pa[a].map((v, k) => lerp(v, B.pa[a][k]));
         return p.map((v, k) => xb[body][k] + ex * (v - xb[body][k]));
       };
-      const cut = this.anim.cut, broken = cut && t >= cut.t;
-      this.chains.forEach(({ c: ch, phase }, ci) => {
+      const stage = this.stageTimes.filter((ts) => t >= ts).length;
+      this.chains.forEach(({ c: ch, stages }, ci) => {
         const line = this.cableLines[ci];
-        line.visible = phase < 0 || (phase === 1) === Boolean(broken);
+        line.visible = stages.has(stage);
         if (!line.visible) return;
         const arr = line.geometry.attributes.position;
         ch.forEach((i, k) => { const p = pts(i); arr.setXYZ(k, p[0], p[1], p[2]); });

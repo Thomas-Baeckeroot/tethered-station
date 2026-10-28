@@ -195,6 +195,8 @@ def export_anim(campaign, name, ta, tb, step, dest):
                 frames=frames)
     if "break" in info:
         anim["cut"] = dict(seg=info["break"]["seg"], t=round(info["break"]["t"], 2))
+        if "released" in info["break"]:
+            anim["release"] = dict(segs=info["break"]["released"]["segs"], t=round(info["break"]["released"]["t"], 2))
     if info.get("hub_mass_t"):
         anim["hub"] = [0]  # le moyeu est le premier nœud libre
     os.makedirs(os.path.join(dest, "anim"), exist_ok=True)
