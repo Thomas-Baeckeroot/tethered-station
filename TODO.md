@@ -5,7 +5,7 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 ## Priorité haute
 
 - **Déploiement avant la mise en rotation** : rapprochement des trois vaisseaux, déroulement des câbles sous 0,1 tr/min (quelques kN de tension), treuils. La montée de 0,1 à 1 tr/min est simulée (carnet § 5.4 : α = 0,05·ω², 30 min, 20 t d'ergols, plancher à 2,6°).
-- **Câbles doublés** (meilleure parade simulée contre la rupture, carnet § 7.4) : ferrures (communes aux deux brins, un arrachement les emporte ensemble ; écartées, la rupture secoue davantage), entretoises, emmêlement du brin rompu avec le brin sain.
+- **Câbles doublés** (meilleure parade simulée contre la rupture, carnet § 7.4) : ferrures (communes aux deux brins, imposées par la stabilité en roulis, § 7.4 ; un arrachement les emporte ensemble), entretoises, emmêlement du brin rompu avec le brin sain.
 - **Moyeu et rayons doublés** (carnet § 7.3 ; confort vérifié, campagne `moyeu`) : déploiement des côtés et des rayons depuis le moyeu, treuils ; les rayons, réglés pour 1 tr/min, sont presque détendus pendant la montée.
 - **Premier retour du brin rompu** : il touche une coiffe 6 s après la rupture, même avec coupe-câbles. Frein anti-retour près des attaches (comme pour les amarres de navires), protection de la coiffe, ou brin captif (câbles doublés).
 - **Contact câble–coque** : absent du modèle (brins qui frappent les coques, câbles qui s'enroulent autour d'une coiffe quand un vaisseau tournoie) ; nécessaire pour la suite d'une rupture sans moyeu.

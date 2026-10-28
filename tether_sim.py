@@ -327,7 +327,7 @@ class Station:
             na0, cab0 = len(topo["attach"]), topo["cables"]
             offs = np.linspace(args.strand_gap / 2, -args.strand_gap / 2, ns_)
             if lay == "plan":
-                topo["attach"] = [(s_ + math.copysign(d, s_), 0.0) for d in offs for s_, _ in topo["attach"]]
+                topo["attach"] = [(s_ + d * math.copysign(1.0, s_), 0.0) for d in offs for s_, _ in topo["attach"]]
             elif lay == "lie":
                 topo["attach"] = [(0.0 if q % 2 else s_, d) for q, d in enumerate(offs) for s_, _ in topo["attach"]]
             else:

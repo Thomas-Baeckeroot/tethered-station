@@ -183,5 +183,129 @@
     }
   }
 
+  /* Brins doublés au nez de M0 (§ 7.4), une disposition par carte, trois vues :
+     - dessus : quel brin va à quelle ferrure (M1 à gauche, M2 à droite) ;
+     - dans l'axe du vaisseau, vu du centre (e_t à droite, axe de rotation
+       vers le haut), vaisseau roulé de φ en service : couple de rappel ?
+     - même vue après la rupture d'un brin du côté de M1 : couple de roulis ?
+     Chaque brin tire sa ferrure vers son voisin ; dans l'axe, on ne voit que
+     cette traction tangentielle (une flèche par brin). Un brin croisé amarré
+     au croisement tire vers le nœud, sur l'axe : aucun couple. */
+  const STRAND_LAYOUTS = {
+    // fit : ferrures [e_t, e_z] (m) ; strands : [ferrure, côté (−1 : M1, +1 : M2)] ;
+    // le brin 0 rompt ; phiBreak : vue après rupture roulée (stabilité) ou non (choc)
+    ferrure: { fit: [[-3.5, 0], [3.5, 0]], strands: [[0, -1], [0, -1], [1, 1], [1, 1]], phiBreak: 0 },
+    plan: { fit: [[-4.5, 0], [-2.5, 0], [2.5, 0], [4.5, 0]], strands: [[0, -1], [1, -1], [2, 1], [3, 1]], phiBreak: 0 },
+    axe: { fit: [[-3.5, 1], [-3.5, -1], [3.5, 1], [3.5, -1]], strands: [[0, -1], [1, -1], [2, 1], [3, 1]], phiBreak: 0 },
+    croise: { fit: [[-3.5, 0], [3.5, 0]], strands: [[0, -1], [1, -1], [1, 1], [0, 1]], phiBreak: 18 },
+    lie: { fit: [[-3.5, 0], [3.5, 0]], strands: [[0, -1], [1, -1], [1, 1], [0, 1]], phiBreak: 18, knot: true },
+  };
+
+  function drawStrandLayout(container, layout, labels) {
+    const L = STRAND_LAYOUTS[layout];
+    const W = 176, H = 402, cx = 88, k = 9, u = 17, phiS = 18;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "sc-svg", role: "img", "aria-label": labels.aria || "" });
+    const id = "s" + Math.random().toString(36).slice(2);
+    const defs = el("defs", {}, svg);
+    for (const c of ["ink", "good", "bad"]) {
+      const m = el("marker", { id: `${id}-${c}`, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 8, markerHeight: 8, markerUnits: "userSpaceOnUse",
+        orient: "auto-start-reverse" }, defs);
+      el("path", { d: "M0,0 L10,5 L0,10 z", class: `sc-head-${c}` }, m);
+    }
+    const crossed = ([f, side]) => Math.sign(L.fit[f][0]) !== side;
+    const viaKnot = (st) => L.knot && crossed(st);
+
+    // Vue de dessus : nez pointé vers le bas (vers le centre), ferrures sur la barre
+    const yb = 32;
+    const clip = el("clipPath", { id: `${id}-clip` }, defs);
+    el("rect", { x: 0, y: 0, width: W, height: yb + 1 }, clip);
+    const nose = el("g", { "clip-path": `url(#${id}-clip)` }, svg);
+    starship(nose, k, false).setAttribute("transform", `translate(${cx},${yb - 25 * k}) rotate(-90)`);
+    const ts = L.fit.map(([t]) => t);
+    el("line", { x1: cx + Math.min(...ts) * k, y1: yb, x2: cx + Math.max(...ts) * k, y2: yb, class: "sc-spreader" }, svg);
+    const seen = {};
+    L.strands.forEach(([f, side]) => {
+      const key = `${f}${side}`, n = seen[key] = (seen[key] || 0) + 1;
+      const twin = L.strands.filter(([g, s2]) => g === f && s2 === side).length > 1;
+      const off = twin ? (n === 1 ? -1.8 : 1.8) : 0;  // brins sur la même ferrure : légèrement écartés pour rester visibles
+      const dx = side * 0.5, dy = 0.866, len = (108 - yb) / dy;
+      const x0 = cx + L.fit[f][0] * k + off * dy, y0 = yb - off * dx;
+      el("line", { x1: x0, y1: y0, x2: x0 + dx * len, y2: y0 + dy * len, class: "sc-cable" }, svg);
+    });
+    L.fit.forEach(([t]) => el("circle", { cx: cx + t * k, cy: yb, r: 2.4, class: "sc-attach" }, svg));
+    if (L.knot) el("circle", { cx, cy: yb + 3.5 / 0.577 * k, r: 3.6, class: "sc-knot" }, svg);
+    el("text", { x: 4, y: 13, class: "sc-small" }, svg, "dessus");
+    el("text", { x: W - 4, y: 13, class: "sc-small", "text-anchor": "end" }, svg, "nez de M0");
+    el("text", { x: 4, y: 50, class: "sc-small" }, svg, "M1 ↙");
+    el("text", { x: W - 4, y: 50, class: "sc-small", "text-anchor": "end" }, svg, "↘ M2");
+    if (labels.top) el("text", { x: cx, y: 124, class: "sc-small", "text-anchor": "middle" }, svg, labels.top);
+
+    // Vues dans l'axe : y0 = haut du panneau
+    function axial(y0, title, phiDeg, broken, label) {
+      el("line", { x1: 4, y1: y0, x2: W - 4, y2: y0, class: "sc-sep" }, svg);
+      el("text", { x: 4, y: y0 + 13, class: "sc-small" }, svg, title);
+      const cy = y0 + 66, ph = phiDeg * Math.PI / 180, c = Math.cos(ph), s = Math.sin(ph);
+      const P = ([t, z]) => [t * c - z * s, t * s + z * c];  // roulis (sens trigonométrique)
+      const S = ([x, z]) => [cx + x * k, cy - z * k];
+      el("circle", { cx, cy, r: 4.5 * k, class: "sc-module" }, svg);
+      if (phiDeg) el("line", { x1: cx - 52, y1: cy, x2: cx + 52, y2: cy, class: "sc-axis" }, svg);
+      // barre et ferrures roulées
+      const tmin = Math.min(...ts), tmax = Math.max(...ts);
+      const [a, b] = [S(P([tmin, 0])), S(P([tmax, 0]))];
+      el("line", { x1: a[0], y1: a[1], x2: b[0], y2: b[1], class: "sc-bar" }, svg);
+      L.fit.forEach((f) => {
+        if (f[1]) { const [p, q] = [S(P([f[0], 0])), S(P(f))]; el("line", { x1: p[0], y1: p[1], x2: q[0], y2: q[1], class: "sc-bar" }, svg); }
+      });
+      // tractions tangentielles : flèche fine pour un brin, épaisse pour deux
+      // (ou pour le brin qui reprend la charge du brin rompu)
+      let tau = 0;
+      const pulls = {};
+      L.strands.forEach((st, i) => {
+        if (broken && i === 0) return;
+        const mult = broken && st[1] === L.strands[0][1] && L.strands.findIndex((x, j) => j > 0 && x[1] === L.strands[0][1]) === i ? 2 : 1;
+        const key = viaKnot(st) ? `k${st[0]}` : `${st[0]}${st[1]}`;
+        pulls[key] = pulls[key] || { st, n: 0 };
+        pulls[key].n += mult;
+      });
+      Object.values(pulls).forEach(({ st, n }) => {
+        const [f, side] = st;
+        const r = P(L.fit[f]), p = S(r);
+        if (viaKnot(st)) {
+          // patte d'oie vers le nœud, sur l'axe : traction dirigée vers l'axe
+          el("line", { x1: p[0], y1: p[1], x2: cx, y2: cy, class: "sc-cable" }, svg);
+          const d = Math.hypot(cx - p[0], cy - p[1]);
+          el("line", { x1: p[0], y1: p[1], x2: p[0] + (cx - p[0]) / d * u, y2: p[1] + (cy - p[1]) / d * u, class: "sc-force", "marker-end": `url(#${id}-ink)` }, svg);
+          return;
+        }
+        tau += -r[1] * side * n;  // couple autour de l'axe du vaisseau : −z·F_t
+        el("line", { x1: p[0], y1: p[1], x2: p[0] + side * u, y2: p[1], class: n > 1 ? "sc-force sc-force2" : "sc-force", "marker-end": `url(#${id}-ink)` }, svg);
+      });
+      if (L.knot) el("circle", { cx, cy, r: 3.6, class: "sc-knot" }, svg);
+      L.fit.forEach((f) => { const p = S(P(f)); el("circle", { cx: p[0], cy: p[1], r: 2.4, class: "sc-attach" }, svg); });
+      if (broken) {
+        // brin rompu : tireté, décalé s'il partageait sa ferrure avec le brin restant
+        const [f, side] = L.strands[0], p = S(P(L.fit[f]));
+        const y = p[1] - (L.strands.some(([g, s2], j) => j > 0 && g === f && s2 === side) ? 6 : 0);
+        el("line", { x1: p[0], y1: y, x2: p[0] + side * u, y2: y, class: "sc-cut" }, svg);
+        el("text", { x: p[0] + side * (u + 2), y: y + 3.5, class: "sc-small sc-bad", "text-anchor": side < 0 ? "end" : "start" }, svg, "×");
+      }
+      // couple résultant : arc sous la coque (vert s'il ramène, rouge s'il fait rouler)
+      if (Math.abs(tau) > 1e-6) {
+        const good = phiDeg && tau * ph < 0, cls = good ? "good" : "bad", ra = 50;
+        const [a0, a1] = tau < 0 ? [55, 125] : [125, 55];
+        const pt = (deg) => [cx + ra * Math.cos(deg * Math.PI / 180), cy + ra * Math.sin(deg * Math.PI / 180)];
+        const [p0, p1] = [pt(a0), pt(a1)];
+        el("path", { d: `M ${p0[0]} ${p0[1]} A ${ra} ${ra} 0 0 ${tau < 0 ? 1 : 0} ${p1[0]} ${p1[1]}`, class: `sc-torque sc-${cls}`, "marker-end": `url(#${id}-${cls})` }, svg);
+      }
+      el("text", { x: cx, y: cy + 64, class: "sc-small", "text-anchor": "middle" }, svg, label);
+    }
+    axial(130, `en service, roulé de ${phiS}°`, phiS, false, labels.service);
+    axial(265, L.phiBreak ? `après rupture, roulé` : "juste après rupture", L.phiBreak, true, labels.rupture);
+    container.classList.add("sc");
+    container.innerHTML = "";
+    container.appendChild(svg);
+  }
+
   window.drawSchema = drawSchema;
+  window.drawStrandLayout = drawStrandLayout;
 })();

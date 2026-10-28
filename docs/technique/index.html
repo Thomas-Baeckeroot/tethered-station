@@ -123,6 +123,23 @@ figcaption b { color: var(--ink); }
 .sc-small { font: 400 10.5px var(--f-mono); fill: var(--muted); }
 .sc-caption { font-size: 0.84rem; color: var(--ink-2); }
 .sc-caption b { font-family: var(--f-mono); color: var(--accent); }
+.sc-sep { stroke: var(--line); }
+.sc-bar { stroke: var(--muted); stroke-width: 2.5; }
+.sc-knot { fill: var(--surface); stroke: var(--ink); stroke-width: 1.6; }
+.sc-force { stroke: var(--ink); stroke-width: 1.3; }
+.sc-force2 { stroke-width: 2.6; }
+.sc-head-ink { fill: var(--ink); }
+.sc-head-good { fill: var(--good); }
+.sc-head-bad { fill: var(--bad); }
+.sc-torque { fill: none; stroke-width: 2; }
+.sc-good { stroke: var(--good); }
+.sc-bad { stroke: var(--bad); }
+text.sc-bad { fill: var(--bad); stroke: none; }
+.sc-cut { stroke: var(--bad); stroke-width: 1.3; stroke-dasharray: 3 2; }
+.sl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.sl-grid figure { gap: 4px; align-content: start; }
+.sl-grid h5 { margin: 0; font: 600 0.95rem var(--f-display); color: var(--ink); }
+.sl-grid figcaption { font-size: 0.8rem; }
 
 /* Graphiques */
 .lc { display: grid; gap: 6px; }
@@ -613,8 +630,27 @@ figcaption b { color: var(--ink); }
     <p><b>Principe.</b> Chaque côté est fait de deux brins parallèles de demi-section (45,3 cm², Ø 7,6 cm), fixés aux mêmes ferrures : la masse de câble ne change pas. En service, les deux brins se comportent comme le câble unique (perturbation du § 5.3 : 0,18° dans les deux cas). Chaque brin résiste à 13,6 MN. Si l'un cède, l'autre porte toute la charge du côté, 1,31 MN, soit 10 % de sa résistance ; dans le cas de dimensionnement (1 600 t, 1 g), ce serait 67 % : le facteur de sécurité tomberait de 3 à 1,5 jusqu'au remplacement du brin. Plus fins et deux fois plus nombreux, les brins sont un peu plus exposés aux météorites (1·10⁻⁷ à 2·10⁻⁵ coupure de brin par voyage, § 7.1), ce qui reste négligeable. Simulateur : option <code>--side-strands 2</code> (ou 3).</p>
     <p><b>Rupture d'un brin.</b> Solution retenue, sans moyeu. À t = 60 s, un brin du côté 0 cède en son milieu ; les coupe-câbles larguent ses morceaux une seconde plus tard. Le brin restant prend la charge en un aller-retour d'onde : sa tension monte à <span data-bind="brins.W_brins2_rupture.break.T_max_MN" data-fmt="mn">—</span> (2,8 fois sa tension normale de 0,66 MN, 14 % de sa résistance), et le côté s'allonge de 0,8 m. Le triangle garde sa forme et la rotation ne change pas (<span data-bind="brins.W_brins2_rupture.break.rpm_final" data-fmt="rpm">—</span>). Le seul choc est celui de la rupture : les vaisseaux 0 et 1 perdent d'un coup 0,66 MN de traction, soit une accélération latérale de 1,1 m/s² pour 610 t. Le plancher penche de 16° pendant quelques secondes, et la gravité ressentie varie de 2,9 à 4,6 m/s² pendant 40 s. Le plancher repasse sous 5° en 40 s, sous 3° en 75 s et sous 1° en 3,5 min. Avec le moyeu et ses rayons doublés (§ 7.3), il fallait 2 min pour repasser sous 10° et 10 min pour passer sous 3°.</p>
     <p><b>Variantes.</b> Rupture à l'attache du vaisseau 0 : le brin entier reste pendu au vaisseau 1 jusqu'au largage ; même comportement, plancher à 19° au plus, sous 3° en 75 s, et le brin se rétracte sans toucher de coiffe (20 m au plus près). Au milieu, en revanche, la moitié qui revient vers le vaisseau 0 longe le brin intact et touche sa coiffe 5 s après la rupture, comme au § 7.3 : un frein près de la ferrure ou des entretoises (§ 7.5) restent utiles. Sans coupe-câbles, les deux moitiés restent pendues aux vaisseaux et fouettent (jusqu'à <span data-bind="brins.W_brins2_sans_largage.break.v_whip_max" data-fmt="ms">—</span> à leur extrémité, dans le repère tournant) : rotation parasite de 5 °/s et plancher au-dessus de 1° pendant toute la simulation (15 min).</p>
-    <p><b>Disposition des brins.</b> Brins écartés de 2 m selon l'axe de rotation, sur des ferrures distinctes : la perte d'un brin laisse une traction décentrée, qui fait rouler les vaisseaux 0 et 1 autour de leur axe (jusqu'à <span data-bind="brins.W_brins2_ecartes.roll_max" data-fmt="deg0">—</span>, rotation parasite de 13 °/s), et ils restent roulés de 5°. Les deux brins doivent donc converger vers une ferrure commune, ou vers un palonnier pivotant qui se réaligne sur le brin restant. Trois brins de tiers de section (Ø 6,2 cm) : chaque vaisseau ne perd qu'un tiers de sa traction ; le plancher monte à 9,5° au lieu de 16°, repasse sous 3° en 36 s et sous 1° en 2,3 min, et les deux brins restants montent à <span data-bind="brins.W_brins3_rupture.break.T_max_MN" data-fmt="mn">—</span> (9 % de leur résistance). Les secousses diminuent avec le nombre de brins, au prix de plus de raccords et d'un brin plus fin.</p>
+    <p><b>Disposition des brins.</b> Un vaisseau peut tourner sur lui-même autour de son axe long (roulis), et la force centrifuge ne s'y oppose pas, puisqu'il est symétrique autour de cet axe. Seul l'effet de bride le retient : chaque ferrure du nez est tirée vers le voisin de son côté ; si le vaisseau roule, ces deux tractions opposées, à ±3,5 m de l'axe, le ramènent (période de roulis ≈ 4 s). Il faut donc que chaque brin tire la ferrure de son côté vers l'extérieur. La figure compare cinq façons d'attacher les deux brins d'un côté ; chacune a été simulée 15 min, avec la rupture d'un brin du côté 0 à t = 60 s (pour ②, ④ et ⑤, le brin extérieur) et les coupe-câbles.</p>
+    <ul>
+      <li><b>① Ferrure commune</b> (retenue) : les deux brins tirent au même point, et la rupture de l'un ne déplace pas la traction. Roulis 0,1° au plus, plancher sous 3° en 75 s, rien de permanent.</li>
+      <li><b>② Écartés de 2 m dans le plan de rotation</b>, chacun du côté de son voisin : le rappel est intact et la rupture ne crée aucun couple de roulis. Mais la traction du côté rompu se décale de 1 m vers l'axe du vaisseau : les vaisseaux 0 et 1 restent penchés de 1,1° dans le plan, d'autant plus que l'écart est grand.</li>
+      <li><b>③ Écartés de 2 m en hauteur</b> (selon l'axe de rotation) : la traction restante, décentrée de 1 m, fait rouler les vaisseaux 0 et 1 (jusqu'à <span data-bind="brins.W_brins2_ecartes.roll_max" data-fmt="deg0">—</span>, rotation parasite de 13 °/s), qui restent roulés de 5°.</li>
+      <li><b>④ Croisés sous le nez</b> : chaque brin intérieur part de la ferrure du côté opposé. Chaque ferrure est alors tirée autant vers les deux voisins : les tractions tangentielles s'annulent, et le rappel ne tient plus qu'à la raideur latérale des câbles, 76 fois plus faible (période de roulis 37 s au lieu de 4 s ; pour la même petite perturbation, roulis de 0,6° au lieu de 0,1°). Si un brin extérieur rompt, le brin croisé reprend la charge du côté et tire sa ferrure vers l'autre côté : les vaisseaux 0 et 1 chavirent (90° en 7 s, jusqu'à 43 °/s) et continuent de tournoyer, le plancher penché de 8°. En réalité, les brins s'enrouleraient autour de la coiffe, ce que le modèle ne représente pas. Ils frotteraient en outre l'un sur l'autre au croisement.</li>
+      <li><b>⑤ Croisés et amarrés au croisement</b> : le nœud se trouve sur l'axe du vaisseau, 6 m devant le nez. Les brins intérieurs y forment une patte d'oie dont la traction passe par l'axe : plus de couple de chavirement, mais plus de rappel non plus. Seuls les brins extérieurs rappellent, à moitié (période 6 s). Après la rupture d'un brin extérieur, le roulis reste faible (0,1°), mais toute la charge du côté passe par le nœud, face au brin extérieur de l'autre côté resté seul : les vaisseaux 0 et 1 restent penchés de 1,9° dans le plan. Modèle approché : nœud ramené au centre du nez.</li>
+    </ul>
+    <p>Les deux brins d'un côté doivent donc partir ensemble de la ferrure de ce côté. Les écarter dans le plan coûte une inclinaison permanente après une rupture ; les superposer ou les croiser est à proscrire. Simulateur : option <code>--strand-layout</code> (<code>ferrure</code>, <code>plan</code>, <code>croise</code>, <code>lie</code>).</p>
+    <p><b>Trois brins.</b> Avec des brins de tiers de section (Ø 6,2 cm), chaque vaisseau ne perd qu'un tiers de sa traction ; le plancher monte à 9,5° au lieu de 16°, repasse sous 3° en 36 s et sous 1° en 2,3 min, et les deux brins restants montent à <span data-bind="brins.W_brins3_rupture.break.T_max_MN" data-fmt="mn">—</span> (9 % de leur résistance). Les secousses diminuent avec le nombre de brins, au prix de plus de raccords et d'un brin plus fin.</p>
   </div>
+  <figure id="fig-brins-dispo">
+    <div class="sl-grid">
+      <figure><h5>① Ferrure commune</h5><div data-strands="ferrure" data-top="2 brins par ferrure" data-service="✓ rappel" data-rupture="✓ aucun couple de roulis"></div><figcaption><b>Retenue.</b> Rupture : roulis 0,1°, plancher sous 3° en 75 s.</figcaption></figure>
+      <figure><h5>② Écartés dans le plan</h5><div data-strands="plan" data-top="écart de 2 m, à plat" data-service="✓ rappel" data-rupture="✓ aucun couple de roulis"></div><figcaption>Rupture : pas de roulis, mais plancher penché de 1,1° en permanence.</figcaption></figure>
+      <figure><h5>③ Écartés en hauteur</h5><div data-strands="axe" data-top="superposés, 2 m d'écart" data-service="✓ rappel" data-rupture="✗ couple de roulis"></div><figcaption>Rupture : roulis 16°, vaisseaux restés roulés de 5°.</figcaption></figure>
+      <figure><h5>④ Croisés sous le nez</h5><div data-strands="croise" data-top="croisés" data-service="✗ aucun rappel" data-rupture="✗ roulis amplifié"></div><figcaption>Rappel 76 fois plus faible ; rupture : les vaisseaux chavirent en 7 s.</figcaption></figure>
+      <figure><h5>⑤ Croisés et amarrés</h5><div data-strands="lie" data-top="nœud sur l'axe, 6 m" data-service="~ rappel ÷ 2" data-rupture="~ rappel ÷ 4"></div><figcaption>Rappel moitié ; rupture : roulis 0,1°, plancher penché de 1,9° en permanence.</figcaption></figure>
+    </div>
+    <figcaption><b>Où attacher les deux brins d'un côté ?</b> En haut de chaque carte, le nez de M0 vu de dessus : le centre de la station est vers le bas, M1 à gauche, M2 à droite. En dessous, le même nez vu dans son axe depuis le centre de la station, axe de rotation vertical : vaisseau roulé de 18° en service, puis après la rupture du brin extérieur gauche (×), roulé lui aussi quand la question est la stabilité. Flèches : traction de chaque brin sur sa ferrure, dans le plan de rotation (épaisse : deux brins, ou le brin qui reprend la charge du brin rompu). Arc vert : couple qui ramène le vaisseau ; arc rouge : couple qui le fait rouler. Roulis et ferrures non à l'échelle.</figcaption>
+  </figure>
   <div class="chartbox"><h4>Inclinaison du plancher du vaisseau 1 après la rupture : moyeu ou câbles doublés</h4><div id="ch-brins-tilt"></div></div>
   <div class="callout"><b>Conséquences pratiques</b><span>Deux brins de demi-section par côté, convergeant sur une ferrure commune, et des coupe-câbles : pour la même masse de câble, la perte d'un brin ne déforme pas la station et ne change pas sa rotation ; le plancher repasse sous 3° en un peu plus d'une minute. C'est la meilleure parade simulée. Le moyeu (§ 7.3) reste le seul recours si une ferrure s'arrache, puisque les deux brins partent alors ensemble ; il sert aussi aux treuils et à l'amarrage.</span></div>
 
@@ -886,6 +922,8 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
     ["Z", "triangle2", "tangential", "Triangle, attaches aux extrémités (±20 m), modules tangentiels."],
     ["Z+", "triangle2", "tangential", "Retenue : Z avec attaches surélevées de 20 m."],
   ];
+  document.querySelectorAll("[data-strands]").forEach((d) => drawStrandLayout(d, d.dataset.strands,
+    { top: d.dataset.top, service: d.dataset.service, rupture: d.dataset.rupture, aria: d.parentNode.querySelector("h5").textContent }));
   const sch = document.getElementById("schemas");
   CONFIGS.forEach(([k, topo, mod, cap]) => {
     const d = document.createElement("div");
@@ -1203,7 +1241,9 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
       ["Y_moyeu_rupture_rayon", "Moyeu à 3 rayons, rupture d'un rayon"],
       ["Z_moyeu_double_rupture", "Rayons doublés + coupe-câbles, rupture d'un côté"], ["Z_moyeu_double_rupture_rayon", "Rayons doublés + coupe-câbles, rupture d'un rayon"],
       ["W_brins2_rupture", "Deux brins par côté + coupe-câbles, rupture d'un brin"], ["W_brins2_sans_largage", "Deux brins, sans coupe-câbles"],
-      ["W_brins2_attache", "Deux brins + coupe-câbles, brin rompu à l'attache"], ["W_brins2_ecartes", "Deux brins écartés de 2 m aux attaches + coupe-câbles"],
+      ["W_brins2_attache", "Deux brins + coupe-câbles, brin rompu à l'attache"],
+      ["W_brins2_plan", "Deux brins écartés de 2 m dans le plan (②) + coupe-câbles"], ["W_brins2_ecartes", "Deux brins écartés de 2 m en hauteur (③) + coupe-câbles"],
+      ["W_brins2_croises_rupture", "Deux brins croisés sous le nez (④) + coupe-câbles"], ["W_brins2_lies", "Deux brins croisés et amarrés (⑤) + coupe-câbles"],
       ["W_brins3_rupture", "Trois brins par côté + coupe-câbles, rupture d'un brin"],
     ];
     const tb = document.querySelector("#t-rupture tbody");
