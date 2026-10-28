@@ -232,6 +232,19 @@ CAMPAIGNS = {
         ("U_cargaison_laterale", UNEQ + CARGO + LAT),
         ("U_equipage", UNEQ + WALK + LAT),
         ("U_balayage_z", UNEQ + SWEEP_L + LATZ),
+        # Bassin réaccordé sur le balancement hors plan du vaisseau habité
+        # allégé (≈ 0,072 Hz au lieu de 0,117 Hz) : 19 t, Ø 8,8 m, 0,31 m
+        ("U_balayage_z_bassin", UNEQ + ["--tld-mass-t", "19", "--tld-radius", "4.4"] + SWEEP_L + LATZ),
+    ],
+    # Câbles multiples (même masse de câble) : un brin sur deux ou trois
+    # rompt au milieu, les autres reprennent la charge ; brins sur la même
+    # ferrure, ou écartés de 2 m selon l'axe de rotation
+    "brins": [
+        ("W_brins2_rupture", TLD + BRK + ["--side-strands", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"] + TRAJ),
+        ("W_brins2_sans_largage", TLD + BRK + ["--side-strands", "2", "--break-at", "0.5", "--duration", "900"]),
+        ("W_brins2_attache", TLD + BRK + ["--side-strands", "2", "--break-at", "0", "--release-delay", "1", "--duration", "900"]),
+        ("W_brins2_ecartes", TLD + BRK + ["--side-strands", "2", "--strand-gap", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
+        ("W_brins3_rupture", TLD + BRK + ["--side-strands", "3", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
     ],
 }
 

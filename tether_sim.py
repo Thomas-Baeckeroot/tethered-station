@@ -305,6 +305,19 @@ class Station:
                 self.h = self.ship["x_tot"] - x_att  # vaisseau 0 : centre de masse total sous l'attache
             self.Ib = np.array([[shp["I_ax"], shp["I_tr"], shp["I_tr"]] for shp in self.ships])
         topo = build_topology(args.topology, args.spread)
+        # Câbles multiples : N brins par côté, répartis sur ±écart/2 selon e_z
+        # (0 : sur la même ferrure), chacun dimensionné pour 1/N de la charge
+        # (même masse de câble au total)
+        ns_ = getattr(args, "side_strands", 1)
+        if ns_ > 1:
+            if not args.topology.startswith("triangle"):
+                raise ValueError("les câbles multiples supposent une topologie en triangle")
+            if len(set(masses_t)) > 1:
+                raise ValueError("câbles multiples et masses inégales : non prévu")
+            na0, cab0 = len(topo["attach"]), topo["cables"]
+            topo["attach"] = [(s_, dz) for dz in np.linspace(args.strand_gap / 2, -args.strand_gap / 2, ns_) for s_, _ in topo["attach"]]
+            topo["cables"] = [((bA, kA + q * na0), (bB, kB + q * na0)) for q in range(ns_) for (bA, kA), (bB, kB) in cab0]
+            topo["tfac"] /= ns_
         # Moyeu central : un point d'attache de plus au milieu du nez de chaque
         # module, et un rayon vers le moyeu (câbles d'indice 3 à 5)
         self.hub_m = getattr(args, "hub_mass_t", 0.0) * 1e3
@@ -770,7 +783,12 @@ class Station:
             c = Mb_tot[:, None] * self.xb
             np.add.at(c, self.sb, self.sm[:, None] * (self.xb[self.sb] + rs))
             return c / Mmod[:, None]
-        mb = mf
+        # Masse fictive des modules : assez grande pour que leur raideur
+        # d'attache (somme des segments d'attache : brins multiples, rayons)
+        # reste stable avec ce pas (inchangée pour un ou deux brins)
+        K_att = np.zeros(self.nb)
+        np.add.at(K_att, self.att_body[self.as_att], self.k[self.as_idx])
+        mb = max(mf, 0.25 * K_att.max() * mf / self.k.max())
         for it in range(40):
             wz = np.zeros(self.nb)
             vn = np.zeros_like(self.xn)
@@ -1173,7 +1191,11 @@ def run(args):
     else:
         st.set_rigid_rotation()
     apply_perturbation(st, args)
-    Mtot = st.m_total
+    # Centre de la station pour les diagnostics : vaisseaux, masses internes,
+    # ergols et moyeu, sans les câbles (les morceaux largués s'éloignent et
+    # entraîneraient ce centre ; câbles intacts : symétriques, sans effet)
+    hub = np.array(st.hub_nodes, dtype=int)
+    M_com = st.mn[hub].sum() + st.Mb.sum() + st.mi.sum() + st.sm.sum()
 
     dt = st.dt
     n_steps = int(args.duration / dt)
@@ -1244,7 +1266,7 @@ def run(args):
             Fn = np.linalg.norm(Fb, axis=1)
             up = np.einsum("bij,bj->bi", st.R, st.up_body)
             tilt = np.degrees(np.arccos(np.clip(np.sum(up * Fb, axis=1) / Fn, -1, 1)))
-            com = (st.mn @ st.xn + st.Mb @ st.xb + st.mi @ st.xi + st.sm @ st.xs) / Mtot
+            com = (st.mn[hub] @ st.xn[hub] + st.Mb @ st.xb + st.mi @ st.xi + st.sm @ st.xs) / M_com
             roll, zc = roll_angles(st.xb, st.R, com, eL, args.module)
             wrel = np.degrees(np.linalg.norm(st.omega_world() - (st.spin_rate() if spin else st.omega) * eL, axis=1))
             if nb == 2:
@@ -1572,6 +1594,8 @@ def make_parser():
     p.add_argument("--break-time", type=float, default=60.0, help="instant de la rupture (s)")
     p.add_argument("--release-delay", type=float, default=-1.0, help="coupe-câbles : largage des morceaux du câble rompu après ce délai (s ; −1 = jamais)")
     p.add_argument("--hub-spokes", type=int, choices=[1, 2], default=1, help="rayons par vaisseau (2 : depuis chacun des deux points d'attache du nez)")
+    p.add_argument("--side-strands", type=int, choices=[1, 2, 3], default=1, help="brins par côté du triangle (chacun pour 1/N de la charge)")
+    p.add_argument("--strand-gap", type=float, default=0.0, help="câbles multiples : écart entre brins extrêmes aux attaches, selon l'axe de rotation (m ; 0 = même ferrure)")
     p.add_argument("--break-at", type=float, default=0.5, help="position de la rupture le long du câble (0 = à la première attache, 0,5 = au milieu)")
     p.add_argument("--cfl", type=float, default=0.3, help="fraction du pas de temps critique")
     p.add_argument("--record-dt", type=float, default=0.05, help="période d'échantillonnage (s)")

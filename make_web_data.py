@@ -47,9 +47,10 @@ ANIMATIONS = [
     ("rupture", "Y_moyeu_rupture", 50, 650, 0.5),
     ("rupture", "Y_moyeu_rupture_largage", 50, 650, 0.5),
     ("rupture", "Z_moyeu_double_rupture", 50, 650, 0.5),
+    ("brins", "W_brins2_rupture", 50, 350, 0.5),
 ]
 # Pas des séries exportées (s) : plus fin pour les ruptures (fouet des brins)
-SERIES_STEP = {"rupture": 0.5}
+SERIES_STEP = {"rupture": 0.5, "brins": 0.5, "montee": 2.0}
 
 
 def r(x, nd=3):
@@ -95,6 +96,10 @@ def export_series(campaign, dest, step=1.0):
         summary[name] = info
         d = np.load(os.path.join(OUT, campaign, name + ".npz"))
         t = d["t"]
+        # Maxima par vaisseau (masses inégales : le vaisseau habité seul compte)
+        info["results"]["tilt_max_ship"] = r(d["tilt"].max(axis=0), 4)
+        info["results"]["g_min_ship"] = r(d["g"].min(axis=0), 5)
+        info["results"]["g_max_ship"] = r(d["g"].max(axis=0), 5)
         k = max(1, int(round(step / (t[1] - t[0]))))
         ser = dict(t=r(t[::k], 1), roll=r(d["roll"][::k].T, 2), tilt=r(d["tilt"][::k].T, 3),
                    wrel=r(d["wrel"][::k].T, 3), g=r(d["g"][::k].T, 5))
@@ -114,6 +119,12 @@ def export_series(campaign, dest, step=1.0):
             if d["clear"].size:
                 ser["clear"] = r(d["clear"][::k].T, 1)
                 ser["vwhip"] = r(d["vwhip"][::k], 1)
+        if "spin" in info:
+            # Mise en rotation : vitesse (tr/min), poussée totale (kN), tension
+            # des côtés (MN)
+            ser["rpm"] = r(d["wsys"][::k] * 60 / (2 * math.pi), 4)
+            ser["thrust"] = r(d["thrust"][::k] / 1e3, 2)
+            ser["T"] = r(d["T"][::k] / 1e6, 4)
         with open(os.path.join(dest, "series", name + ".json"), "w") as fh:
             json.dump(ser, fh, separators=(",", ":"))
     return summary
@@ -219,7 +230,8 @@ def main():
     args = p.parse_args()
     os.makedirs(args.dest, exist_ok=True)
     summary = {}
-    for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement", "retenue", "amortisseur", "rupture"):
+    for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement", "retenue", "amortisseur", "rupture",
+                     "moyeu", "montee", "lox", "masses", "brins"):
         if os.path.isdir(os.path.join(OUT, campaign)):
             summary[campaign] = export_series(campaign, args.dest, SERIES_STEP.get(campaign, 1.0))
             print(f"séries : {campaign} ({len(summary[campaign])} scénarios)")
