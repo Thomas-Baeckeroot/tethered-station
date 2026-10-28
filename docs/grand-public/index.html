@@ -327,7 +327,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <h3>Un bassin d'eau contre le balancement</h3>
     <p>Certains gratte-ciel combattent leurs oscillations avec un bassin d'eau : quand la tour se balance, l'eau clapote à contretemps et absorbe le mouvement. Il suffit de régler la profondeur du bassin pour que l'eau clapote au même rythme que la tour, et de freiner le clapotis par des grilles.</p>
     <p>Nous avons cherché le meilleur bassin pour nos vaisseaux. Il faut le placer en haut, sous la coiffe : le vaisseau se balance autour de son centre de gravité, et un bassin posé près des moteurs ne bougerait presque pas. Il faut 25 t d'eau, dans un bassin rond de 7,2 m de diamètre et 60 cm de profondeur, qui clapote toutes les 8,5 secondes. C'est beaucoup pour un vaisseau spatial, 4 % de sa masse, mais cette eau n'est pas du poids mort : l'équipage en a besoin de toute façon, pour boire et se laver, et quelques dizaines de centimètres d'eau sont l'un des meilleurs abris contre les radiations. Plus d'eau n'apporte rien.</p>
-    <p class="verdict">Avec le bassin, au pire rythme, le plancher ne penche plus que de <b data-bind="T_balayage_z.tilt_max">—</b> au lieu de 2,7°. Cette eau sert aussi de réserve et de protection contre les radiations.</p>
+    <p class="verdict">Avec le bassin, au pire rythme, le plancher ne penche plus que de <b data-bind="T_balayage_z.tilt_max">—</b> au lieu de 2,7°. Ce qui reste vient surtout du clapotis de l'oxygène : des chicanes plus efficaces, placées juste sous la surface du liquide, dont le niveau ne change pas pendant le voyage, le ramèneraient à <b data-bind="V_chicanes8_balayage_z.tilt_max">—</b>.</p>
   </div>
   <figure>
     <div class="chartbox"><div id="chart-tld"></div></div>
@@ -362,10 +362,11 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <li><b>Pas de pivotement</b><span>Le vaisseau perturbé ne tourne que de <span class="num" data-bind="R_perturbation.roll_max">—</span> autour de son axe.</span></li>
     <li><b>Plancher stable</b><span><span class="num" data-bind="R_cargaison_laterale.tilt_max">—</span> au pire quand 50 t traversent un pont, <span class="num" data-bind="R_equipage.tilt_max">—</span> quand l'équipage marche, rien quand on change de pont, <span class="num" data-bind="T_balayage_z.tilt_max">—</span> au pire rythme grâce au bassin.</span></li>
     <li><b>Gravité stable</b><span>Entre <span class="num" data-bind="R_perturbation.g_min" data-fmt="ms2">—</span> et <span class="num" data-bind="R_perturbation.g_max" data-fmt="ms2">—</span>, pour 3,711 m/s² visés.</span></li>
+    <li><b>Mise en rotation en douceur</b><span>Des propulseurs amènent la station de 0,1 à 1 tour par minute en une demi-heure, avec 20 t d'ergols au total : pendant la manœuvre, le plancher penche de <span class="num" data-bind="S_montee_k005.spin.tilt_max_on">—</span> et les câbles restent tendus.</span></li>
     <li><b>Marge de résistance</b><span>Câbles dimensionnés pour des vaisseaux pleins à 1 g avec un facteur de sécurité de 3 : en route, ils ne travaillent qu'à 5 % de leur résistance.</span></li>
   </ul>
   <p class="verdict">Le point sensible était le balancement des vaisseaux, plus légers qu'au départ et alourdis d'ergols qui ne suivent pas la coque : 4 t (une cinquantaine de personnes) se balançant en cadence toutes les 8 secondes faisaient pencher le plancher de 2,7°. Un bassin de 25 t d'eau sous la coiffe de chaque vaisseau ramène ce pire cas à <span class="num" data-bind="T_balayage_z.tilt_max">—</span>, sans moteur ni pièce mobile.</p>
-  <p>Une astuce pourrait aussi ralentir la rotation : transvaser avant la mise en rotation les ergols du vaisseau habité dans les deux cargos. Plus léger, il tournerait plus loin du centre, à 447 m au lieu de 338 m, et 0,87 tour par minute suffirait pour garder la gravité de Mars à bord, 13 % de moins pour l'oreille interne. Les cargos, eux, tomberaient à 2,5 m/s². Mais un vaisseau plus léger réagit davantage aux mouvements de son équipage : c'est à simuler (<a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi#transfert-ergols" target="_blank" rel="noopener">détails dans le carnet</a>).</p>
+  <p>Une astuce pourrait aussi ralentir la rotation : transvaser avant la mise en rotation les ergols du vaisseau habité dans les deux cargos. Plus léger, il tournerait plus loin du centre, à 447 m au lieu de 338 m, et 0,87 tour par minute suffirait pour garder la gravité de Mars à bord, 13 % de moins pour l'oreille interne. Les cargos, eux, tomberaient à 2,5 m/s². Nous l'avons simulé : le compte est bon, mais le vaisseau habité devient six fois plus sensible aux mouvements à bord, parce qu'il est plus léger et que son centre de gravité remonte vers le nez. Marcher y fait pencher le plancher de <span class="num" data-bind="U_equipage.tilt_max_ship.0">—</span>, déplacer 50 t de <span class="num" data-bind="U_cargaison_laterale.tilt_max_ship.0">—</span>. Un compromis : n'en transvaser que la moitié donnerait 0,93 tour par minute, pour une sensibilité moins que doublée (<a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi#masses-inegales" target="_blank" rel="noopener">détails dans le carnet</a>).</p>
 </section>
 
 <section class="col" id="rupture">
@@ -396,7 +397,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <div class="txt">
     <span class="tag">Parade</span>
     <h3>Une roue de vélo</h3>
-    <p>La parade la plus efficace que nous ayons trouvée : un moyeu au centre de la station, relié au nez de chaque vaisseau par des rayons, comme une roue de vélo. En temps normal, les rayons sont à peine tendus et ne changent rien au confort. Si un côté du triangle casse, ils prennent le relais : les vaisseaux restent à leur place et la rotation ne change pas.</p>
+    <p>Première parade : un moyeu au centre de la station, relié au nez de chaque vaisseau par des rayons, comme une roue de vélo. En temps normal, les rayons sont à peine tendus et ne changent rien au confort. Si un côté du triangle casse, ils prennent le relais : les vaisseaux restent à leur place et la rotation ne change pas.</p>
     <p>Deux détails comptent. Il faut deux rayons par vaisseau : avec un seul, la perte d'un rayon libère le moyeu, qui « tombe » vers l'extérieur et donne un à-coup aussi violent qu'une rupture de côté. Et des coupe-câbles aux attaches doivent larguer les morceaux du câble cassé dans la seconde, avant qu'ils ne reviennent fouetter les coques.</p>
     <p class="verdict">Avec le moyeu, ses rayons doublés et les coupe-câbles, la station garde sa forme et sa vitesse de rotation. Les câbles ne dépassent pas <span data-bind="Z_moyeu_double_rupture.break.T_max_MN" data-fmt="mn">—</span>, et l'équipage, attaché, subit une vingtaine de secondes de secousses, comme dans un avion qui traverse des turbulences. La perte d'un rayon passe, elle, inaperçue.</p>
     <p>Le moyeu sert aussi à autre chose. Sur l'axe, en apesanteur, c'est l'endroit idéal pour amarrer un véhicule, loger les treuils qui déroulent les câbles et ajustent leur longueur, et ranger les câbles quand ils ne servent pas.</p>
@@ -410,11 +411,28 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </figure>
 </section>
 
+<section class="trap wide" id="rupture-brins">
+  <div class="txt">
+    <span class="tag">Parade</span>
+    <h3>Deux brins plutôt qu'un</h3>
+    <p>Plus simple encore : remplacer chaque câble par deux brins de demi-section, côte à côte sur les mêmes attaches. La masse de câble ne change pas et, en temps normal, la station ne voit pas la différence. Si un brin casse, l'autre porte seul toute la charge : au plus fort de l'à-coup, <span data-bind="W_brins2_rupture.break.T_max_MN" data-fmt="mn">—</span>, soit 14 % de ce qu'il peut tenir.</p>
+    <p>Le triangle garde sa forme et la rotation ne change pas. Seul le premier instant secoue : les deux vaisseaux concernés perdent d'un coup la moitié de leur traction, et leur plancher penche de 16° pendant quelques secondes. Il repasse sous 5° en 40 secondes et sous 1° en trois minutes et demie. Avec le moyeu, il fallait dix minutes pour repasser sous 3°.</p>
+    <p class="verdict">Pour la même masse de câble, c'est la meilleure parade que nous ayons simulée. Les coupe-câbles restent nécessaires : sans eux, les moitiés du brin cassé fouettent autour des vaisseaux pendant de longues minutes. Le moyeu garde aussi son intérêt : si c'est une attache qui lâche, les deux brins partent ensemble.</p>
+  </div>
+  <figure>
+    <div class="viewer" data-anim="W_brins2_rupture" data-speed="3">
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50}'></div>
+    </div>
+    <div class="ctrl" hidden></div>
+    <figcaption><b>Simulation : l'un des deux brins du côté entre les vaisseaux 0 et 1 cède en son milieu, 10 s après le début.</b> Ses morceaux sont largués une seconde plus tard ; le brin intact, superposé au brin cassé, retient seul les deux vaisseaux. Vue dans le repère qui tourne avec la station, vaisseaux dessinés trois fois plus gros. Lecture accélérée 3 fois.</figcaption>
+  </figure>
+</section>
+
 <section class="col" id="parades">
   <h3>D'autres idées pour des câbles plus sûrs</h3>
   <ul class="checks">
-    <li><b>Des câbles doublés</b><span>Deux brins par côté, reliés tous les 150 à 200 m par des palonniers et des diagonales : un brin coupé ne lâche qu'un tronçon, son voisin reprend la charge et le morceau libre reste captif. Sans diagonales, l'effort ne passerait pas d'un brin à l'autre. Écartés dans la bonne direction, ils raidiraient aussi le balancement le plus sensible.</span></li>
-    <li><b>Des tronçons remplaçables</b><span>Des câbles faits de tronçons d'environ 180 m, de 1,6 t chacun : plus faciles à fabriquer, contrôler et remplacer. Grâce au moyeu, on pourrait détendre un côté pour en changer un tronçon sans arrêter la rotation. Chaque raccord reste un point faible à soigner.</span></li>
+    <li><b>Des entretoises entre les brins</b><span>Des palonniers tous les 150 à 200 m garderaient les deux brins écartés et retiendraient les morceaux d'un brin cassé, qu'il ne serait plus nécessaire de larguer. Ils ne servent pas à reprendre l'effort : le brin intact y suffit.</span></li>
+    <li><b>Des tronçons remplaçables</b><span>Des câbles faits de tronçons d'environ 180 m, de 1,6 t chacun : plus faciles à fabriquer, contrôler et remplacer. Avec des câbles doublés, on remplacerait un brin pendant que l'autre porte la charge, sans arrêter la rotation ; avec le moyeu, on pourrait même détendre tout un côté. Chaque raccord reste un point faible à soigner.</span></li>
     <li><b>Un filet plutôt que trois câbles</b><span>En coupant chaque côté en trois et en reliant les points par des câbles intérieurs, on obtient un filet de neuf triangles dont le centre est le moyeu. N'importe quel câble peut céder. La rotation suffit à tendre un filet, comme la voile solaire japonaise IKAROS.</span></li>
     <li><b>Des amortisseurs aux attaches</b><span>Des sangles qui se déchirent progressivement, comme dans les harnais antichute, plafonneraient les à-coups : 5 MN au lieu de 10, sur quelques mètres de course.</span></li>
     <li><b>Un câble qui se surveille</b><span>Une fibre optique dans le câble mesure son allongement sur toute sa longueur et signale un brin rompu ou un échauffement. Un robot grimpeur peut l'inspecter, poser un manchon de réparation, ou tirer un câble neuf le long de l'ancien.</span></li>
@@ -557,12 +575,12 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <span class="eyebrow">8 · La suite</span>
   <h2>Ce qu'il reste à étudier</h2>
   <ul class="todo">
-    <li>La mise en rotation après l'injection vers Mars : rapprocher les trois vaisseaux, dérouler les câbles et accélérer sans jamais les laisser se détendre.</li>
+    <li>Le déploiement après l'injection vers Mars : rapprocher les trois vaisseaux et dérouler les câbles avant la mise en rotation, quand ils ne portent presque rien.</li>
     <li>Le clapotis réel du bassin d'eau aux grandes amplitudes (vagues qui déferlent), que nos pendules ne représentent pas.</li>
     <li>Des pattes d'oie sur plusieurs points d'ancrage du nez, pour raidir le balancement perpendiculaire au plan de rotation, aujourd'hui le plus sensible.</li>
     <li>Le moyeu et ses rayons en détail : déploiement des câbles depuis le moyeu, treuils, et le contact des câbles avec les coques, que notre modèle ne représente pas.</li>
-    <li>Des câbles doublés reliés par des palonniers et des diagonales, et des tronçons remplaçables en vol.</li>
-    <li>Des vaisseaux de masses différentes : le vaisseau d'équipage et les cargos ne seront pas forcément chargés à l'identique.</li>
+    <li>Les attaches des câbles doublés, les entretoises entre brins et des tronçons remplaçables en vol.</li>
+    <li>Un vaisseau habité allégé mais lesté en bas, pour tourner plus lentement sans perdre en confort.</li>
     <li>Plus tard, le contrôle actif : les moteurs de manœuvre pour corriger l'axe de rotation et amortir les balancements.</li>
     <li>Le vieillissement des câbles : rayonnement, micrométéorites, fluage du Dyneema sous charge permanente.</li>
   </ul>
@@ -710,7 +728,8 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
       });
     }).catch(() => {});
   getJSON("data/summary.json").then((s) => {
-    const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {}, s.starship || {}, s.mission || {}, s.ballottement || {}, s.retenue || {}, s.amortisseur || {}, s.rupture || {});
+    const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {}, s.starship || {}, s.mission || {}, s.ballottement || {}, s.retenue || {}, s.amortisseur || {}, s.rupture || {},
+                               s.moyeu || {}, s.montee || {}, s.lox || {}, s.masses || {}, s.brins || {});
     document.querySelectorAll("[data-bind]").forEach((n) => {
       // chemin : scénario.clé[.sous-clé][.indice] (résultats, sinon informations)
       const [name, key, ...sub] = n.dataset.bind.split(".");

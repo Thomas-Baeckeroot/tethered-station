@@ -198,9 +198,11 @@ figcaption b { color: var(--ink); }
     <li><span class="k">Roulis</span><span>Un câble ne transmet pas de couple. Debout et axisymétrique, un vaisseau tenu par un seul câble a un roulis neutre : il dérive sans fin. Les deux attaches écartées du triangle le rappellent (<var>k</var> = <var>T s</var> + 2<var>T s</var>²/<var>L</var>) : roulis max <span data-bind="retenue.R_perturbation.roll_max" data-fmt="deg">—</span> après une poussée.</span></li>
     <li><span class="k">Vie à bord</span><span>50 t déplacées de 3,5 m sur un pont : <span data-bind="retenue.R_cargaison_laterale.tilt_max" data-fmt="deg">—</span> d'inclinaison du plancher. Changer de pont : <span data-bind="retenue.R_cargaison_verticale.tilt_max" data-fmt="deg">—</span>. Marche de l'équipage : <span data-bind="retenue.R_equipage.tilt_max" data-fmt="deg">—</span>.</span></li>
     <li><span class="k">Ergols</span><span>186 t de liquide ballottent par vaisseau (30 % de la masse). Sans chicanes, le ballottement du LOX résonne vers 4 s de période et met des minutes à se calmer (jusqu'à 4,3°). Avec chicanes (ζ = 3 %), il s'éteint en 20 s.</span></li>
-    <li><span class="k">Amortisseur</span><span>Le point faible était le balancement hors du plan de rotation (période ≈ 8 s) : 4 t oscillant au pire rythme inclinaient le plancher de 2,7°. Un bassin de 25 t d'eau (Ø 7,2 m, 0,61 m de profondeur), placé à 12 m de la pointe, accordé à 0,117 Hz et amorti à 15 % par des grilles, ramène ce pire cas à <span data-bind="amortisseur.T_balayage_z.tilt_max" data-fmt="deg">—</span> (<span data-bind="amortisseur.T_balayage_t.tilt_max" data-fmt="deg">—</span> dans le plan), sans rien changer aux mouvements ordinaires (§ 6.1).</span></li>
+    <li><span class="k">Amortisseur</span><span>Le point faible était le balancement hors du plan de rotation (période ≈ 8 s) : 4 t oscillant au pire rythme inclinaient le plancher de 2,7°. Un bassin de 25 t d'eau (Ø 7,2 m, 0,61 m de profondeur), placé à 12 m de la pointe, accordé à 0,117 Hz et amorti à 15 % par des grilles, ramène ce pire cas à <span data-bind="amortisseur.T_balayage_z.tilt_max" data-fmt="deg">—</span> (<span data-bind="amortisseur.T_balayage_t.tilt_max" data-fmt="deg">—</span> dans le plan), sans rien changer aux mouvements ordinaires (§ 6.1). Des chicanes du LOX à ζ = 8 % le ramènent à <span data-bind="lox.V_chicanes8_balayage_z.tilt_max" data-fmt="deg">—</span> (§ 6.2).</span></li>
+    <li><span class="k">Mise en rotation</span><span>De 0,1 à 1 tr/min en une demi-heure, avec une accélération proportionnelle à ω² : 20 t d'ergols pour les trois vaisseaux, plancher penché de <span data-bind="montee.S_montee_k005.spin.tilt_max_on" data-fmt="deg">—</span> pendant la poussée, câbles toujours tendus (§ 5.4).</span></li>
+    <li><span class="k">Transfert d'ergols</span><span>Transvaser les ergols du vaisseau habité dans les cargos permet de tourner à 0,87 tr/min, mais rend son plancher six fois plus sensible : <span data-bind="masses.U_cargaison_laterale.tilt_max_ship.0" data-fmt="deg">—</span> pour 50 t déplacées sur un pont. À éviter, ou à limiter à la moitié des ergols (§ 5.5).</span></li>
     <li><span class="k">Alternatives</span><span>Couchés, les vaisseaux demandent des mâts et un intérieur refait, pour une pire résonance plus forte (0,86° contre 0,57° à 1 600 t ; 2,6° sans mâts). À deux vaisseaux, le roulis est neutre : 205° de dérive en 30 min. Modules génériques : un module allongé parallèle à l'axe de rotation est instable (doublement 7,1 s) ; l'haltère est sujet à l'effet Djanibekov.</span></li>
-    <li><span class="k">Rupture</span><span>Un câble de 11 cm ne craint presque pas les météorites (≈ 10⁻⁶ coupure par voyage) ; les causes plausibles sont les attaches, l'usure, les défauts. Si un côté casse, les câbles restants tiennent (<span data-bind="rupture.X_rupture_milieu.break.T_max_MN" data-fmt="mn">—</span>, 38 % de leur résistance), mais le triangle s'ouvre et « respire » : à-coups de 2 g, vaisseaux qui tournoient. Parade simulée : un moyeu central relié au nez de chaque vaisseau par deux rayons, et des coupe-câbles qui larguent les morceaux ; la station garde alors sa forme et sa rotation, et les secousses durent une vingtaine de secondes (§ 7).</span></li>
+    <li><span class="k">Rupture</span><span>Un câble de 11 cm ne craint presque pas les météorites (≈ 10⁻⁶ coupure par voyage) ; les causes plausibles sont les attaches, l'usure, les défauts. Si un côté casse, les câbles restants tiennent (<span data-bind="rupture.X_rupture_milieu.break.T_max_MN" data-fmt="mn">—</span>, 38 % de leur résistance), mais le triangle s'ouvre et « respire » : à-coups de 2 g, vaisseaux qui tournoient. Meilleure parade simulée : deux brins de demi-section par côté, même masse de câble, et des coupe-câbles qui larguent les morceaux du brin rompu ; la station garde sa forme et sa rotation, et le plancher repasse sous 3° en 75 s (§ 7.4). Un moyeu central relié au nez de chaque vaisseau par deux rayons protège aussi contre la perte d'un côté entier, avec des secousses plus longues (§ 7.3).</span></li>
     <li><span class="k">Validation</span><span>Conservation de l'énergie et du moment cinétique à 10⁻⁹ ; temps de doublement analytique retrouvé à 0,1 % ; Project Chrono, moteur indépendant, donne le même roulis (écart de temps de doublement <span data-bind="validation.B_haltere_axial.doubling_rel" data-fmt="pct">—</span>) ; ballottement : énergie conservée à 10⁻⁸, fréquence couplée à 1 % du modèle linéaire.</span></li>
   </ul>
 </section>
@@ -362,6 +364,48 @@ figcaption b { color: var(--ink); }
   </div>
   <div class="callout"><b>Conséquences pratiques</b><span>Garder le centre de masse bas : ranger l'eau, les réserves et les ergols restants côté moteurs augmente <var>h</var> et raidit tous les balancements. Raidir le balancement hors plan : répartir chaque câble en patte d'oie sur plusieurs points d'ancrage du nez, écartés aussi selon l'axe de rotation. Éviter les activités collectives rythmées sur des périodes de 5 à 9 s. Ces résultats supposent les ergols figés ; leur ballottement est traité au § 6.</span></div>
 
+  <h3 id="mise-en-rotation">5.4 Mise en rotation</h3>
+  <div class="prose">
+    <p><b>Programme.</b> Une fois les câbles déroulés, des propulseurs poussent chaque vaisseau perpendiculairement au rayon. Il faut fournir tout le moment cinétique de la station : une impulsion <var>L</var>/<var>R</var> ≈ 6,5·10⁷ N·s au total, soit 22 t d'ergols à 300 s d'impulsion spécifique (7 t par vaisseau), quelle que soit la durée. Pendant la poussée, le plancher ressent l'accélération tangentielle α<var>r</var> en plus de la gravité ω²<var>r</var>, et la gravité apparente penche de arctan(α/ω²) : à α constant, cet angle est énorme au début, quand la gravité est encore faible. D'où le programme α = <var>k</var>ω², qui le garde constant (arctan <var>k</var>) ; la montée de ω₀ à ω₁ dure alors (1/ω₀ − 1/ω₁)/<var>k</var>.</p>
+    <p><b>Simulation.</b> Solution retenue (610 t, chicanes, bassin). Départ à 0,1 tr/min, à l'équilibre : câbles tendus à 1 % de leur tension nominale (13 kN). La poussée, <var>F</var> = (<var>M</var>/3)·α·<var>r</var>, s'applique au centre de masse de chaque vaisseau ; elle décroît sur les derniers 5 % de vitesse pour ne pas laisser d'à-coup. L'inclinaison du plancher n'est comptée que lorsque la gravité ressentie dépasse 0,5 m/s², au-delà de 0,37 tr/min : en deçà, on est presque en apesanteur et l'angle n'a plus de sens.</p>
+  </div>
+  <div class="tbl"><table id="t-montee"><thead><tr><th>Programme</th><th>Durée</th><th>Plancher, poussée</th><th>Après</th><th>Ballottement (LOX / CH4 / eau)</th><th>Rotation parasite</th><th>Ergols</th></tr></thead><tbody></tbody>
+  <caption>Mise en rotation de 0,1 à 1 tr/min, solution retenue. Programme α = <var>k</var>·ω² (gravité apparente penchée de arctan <var>k</var> : 2,9° pour <var>k</var> = 0,05, 11° pour 0,2), ou α constant (5,2·10⁻⁵ rad/s²). Poussée au centre de masse, ou à l'arrière (45 m de la pointe). Plancher : vaisseau 0, gravité ressentie supérieure à 0,5 m/s². « Après » : une fois la vitesse atteinte. Valeurs max. Ergols : Isp 300 s, trois vaisseaux. À α constant, la fin progressive est plus lente : 0,998 tr/min après 35 min.</caption></table></div>
+  <div class="grid2">
+    <div class="chartbox"><h4>Vitesse de rotation</h4><div id="ch-montee-rpm"></div></div>
+    <div class="chartbox"><h4>Inclinaison du plancher, vaisseau 0</h4><div id="ch-montee-tilt"></div></div>
+  </div>
+  <div class="prose">
+    <p><b>Résultats.</b> Avec <var>k</var> = 0,05, la station atteint 1 tr/min en <span data-bind="montee.S_montee_k005.spin.t_reach" data-fmt="min">—</span> ; le plancher penche d'un angle presque constant de <span data-bind="montee.S_montee_k005.spin.tilt_max_on" data-fmt="deg">—</span> pendant toute la poussée (la gravité apparente penche de 2,9°, le vaisseau la suit un peu), puis revient à <span data-bind="montee.S_montee_k005.spin.tilt_max_after" data-fmt="deg">—</span> : il ne reste aucune oscillation. Les câbles restent tendus du début à la fin, et les liquides se déplacent de 14 à 33 cm. Quatre fois plus vite (<var>k</var> = 0,2, 7 min), le plancher penche de 10°, l'eau du bassin se déplace de 1,3 m et il reste 0,4° d'oscillation. À α constant, pour une durée voisine, le plancher ne penche que de 1,8° une fois la gravité installée, mais de 28° au départ : les liquides, presque en apesanteur, se déplacent de 1 à 2 m. Pousser à l'arrière des vaisseaux (45 m de la pointe) plutôt qu'au centre de masse économise 4 % d'ergols, grâce à un bras de levier plus long, mais fait pencher le plancher de 4,1°. Avec le moyeu (§ 7.3), le comportement est le même ; ses rayons, réglés pour 1 tr/min, restent presque détendus (quelques kN) jusqu'à 0,9 tr/min.</p>
+  </div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Une demi-heure et 20 t d'ergols (7 t par vaisseau) suffisent pour passer de 0,1 à 1 tr/min, avec un plancher qui penche de moins de 3° : l'équipage peut rester à son poste. La poussée doit suivre la vitesse (α proportionnel à ω²), passer près du centre de masse et décroître doucement en fin de course. Reste à étudier la phase précédente, sous 0,1 tr/min : rapprochement des vaisseaux et déroulement des câbles, quand ceux-ci ne portent presque rien et doivent être tenus tendus par les treuils.</span></div>
+
+  <h3 id="masses-inegales">5.5 Masses inégales : transfert d'ergols</h3>
+  <div class="prose">
+    <p><b>Idée.</b> Si le vaisseau habité transvase ses ergols dans les deux cargos avant la mise en rotation, les masses deviennent 220, 805 et 805 t. Plus léger, il tourne plus loin du centre de rotation, et 0,87 tr/min suffisent pour garder 3,711 m/s² à son bord (calcul statique au § 15). Reste à savoir ce que devient le confort dans un vaisseau presque trois fois plus léger.</p>
+    <p><b>Mise en place.</b> Câbles inchangés, attaches réelles à 9 m de la pointe. Les centres de masse sont placés sur un triangle équilatéral, dont la taille donne le rayon visé au vaisseau habité ; les tensions d'équilibre des trois côtés sont obtenues par moindres carrés, puis les longueurs à vide des câbles. Une relaxation dans le repère tournant ajuste ensuite les positions et l'orientation de chaque vaisseau dans le plan.</p>
+    <p><b>Équilibre à 0,87 tr/min.</b> Le vaisseau habité tourne à 449 m du centre et ressent 3,725 m/s² ; les cargos tournent à 298 m (2,47 m/s²). Les deux câbles du vaisseau habité tirent 0,47 MN, celui qui relie les cargos 1,74 MN (6,4 % de sa résistance). Les cargos pivotent de 5,3° dans le plan de rotation : leurs deux attaches ne tirent pas autant l'une que l'autre, et le vaisseau tourne jusqu'à ce que la résultante passe par son centre de masse. Sans équipage à bord, c'est sans conséquence ; le plancher du vaisseau habité, lui, reste droit (0,13° après la perturbation).</p>
+  </div>
+  <div class="tbl"><table id="t-masses"><thead><tr><th>Scénario</th><th>610 t partout, 1 tr/min</th><th>220 / 805 / 805 t, 0,87 tr/min</th><th>Gravité ressentie, vaisseau habité (m/s²)</th></tr></thead><tbody></tbody>
+  <caption>Plancher max du vaisseau habité (vaisseau 0). Réservoirs à chicanes, bassin de 25 t dans les trois vaisseaux, mêmes programmes de mouvement qu'au § 5.3. Colonne « 610 t » : § 6.1.</caption></table></div>
+  <div class="prose">
+    <p><b>Résultats.</b> Le vaisseau habité devient bien plus sensible. 50 t déplacées de 3,5 m sur un pont inclinent son plancher de <span data-bind="masses.U_cargaison_laterale.tilt_max_ship.0" data-fmt="deg">—</span>, contre 0,60° à 610 t (la formule du palonnier, § 13.1, prévoit 3,40° avec <var>h</var> = 11,4 m). La marche de l'équipage l'incline de <span data-bind="masses.U_equipage.tilt_max_ship.0" data-fmt="deg">—</span> au lieu de 0,14°. Le rapport, près de 6, est celui de <var>M h</var> : la masse est divisée par 2,8, et le centre de masse, privé des ergols logés en bas, remonte vers les attaches (<var>h</var> passe de 25 à 11,4 m).</p>
+    <p><b>Résonance.</b> Plus léger et plus court sous ses attaches, le vaisseau habité se balance hors du plan à 0,072 Hz (période 14 s), loin de l'accord du bassin (0,117 Hz). Au pire rythme, son plancher penche de <span data-bind="masses.U_balayage_z.tilt_max_ship.0" data-fmt="deg">—</span>, contre 0,46° à 610 t, et l'eau du bassin se déplace de 1,1 m. Un bassin réaccordé sur ce mode (19 t, Ø 8,8 m, 0,31 m d'eau, 0,071 Hz : presque toute la largeur de la coque) ramène ce pic à <span data-bind="masses.U_balayage_z_bassin.tilt_max_ship.0" data-fmt="deg">—</span>, partagé en deux bosses à 0,057 et 0,091 Hz. C'est encore 2,7 fois le cas à 610 t, et l'eau s'y déplace de 1,1 m pour 0,31 m de profondeur, bien au-delà du domaine où le modèle à pendule est valable.</p>
+    <p><b>Transfert partiel.</b> Le gain en vitesse de rotation vient surtout des premières tonnes transvasées, et la perte de confort des dernières, celles qui lestaient le bas du vaisseau. Estimation statique, mêmes hypothèses (ergols transvasés à parts égales, rapport de mélange conservé) :</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Transvasé</th><th>Masses (t)</th><th>tr/min</th><th>Rayon</th><th><var>h</var></th><th>Cargaison</th></tr></thead>
+    <tbody>
+      <tr><td>aucun</td><td class="n">610 / 610 / 610</td><td class="n">1,00</td><td class="n">338 m</td><td class="n">25,0 m</td><td class="n">0,61°</td></tr>
+      <tr><td>100 t</td><td class="n">510 / 660 / 660</td><td class="n">0,96</td><td class="n">366 m</td><td class="n">23,7 m</td><td class="n">0,76°</td></tr>
+      <tr><td>195 t (la moitié)</td><td class="n">415 / 708 / 708</td><td class="n">0,93</td><td class="n">393 m</td><td class="n">21,8 m</td><td class="n">1,01°</td></tr>
+      <tr><td>300 t</td><td class="n">310 / 760 / 760</td><td class="n">0,90</td><td class="n">422 m</td><td class="n">18,0 m</td><td class="n">1,62°</td></tr>
+      <tr><td>390 t (tout)</td><td class="n">220 / 805 / 805</td><td class="n">0,87</td><td class="n">447 m</td><td class="n">11,4 m</td><td class="n">3,40°</td></tr>
+    </tbody>
+    <caption>Ergols transvasés du vaisseau habité vers les cargos ; gravité de Mars à bord du vaisseau habité. Rayon du vaisseau habité : centres de masse aux sommets d'un triangle équilatéral, <var>R</var> = 338,4 m × 3<var>m</var><sub>c</sub>/(<var>m</var><sub>h</sub> + 2<var>m</var><sub>c</sub>). Cargaison : plancher du vaisseau habité quand 50 t se déplacent de ±3,5 m sur un pont, formule du palonnier (§ 13.1), <var>h</var> du modèle de masse par éléments, attaches à 9 m de la pointe.</caption>
+  </table></div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Transvaser tous les ergols du vaisseau habité ne ralentit la rotation que de 13 %, et rend son plancher six fois plus sensible : 3,5° pour la cargaison, 1° pour la marche, 4,6° au pire rythme (1,3° avec un bassin réaccordé, très sollicité). À 1 tr/min, la station est déjà sous les seuils de confort usuels (§ 15) : le gain ne vaut pas cette perte. Si l'on tient à tourner moins vite, mieux vaut transvaser la moitié des ergols (0,93 tr/min, sensibilité × 1,7) ou lester le bas du vaisseau habité (eau, réserves). Les cargos, pivotés de 5,3°, n'ont pas d'équipage.</span></div>
+
   <figure>
     <div class="viewer" id="viewer"><div class="poster">Choisissez une simulation, puis « Charger ».</div></div>
     <div class="ctrl" id="viewer-ctrl">
@@ -383,6 +427,7 @@ figcaption b { color: var(--ink); }
         <option value="Y_moyeu_rupture">Moyeu à 3 rayons · rupture d'un côté</option>
         <option value="Y_moyeu_rupture_largage">Moyeu à 3 rayons + coupe-câbles · rupture d'un côté</option>
         <option value="Z_moyeu_double_rupture">Rayons doublés + coupe-câbles · rupture d'un côté</option>
+        <option value="W_brins2_rupture">Câbles doublés + coupe-câbles · rupture d'un brin</option>
         </optgroup>
         <optgroup label="Alternatives (§ 8)">
         <option value="SV3_perturbation">SV3 · triangle vertical, 1 600 t, perturbation</option>
@@ -484,12 +529,35 @@ figcaption b { color: var(--ink); }
   </div>
   <div class="callout"><b>Conséquences pratiques</b><span>25 t d'eau, soit 4 % de la masse du vaisseau, suffisent : un bassin circulaire de 7,2 m de diamètre et 0,6 m de profondeur sous la coiffe, muni de grilles. Cette eau sert aussi de réserve et de protection contre les radiations ; consommée, elle désaccorderait le bassin, qu'il faudra donc maintenir à niveau. Le pire cas de toute la station tombe sous 0,6°, cargaison comprise. Non modélisé : la non-linéarité de l'eau peu profonde. Au pire rythme, la masse équivalente du bassin se déplace de 25 à 31 cm pour 0,61 m de profondeur : le clapotis y serait fort, avec déferlement ou ressaut possibles, ce qui dissipe davantage mais désaccorde. À confirmer par un calcul d'écoulement en eau peu profonde ; les mouvements ordinaires restent sous 8 cm.</span></div>
 
+  <h3 id="mode-lox">6.2 Le mode couplé du LOX</h3>
+  <div class="prose">
+    <p><b>Le pic restant.</b> Avec le bassin, le maximum du balayage hors plan (<span data-bind="amortisseur.T_balayage_z.tilt_max" data-fmt="deg">—</span>) se trouve à 0,25 Hz, sur le mode couplé du LOX, que seules les chicanes amortissent (ζ = 3 %). Deux remèdes ont été cherchés sur le modèle linéaire, puis vérifiés dans le simulateur : des chicanes plus efficaces, ou un second bassin accordé sur ce mode.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Variante</th><th>Linéaire</th><th>Pic du LOX</th><th>Pire cas</th></tr></thead>
+    <tbody>
+      <tr><td>Chicanes ζ = 3 % (solution retenue)</td><td class="n">0,44°</td><td class="n">0,46°</td><td class="n" data-bind="amortisseur.T_balayage_z.tilt_max" data-fmt="deg">—</td></tr>
+      <tr><td>Chicanes ζ = 5 %</td><td class="n">0,31°</td><td class="n">—</td><td class="n">—</td></tr>
+      <tr><td>Chicanes ζ = 8 %</td><td class="n">0,29°</td><td class="n"><b>0,25°</b></td><td class="n" data-bind="lox.V_chicanes8_balayage_z.tilt_max" data-fmt="deg">—</td></tr>
+      <tr><td>Chicanes ζ = 12 %</td><td class="n">0,29°</td><td class="n">—</td><td class="n">—</td></tr>
+      <tr><td>Second bassin, 8 t à 46 m de la pointe (Ø 3,6 m, 0,258 Hz)</td><td class="n">0,30°</td><td class="n">0,31°</td><td class="n" data-bind="lox.V_bassin2_balayage_z.tilt_max" data-fmt="deg">—</td></tr>
+      <tr><td>Second bassin, 25 t à 46 m (Ø 4,4 m, 0,268 Hz)</td><td class="n">0,29°</td><td class="n">—</td><td class="n">—</td></tr>
+    </tbody>
+    <caption>Balayage hors plan (4 t), vaisseaux de 610 t, en plus du bassin de 25 t. « Linéaire » : pic du modèle linéaire (<code>lox_search.py</code>). Simulateur : maximum de la courbe de réponse autour de 0,25 Hz (« pic du LOX ») et sur tout le balayage (« pire cas »). Seconds bassins : 0,79 m et 1,64 m d'eau, ζ = 0,1.</caption>
+  </table></div>
+  <div class="chartbox"><h4>Balayage hors plan (4 t) : chicanes plus efficaces ou second bassin</h4><div id="ch-lox-z"></div></div>
+  <div class="prose">
+    <p><b>Résultats.</b> Des chicanes à ζ = 8 % divisent presque par deux le pic du LOX (0,46° → 0,25°). Au-delà, plus rien ne bouge : le pire cas est alors ailleurs. Il passe à 0,36 Hz, sur un mode d'étirement des câbles qui atteignait déjà 0,33° et qu'aucune de ces variantes ne vise, et le balancement principal, vers 0,1 Hz, reste à 0,29°. Le second bassin fait moins bien que les chicanes, pour 8 t de plus. La recherche l'a placé près du réservoir de LOX, à 46 m de la pointe, là où il agit le mieux sur ce mode : à 30 m de la pointe, 25 t d'eau ne descendent qu'à 0,35°, et à 12 m, sous la coiffe, rien ne change (0,45°).</p>
+    <p><b>Des chicanes à 8 %, est-ce réaliste ?</b> Un anneau amortit d'autant mieux qu'il est proche de la surface libre. Sur un lanceur, le niveau baisse sans cesse et les anneaux sont répartis sur toute la hauteur. En route vers Mars, le niveau ne change pas, puisqu'on ne brûle rien pendant 259 jours : on peut placer un anneau juste sous la surface, où il est le plus efficace. Des chicanes perforées, ou des flotteurs anti-ballottement, sont d'autres options.</p>
+  </div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Le pire cas de la station passe de 0,46° à <span data-bind="lox.V_chicanes8_balayage_z.tilt_max" data-fmt="deg">—</span> si les chicanes du LOX atteignent ζ = 8 % : un anneau placé au niveau du liquide en route suffirait. Le second bassin n'en vaut pas la peine. Les pics restants, 0,3° vers 0,1 et 0,36 Hz, sont du même ordre que la cargaison déplacée lentement.</span></div>
+
 </section>
 
 <section id="rupture">
   <h2>7 · Rupture d'un câble</h2>
   <div class="prose">
-    <p>Dans le triangle, chaque câble retient deux vaisseaux, et aucun autre chemin ne reprend son effort. Cette section estime d'abord ce qui peut casser un câble, puis simule une rupture dans la solution retenue (chicanes et bassin d'eau, § 6.1), et enfin des parades : un moyeu central relié aux vaisseaux par des rayons, et des coupe-câbles qui larguent les morceaux. Les autres pistes, non simulées, sont discutées au § 7.4.</p>
+    <p>Dans le triangle, chaque câble retient deux vaisseaux, et aucun autre chemin ne reprend son effort. Cette section estime d'abord ce qui peut casser un câble, puis simule une rupture dans la solution retenue (chicanes et bassin d'eau, § 6.1), et enfin des parades : un moyeu central relié aux vaisseaux par des rayons, avec des coupe-câbles qui larguent les morceaux (§ 7.3), et des câbles doublés (§ 7.4). Les autres pistes, non simulées, sont discutées au § 7.5.</p>
   </div>
 
   <h3>7.1 Ce qui peut casser un câble</h3>
@@ -518,7 +586,7 @@ figcaption b { color: var(--ink); }
     <p><b>Validité.</b> Les premières minutes sont fiables. Ensuite, les vaisseaux tournent de plusieurs tours sur eux-mêmes alors que le modèle n'a pas de contact : en réalité, les câbles s'enrouleraient autour des coiffes et les brins frotteraient les coques. Les pendules de ballottement sortent aussi de leur domaine (jusqu'à 6 m d'écart). La suite est qualitative.</p>
   </div>
   <div class="tbl"><table id="t-rupture"><thead><tr><th>Scénario</th><th>Tension max des câbles restants</th><th>Gravité ressentie après rupture (min–max, m/s²)</th><th>Plancher max</th><th>Rotation parasite max</th><th>Premier contact du brin avec une coque</th><th>Rotation finale (tr/min)</th><th>Distance au centre finale (vaisseaux 0 / 1 / 2)</th></tr></thead><tbody></tbody>
-  <caption>Rupture à t = 60 s, solution retenue (610 t, chicanes, bassin). Résistance d'un câble : 27,2 MN ; tension normale : 1,31 MN (1,21 MN avec moyeu). Valeurs finales : moyenne des 5 dernières minutes.</caption></table></div>
+  <caption>Rupture à t = 60 s, solution retenue (610 t, chicanes, bassin). Résistance d'un câble : 27,2 MN ; tension normale : 1,31 MN (1,21 MN avec moyeu). Câbles doublés : 13,6 MN et 0,66 MN par brin (trois brins : 9,1 et 0,44 MN). Valeurs finales : moyenne des 5 dernières minutes.</caption></table></div>
   <div class="grid2">
     <div class="chartbox"><h4>Distance des vaisseaux au centre de rotation</h4><div id="ch-rup-r"></div></div>
     <div class="chartbox"><h4>Tension de crête des câbles restants</h4><div id="ch-rup-T"></div></div>
@@ -531,18 +599,31 @@ figcaption b { color: var(--ink); }
     <p><b>En temps normal</b>, rien ne change : après la même perturbation qu'au § 5.3, le plancher s'incline au plus de <span data-bind="rupture.Y_moyeu_perturbation.tilt_max" data-fmt="deg">—</span> (<span data-bind="amortisseur.T_perturbation.tilt_max" data-fmt="deg">—</span> sans moyeu) ; les rayons restent tendus entre 0,19 et 0,21 MN.</p>
     <p><b>Rupture d'un côté.</b> Les rayons prennent le relais en quelques secondes et montent à <span data-bind="rupture.Y_moyeu_rupture.break.T_max_MN" data-fmt="mn">—</span>. Les vaisseaux restent à 323–347 m du centre ; la rotation passe de 1 à <span data-bind="rupture.Y_moyeu_rupture.break.rpm_final" data-fmt="rpm">—</span>. Pendant les 30 premières secondes, la gravité ressentie varie entre 2,2 et 5,3 m/s² et le plancher s'incline jusqu'à 35° ; il revient vers 10° après 2 min et sous 3° après 10 min. Reste un défaut : les moitiés du câble rompu restent pendues aux vaisseaux 0 et 1, frappent leurs coiffes et les font tourner autour de leur axe (roulis jusqu'à <span data-bind="rupture.Y_moyeu_rupture.roll_max" data-fmt="deg0">—</span>, encore une dizaine de °/s après 30 min).</p>
     <p><b>Rupture d'un rayon.</b> Surprise : avec un seul rayon par vaisseau, la perte d'un rayon libère le moyeu. Le centre de rotation est un équilibre instable pour une masse libre (la force centrifuge l'en écarte) : le moyeu « tombe » vers l'extérieur et ses deux autres rayons se retendent d'un coup, à <span data-bind="rupture.Y_moyeu_rupture_rayon.break.T_max_MN" data-fmt="mn">—</span> ; le vaisseau 1 encaisse <span data-bind="rupture.Y_moyeu_rupture_rayon.break.g_max.1" data-fmt="ms2">—</span>. Le moyeu doit rester tenu après la perte d'un rayon.</p>
-    <p id="rupture-parades-sim"><b>Coupe-câbles.</b> Si les deux attaches du câble rompu sont coupées une seconde après la rupture, les morceaux s'éloignent en ligne droite et la station se calme plus vite : roulis max <span data-bind="rupture.Y_moyeu_rupture_largage.roll_max" data-fmt="deg0">—</span> au lieu de 62°, rotation parasite de quelques °/s. Le premier passage ne peut pas être évité : la moitié qui se rétracte vers le vaisseau 0 a déjà son élan et vient toucher sa coiffe 6 s après la rupture. Seul un frein près de l'attache, comme ceux qui arrêtent le retour des amarres rompues sur les navires, ou un brin captif (câbles doublés, § 7.4) l'empêcherait.</p>
+    <p id="rupture-parades-sim"><b>Coupe-câbles.</b> Si les deux attaches du câble rompu sont coupées une seconde après la rupture, les morceaux s'éloignent en ligne droite et la station se calme plus vite : roulis max <span data-bind="rupture.Y_moyeu_rupture_largage.roll_max" data-fmt="deg0">—</span> au lieu de 62°, rotation parasite de quelques °/s. Le premier passage ne peut pas être évité : la moitié qui se rétracte vers le vaisseau 0 a déjà son élan et vient toucher sa coiffe 6 s après la rupture. Seul un frein près de l'attache, comme ceux qui arrêtent le retour des amarres rompues sur les navires, ou un brin captif (entretoises entre brins doublés, § 7.5) l'empêcherait.</p>
     <p><b>Rayons doublés.</b> Deux rayons par vaisseau, depuis chacun des deux points d'attache du nez (6 × 313 m, 16,5 t), prétendus chacun à 0,095 MN. La perte d'un rayon passe alors inaperçue : son jumeau reprend la charge, la gravité ressentie reste entre 3,5 et 3,8 m/s² et le plancher s'incline de moins de 1°. La rupture d'un côté se passe comme avec trois rayons, avec des efforts plus faibles : tension max <span data-bind="rupture.Z_moyeu_double_rupture.break.T_max_MN" data-fmt="mn">—</span>, roulis <span data-bind="rupture.Z_moyeu_double_rupture.roll_max" data-fmt="deg0">—</span>. La gravité ressentie varie de 2,2 à 5,4 m/s² pendant une vingtaine de secondes ; le plancher s'incline jusqu'à 37°, revient vers 10° après 2 min et sous 3° après 10 min.</p>
   </div>
   <div class="chartbox"><h4>Gravité ressentie par le vaisseau 1 après la rupture d'un côté</h4><div id="ch-rup-g"></div></div>
-  <div class="callout"><b>Conséquences pratiques</b><span>Configuration recommandée : le triangle, plus un moyeu de 20 t relié à chaque vaisseau par deux rayons (16,5 t de câble), plus des coupe-câbles déclenchés par la chute de tension. N'importe quel câble peut alors céder : la station garde sa forme et sa vitesse de rotation, aucun câble ne dépasse 8 % de sa résistance, et l'équipage subit une vingtaine de secondes de secousses, à vivre attaché. Restent à traiter le premier retour du brin sur une coiffe (frein ou brin captif, § 7.4), le contact câble–coque et le déploiement des rayons depuis le moyeu.</span></div>
+  <div class="prose">
+    <p><b>Confort avec le moyeu.</b> Les mouvements internes et les balayages de la solution retenue ont été refaits avec le moyeu et ses rayons doublés. Le moyeu ne change pas les résonances : balayage hors plan <span data-bind="moyeu.Z_balayage_z.tilt_max" data-fmt="deg">—</span> (<span data-bind="amortisseur.T_balayage_z.tilt_max" data-fmt="deg">—</span> sans moyeu), dans le plan <span data-bind="moyeu.Z_balayage_t.tilt_max" data-fmt="deg">—</span> (<span data-bind="amortisseur.T_balayage_t.tilt_max" data-fmt="deg">—</span>), marche de l'équipage <span data-bind="moyeu.Z_equipage.tilt_max" data-fmt="deg">—</span> (<span data-bind="amortisseur.T_equipage.tilt_max" data-fmt="deg">—</span>). Il réduit en revanche l'inclinaison due à la cargaison déplacée sur un pont : <span data-bind="moyeu.Z_cargaison_laterale.tilt_max" data-fmt="deg">—</span> au lieu de <span data-bind="amortisseur.T_cargaison_laterale.tilt_max" data-fmt="deg">—</span>. Les deux rayons de chaque vaisseau forment une seconde patte d'oie, tournée vers le centre, qui s'oppose au basculement dans le plan de rotation. La gravité ressentie varie un peu plus, de 3,65 à 3,79 m/s² au lieu de 3,66 à 3,72 m/s².</p>
+  </div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Configuration recommandée : le triangle, plus un moyeu de 20 t relié à chaque vaisseau par deux rayons (16,5 t de câble), plus des coupe-câbles déclenchés par la chute de tension. N'importe quel câble peut alors céder : la station garde sa forme et sa vitesse de rotation, aucun câble ne dépasse 8 % de sa résistance, et l'équipage subit une vingtaine de secondes de secousses, à vivre attaché. Restent à traiter le premier retour du brin sur une coiffe (frein ou brin captif, § 7.5), le contact câble–coque et le déploiement des rayons depuis le moyeu. Contre la perte d'un brin, les câbles doublés du § 7.4 font mieux, sans masse ajoutée.</span></div>
 
-  <h3>7.4 Autres parades et pistes</h3>
+  <h3 id="brins">7.4 Parade : câbles doublés</h3>
+  <div class="prose">
+    <p><b>Principe.</b> Chaque côté est fait de deux brins parallèles de demi-section (45,3 cm², Ø 7,6 cm), fixés aux mêmes ferrures : la masse de câble ne change pas. En service, les deux brins se comportent comme le câble unique (perturbation du § 5.3 : 0,18° dans les deux cas). Chaque brin résiste à 13,6 MN. Si l'un cède, l'autre porte toute la charge du côté, 1,31 MN, soit 10 % de sa résistance ; dans le cas de dimensionnement (1 600 t, 1 g), ce serait 67 % : le facteur de sécurité tomberait de 3 à 1,5 jusqu'au remplacement du brin. Plus fins et deux fois plus nombreux, les brins sont un peu plus exposés aux météorites (1·10⁻⁷ à 2·10⁻⁵ coupure de brin par voyage, § 7.1), ce qui reste négligeable. Simulateur : option <code>--side-strands 2</code> (ou 3).</p>
+    <p><b>Rupture d'un brin.</b> Solution retenue, sans moyeu. À t = 60 s, un brin du côté 0 cède en son milieu ; les coupe-câbles larguent ses morceaux une seconde plus tard. Le brin restant prend la charge en un aller-retour d'onde : sa tension monte à <span data-bind="brins.W_brins2_rupture.break.T_max_MN" data-fmt="mn">—</span> (2,8 fois sa tension normale de 0,66 MN, 14 % de sa résistance), et le côté s'allonge de 0,8 m. Le triangle garde sa forme et la rotation ne change pas (<span data-bind="brins.W_brins2_rupture.break.rpm_final" data-fmt="rpm">—</span>). Le seul choc est celui de la rupture : les vaisseaux 0 et 1 perdent d'un coup 0,66 MN de traction, soit une accélération latérale de 1,1 m/s² pour 610 t. Le plancher penche de 16° pendant quelques secondes, et la gravité ressentie varie de 2,9 à 4,6 m/s² pendant 40 s. Le plancher repasse sous 5° en 40 s, sous 3° en 75 s et sous 1° en 3,5 min. Avec le moyeu et ses rayons doublés (§ 7.3), il fallait 2 min pour repasser sous 10° et 10 min pour passer sous 3°.</p>
+    <p><b>Variantes.</b> Rupture à l'attache du vaisseau 0 : le brin entier reste pendu au vaisseau 1 jusqu'au largage ; même comportement, plancher à 19° au plus, sous 3° en 75 s, et le brin se rétracte sans toucher de coiffe (20 m au plus près). Au milieu, en revanche, la moitié qui revient vers le vaisseau 0 longe le brin intact et touche sa coiffe 5 s après la rupture, comme au § 7.3 : un frein près de la ferrure ou des entretoises (§ 7.5) restent utiles. Sans coupe-câbles, les deux moitiés restent pendues aux vaisseaux et fouettent (jusqu'à <span data-bind="brins.W_brins2_sans_largage.break.v_whip_max" data-fmt="ms">—</span> à leur extrémité, dans le repère tournant) : rotation parasite de 5 °/s et plancher au-dessus de 1° pendant toute la simulation (15 min).</p>
+    <p><b>Disposition des brins.</b> Brins écartés de 2 m selon l'axe de rotation, sur des ferrures distinctes : la perte d'un brin laisse une traction décentrée, qui fait rouler les vaisseaux 0 et 1 autour de leur axe (jusqu'à <span data-bind="brins.W_brins2_ecartes.roll_max" data-fmt="deg0">—</span>, rotation parasite de 13 °/s), et ils restent roulés de 5°. Les deux brins doivent donc converger vers une ferrure commune, ou vers un palonnier pivotant qui se réaligne sur le brin restant. Trois brins de tiers de section (Ø 6,2 cm) : chaque vaisseau ne perd qu'un tiers de sa traction ; le plancher monte à 9,5° au lieu de 16°, repasse sous 3° en 36 s et sous 1° en 2,3 min, et les deux brins restants montent à <span data-bind="brins.W_brins3_rupture.break.T_max_MN" data-fmt="mn">—</span> (9 % de leur résistance). Les secousses diminuent avec le nombre de brins, au prix de plus de raccords et d'un brin plus fin.</p>
+  </div>
+  <div class="chartbox"><h4>Inclinaison du plancher du vaisseau 1 après la rupture : moyeu ou câbles doublés</h4><div id="ch-brins-tilt"></div></div>
+  <div class="callout"><b>Conséquences pratiques</b><span>Deux brins de demi-section par côté, convergeant sur une ferrure commune, et des coupe-câbles : pour la même masse de câble, la perte d'un brin ne déforme pas la station et ne change pas sa rotation ; le plancher repasse sous 3° en un peu plus d'une minute. C'est la meilleure parade simulée. Le moyeu (§ 7.3) reste le seul recours si une ferrure s'arrache, puisque les deux brins partent alors ensemble ; il sert aussi aux treuils et à l'amarrage.</span></div>
+
+  <h3>7.5 Autres parades et pistes</h3>
   <div class="tbl"><table>
     <thead><tr><th>Parade</th><th>Ce qu'elle apporte</th><th>Limites</th></tr></thead>
     <tbody>
-      <tr><td>Câbles doublés, palonniers intermédiaires et diagonales</td><td>Deux brins par côté, reliés tous les 150 à 200 m : un brin coupé ne lâche qu'une travée, le brin voisin reprend la charge, et le morceau libre reste captif au lieu de fouetter. Écartés selon l'axe de rotation, les deux brins raidissent aussi le balancement hors plan, le point faible du § 6.</td><td>Des palonniers seuls forment des rectangles déformables : sans diagonales, l'effort du brin coupé ne passe pas dans l'autre. Masse des câbles × 1,5 à 2 (brins dimensionnés pour la charge entière ou pour la moitié chacun, à trois brins). Risque d'emmêlement du brin rompu avec le brin sain.</td></tr>
-      <tr><td>Tronçons remplaçables (par exemple 3 × 180 m par côté)</td><td>Fabrication, contrôle et manutention par éléments de 1,6 t ; pièces de rechange légères ; un tronçon abîmé se change sans tout remplacer. Avec le moyeu, on peut détendre un côté au treuil et le réparer sans arrêter la rotation.</td><td>Chaque raccord (épissure, cosse, manille) est un point faible et un lieu de fatigue ; les raccords mécaniques sont lourds. Sans redondance (moyeu ou brin doublé), un tronçon ne peut pas être déchargé en rotation.</td></tr>
+      <tr><td>Entretoises entre brins (palonniers intermédiaires)</td><td>Avec des câbles doublés (§ 7.4), des entretoises tous les 150 à 200 m gardent les brins écartés et retiennent les morceaux d'un brin rompu : ils restent captifs au lieu de fouetter, sans coupe-câbles.</td><td>Inutiles pour reprendre l'effort : le brin intact suffit. Sans diagonales, elles forment des parallélogrammes déformables et le brin rompu ne porte plus rien. Emmêlement possible du brin rompu avec le brin sain.</td></tr>
+      <tr><td>Tronçons remplaçables (par exemple 3 × 180 m par côté)</td><td>Fabrication, contrôle et manutention par éléments de 1,6 t ; pièces de rechange légères ; un tronçon abîmé se change sans tout remplacer. Avec le moyeu, on peut détendre un côté au treuil et le réparer sans arrêter la rotation ; avec des câbles doublés (§ 7.4), on remplace un brin pendant que l'autre porte seul la charge, à 10 % de sa résistance.</td><td>Chaque raccord (épissure, cosse, manille) est un point faible et un lieu de fatigue ; les raccords mécaniques sont lourds. Sans redondance (moyeu ou brin doublé), un tronçon ne peut pas être déchargé en rotation.</td></tr>
       <tr><td>Maillage triangulaire</td><td>Les côtés coupés en trois et reliés par des membrures intérieures forment un filet de 9 triangles de 180 m dont le nœud central est le moyeu ; tout membre peut céder. Un filet tendu par la rotation est un principe éprouvé (voile solaire IKAROS, filets déployés par rotation).</td><td>Deux fois plus de câble ; les membrures intérieures sont peu tendues et la répartition des efforts dépend des longueurs : sensible au fluage et aux écarts de température entre membrures. Le moyeu à rayons en est le cas minimal.</td></tr>
       <tr><td>Absorbeurs d'énergie aux attaches</td><td>Sangles à déchirement progressif (comme dans les harnais antichute) ou freins à friction qui plafonnent l'effort : les à-coups de 10 MN du § 7.2 deviennent 5 MN pour une course de quelques mètres.</td><td>Usage unique ou à réarmer ; course à prévoir dans la géométrie des attaches.</td></tr>
       <tr><td>Surveillance du câble</td><td>Fibre optique dans le câble, qui mesure l'allongement sur toute sa longueur (diffusion Brillouin) : brins rompus, fluage, échauffements. Robot grimpeur qui parcourt le câble pour l'inspecter, poser un manchon de réparation ou tirer un câble neuf le long de l'ancien.</td><td>À qualifier sur des câbles en Dyneema de cette taille.</td></tr>
@@ -704,7 +785,7 @@ figcaption b { color: var(--ink); }
   <div class="prose">
     <p><b>En transit vers Mars.</b> Sur l'orbite héliocentrique, le mouvement moyen vaut <var>n</var> = 2,0·10⁻⁷ rad/s à 1 UA (1,1·10⁻⁷ rad/s à 1,52 UA) : <var>n</var>²/ω² ≈ 3,6·10⁻¹², vingt millions de fois moins qu'à 1 600 km d'altitude. La précession tombe à ~10⁻⁶ °/jour, soit 3·10⁻⁴ ° sur les 259 jours du transfert : l'axe de rotation reste fixe dans l'espace. La direction du Soleil, elle, tourne de 180° autour de la station pendant le transfert, ce qui compte pour l'orientation des panneaux et des radiateurs.</p>
     <p id="transfert-ergols"><b>Transfert d'ergols vers les cargos.</b> En route, chaque vaisseau garde ≈ 390 t d'ergols (305 t de LOX, 85 t de CH4). Si, avant la mise en rotation, le vaisseau habité transvase les siens à parts égales dans les deux cargos, les masses deviennent 220, 805 et 805 t. Câbles inchangés, centres de masse aux mêmes sommets du triangle (calcul statique, points matériels) : le centre de rotation se décale de 108 m vers les cargos ; le vaisseau habité tourne à 447 m, les cargos à 299 m. Pour 3,711 m/s² à bord du vaisseau habité, ω = √(<var>a</var>/<var>R</var>) donne <b>0,87 tr/min</b> au lieu de 1 (−13 %) ; à 1 tr/min, il aurait 4,90 m/s². Les cargos descendent à 2,49 m/s². Tensions : 0,47 MN sur les deux câbles du vaisseau habité, 1,73 MN entre les cargos (6,4 % de la résistance), contre 1,31 MN partout aujourd'hui.</p>
-    <p>À vérifier par simulation (vaisseaux de masses inégales, § 16) : à 220 t, les inclinaisons dues aux mouvements internes croissent comme 1/<var>M</var>, soit ≈ 2,8 fois plus pour la cargaison et les balancements ; le bassin d'eau (25 t, μ ≈ 11 %) et son accord sont à revoir ; l'alignement des vaisseaux sur le centre décalé, et le ballottement accru dans les cargos.</p>
+    <p>Simulé au § 5.5 : l'équilibre est celui prévu (vaisseau habité à 449 m, 0,47 et 1,74 MN), mais le vaisseau habité devient environ six fois plus sensible aux mouvements internes. Sa masse et la hauteur de son centre de masse sous les attaches baissent ensemble : <var>M h</var> passe de 15 200 à 2 500 t·m.</p>
     <p>Les effets suivants concernent l'orbite terrestre de l'étude préliminaire.</p>
   </div>
   <div class="prose">
@@ -726,15 +807,16 @@ figcaption b { color: var(--ink); }
       <li>Structures rigides : pas de flexibilité de coque. Le ballottement des ergols est réduit au premier mode de chaque réservoir (§ 6) ; l'étude préliminaire n'avait que l'amortisseur de Kane.</li>
       <li>Câbles sans raideur en flexion ni en torsion, discrétisés en 16 segments : suffisant pour les modes bas, pas pour les ondes rapides. Un câble réel a une raideur en torsion qui ajouterait un faible rappel au roulis ; ce rappel est négligé, ce qui va dans le sens de la sécurité.</li>
       <li>Pas de gravité terrestre dans les simulations : précession estimée analytiquement (§ 15).</li>
-      <li>Pas de contrôle actif ni de mise en rotation. L'amarrage d'un véhicule en route n'est pas prévu par le scénario Terre–Mars.</li>
+      <li>Pas de contrôle actif. La mise en rotation est simulée à partir de 0,1 tr/min (§ 5.4) ; le rapprochement des vaisseaux et le déroulement des câbles, en dessous, ne le sont pas. L'amarrage d'un véhicule en route n'est pas prévu par le scénario Terre–Mars.</li>
       <li>Starships : structure rigide ; ergols réduits au premier mode de ballottement, linéaire, réservoirs équivalents à fond plat, partie fixe ponctuelle (§ 6) ; ailerons absents de l'inertie (ils favorisent faiblement l'orientation ailerons dans le plan de rotation) ; capacité des points d'ancrage non publiée. En route, chaque câble tire 1,31 MN et chaque vaisseau 2,26 MN au total ; à 1 600 t et 1 g, ce serait 9,1 et 15,7 MN.</li>
-      <li>À simuler ensuite, par priorité pour le scénario Terre–Mars : mise en rotation après l'injection (rapprochement, déroulement des câbles sans détente) ; pattes d'oie sur plusieurs points d'ancrage du nez pour raidir le balancement hors plan ; vaisseaux de masses inégales (équipage contre cargos) ; contact des câbles avec les coques et enroulement autour des coiffes, absents du modèle (§ 7.2) ; câbles doublés à palonniers et diagonales (§ 7.4). Moins prioritaires : gradient de gravité complet en orbite terrestre (repère de Hill), câbles ANCF continus dans Chrono.</li>
+      <li>À simuler ensuite, par priorité pour le scénario Terre–Mars : déploiement sous 0,1 tr/min (rapprochement, déroulement des câbles sans détente) ; pattes d'oie sur plusieurs points d'ancrage du nez pour raidir le balancement hors plan ; lest ou transfert partiel pour le vaisseau habité allégé (§ 5.5) ; contact des câbles avec les coques et enroulement autour des coiffes, absents du modèle (§ 7.2) ; entretoises entre brins et attaches des câbles doublés (§ 7.4, § 7.5). Moins prioritaires : gradient de gravité complet en orbite terrestre (repère de Hill), câbles ANCF continus dans Chrono.</li>
     </ul>
         <h3>Corrections apportées en cours d'étude</h3>
   <div class="prose">
     <ul>
       <li><b>Rappel du palonnier.</b> L'ancienne explication (2<var>T s</var>²/<var>L</var> seulement) sous-estimait le rappel d'un facteur 14 ; corrigée au § 5.2. La prédiction de roulis affichée par le simulateur et dans les tableaux est recalculée avec <var>T s</var> + 2<var>T s</var>²/<var>L</var>. Les trajectoires simulées n'étaient pas concernées.</li>
       <li><b>Poussée initiale et masses internes.</b> La perturbation de départ était appliquée à la coque du module 0 mais pas aux masses internes qu'il contient : l'asservissement encaissait l'écart de vitesse, d'où un à-coup de 0,2 s (0,17° pour 50 t) à t = 0. Les masses internes suivent désormais la coque ; tous les scénarios de cargaison ont été recalculés, sans changement des maxima publiés.</li>
+      <li><b>Centre de la station après un largage.</b> Les distances au centre et le roulis étaient mesurés par rapport au centre de masse de tout le système, morceaux de câble largués compris. Ceux-ci s'éloignent et entraînaient ce centre : en fin de simulation, les distances au centre oscillaient de plus ou moins 10 à 15 m au rythme de la rotation. Le centre est désormais celui des vaisseaux, des masses internes, des ergols et du moyeu. Les trois cas avec coupe-câbles du § 7.3 ont été recalculés : roulis et efforts inchangés, distances finales (moyennes sur 5 min) corrigées de 1 à 2 m.</li>
       <li><b>Dérive prise pour une instabilité.</b> Le temps de doublement est estimé entre 1° et 10° de roulis. Une dérive linéaire (roulis neutre) donnait une valeur trompeuse : 23,7 s pour C. Il n'est plus retenu que si la croissance est bien exponentielle (passage de 10° à 45° plus rapide que de 1° à 10°).</li>
     </ul>
   </div>
@@ -754,6 +836,12 @@ figcaption b { color: var(--ink); }
 .venv/bin/python run_scenarios.py retenue       # solution retenue : ergols libres, chicanes (4 scénarios)
 .venv/bin/python run_scenarios.py amortisseur   # bassin d'eau accordé (9 scénarios, ~3 h à 2 en parallèle)
 .venv/bin/python run_scenarios.py rupture       # rupture d'un câble, moyeu, coupe-câbles (8 scénarios, ~1 h 30 à 2 en parallèle)
+.venv/bin/python run_scenarios.py brins         # câbles doublés ou triplés, rupture d'un brin (5 scénarios, ~45 min)
+.venv/bin/python run_scenarios.py moyeu         # confort avec moyeu et rayons doublés (4 scénarios, ~2 h 30 à 2 en parallèle)
+.venv/bin/python run_scenarios.py montee        # mise en rotation de 0,1 à 1 tr/min (5 scénarios, ~1 h 30)
+.venv/bin/python run_scenarios.py lox           # mode du LOX : chicanes à 8 %, second bassin (2 balayages, ~1 h 20 chacun)
+.venv/bin/python run_scenarios.py masses        # transfert d'ergols : 220 / 805 / 805 t à 0,87 tr/min (4 scénarios, ~50 min)
+.venv/bin/python lox_search.py                  # chicanes ou second bassin pour le mode du LOX (modèle linéaire)
 .venv/bin/python tld_design.py --json out/tld_search.json   # dimensionnement du bassin (modèle linéaire)
 .venv/bin/python slosh_modes.py                 # modes couplés vaisseau + ergols (modèle linéaire)
 tools/chrono-env/bin/python chrono_validation.py --name B --module axial --duration 300
@@ -780,7 +868,7 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
   const fmt = { deg, sci, hz: (v) => fr(v, 3) + " Hz", pct: (v) => fr(v * 100, 2) + " %", g: (v) => fr(v, 3),
                 mn: (v) => fr(v, 2) + " MN", ms: (v) => fr(v, 0) + " m/s", ms2: (v) => fr(v, 1) + " m/s²", m: (v) => fr(v, 0) + " m",
                 s: (v) => fr(v, 0) + " s", kj: (v) => fr(v, 0) + " kJ", rpm: (v) => fr(v, 2) + " tr/min", deg0: (v) => fr(v, 0) + "°",
-                dps: (v) => fr(v, 0) + " °/s" };
+                dps: (v) => fr(v, 0) + " °/s", min: (v) => fr(v / 60, 1) + " min" };
   const cache = {};
   const getJSON = (p) => cache[p] || (cache[p] = fetch(p).then((r) => { if (!r.ok) throw new Error(p); return r.json(); }));
   const series = (n) => getJSON(`data/series/${n}.json`);
@@ -1055,14 +1143,68 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
     ["L_libre_resonance", "libres (ζ 0,1 %)", (d) => envelope(d.tilt[0])], ["L_chicanes_resonance", "chicanes (ζ 3 %)", (d) => envelope(d.tilt[0])],
   ], { yLabel: "inclinaison du plancher, vaisseau 0, enveloppe (°)", yUnit: "°", vrefs: [{ x: 4, label: "arrêt du forçage" }] });
 
+  /* Mise en rotation (§ 5.4) */
+  getJSON("data/summary.json").then((S) => {
+    const M = S.montee || {};
+    const ROWS = [
+      ["S_montee_k005", "<i>k</i> = 0,05"], ["S_montee_k02", "<i>k</i> = 0,2"], ["S_montee_alpha", "α constant"],
+      ["S_montee_arriere", "<i>k</i> = 0,05, poussée à l'arrière"], ["S_montee_moyeu", "<i>k</i> = 0,05, avec moyeu"],
+    ];
+    const tb = document.querySelector("#t-montee tbody");
+    ROWS.forEach(([name, lab]) => {
+      const info = M[name];
+      if (!info || !info.results.spin) return;
+      const r = info.results, sp = r.spin;
+      const sl = r.slosh_max ? r.slosh_max.slice(0, 3).map((v) => fr(v * 100, 0)).join(" / ") + " cm" : "—";
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${lab}</td><td class="n">${sp.t_reach ? fr(sp.t_reach / 60, 1) + " min" : "—"}</td>
+        <td class="n"><b>${deg(sp.tilt_max_on)}</b></td><td class="n">${deg(sp.tilt_max_after)}</td><td class="n">${sl}</td>
+        <td class="n">${fr(r.wrel_max, 2)} °/s</td><td class="n">${fr(sp.propellant_t, 1)} t</td></tr>`);
+    });
+  }).catch(() => {});
+  const MONTEE = [["S_montee_k005", "α = 0,05·ω²"], ["S_montee_k02", "α = 0,2·ω²"], ["S_montee_alpha", "α constant"]];
+  chartT("ch-montee-rpm", MONTEE.map(([n, l]) => [n, l, (d) => d.rpm]), { yLabel: "vitesse de rotation (tr/min)", yUnit: " tr/min" });
+  chartT("ch-montee-tilt", MONTEE.map(([n, l]) => [n, l, (d) => d.tilt[0]]), { yLabel: "inclinaison du plancher (°)", yUnit: "°" });
+
+  /* Masses inégales (§ 5.5) */
+  getJSON("data/summary.json").then((S) => {
+    const U = S.masses || {}, A = S.amortisseur || {};
+    const ROWS = [
+      ["Perturbation", "T_perturbation", "U_perturbation"], ["Cargaison 50 t, ±3,5 m", "T_cargaison_laterale", "U_cargaison_laterale"],
+      ["Équipage 4 t", "T_equipage", "U_equipage"], ["Balayage hors plan (4 t)", "T_balayage_z", "U_balayage_z"],
+      ["Balayage hors plan, bassin réaccordé (19 t, Ø 8,8 m)", "T_balayage_z", "U_balayage_z_bassin"],
+    ];
+    const tb = document.querySelector("#t-masses tbody");
+    ROWS.forEach(([lab, a, u]) => {
+      const ref = A[a], info = U[u];
+      if (!info || !info.results.tilt_max_ship) return;
+      const r = info.results;
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${lab}</td><td class="n">${ref && ref.results.tilt_max_ship ? deg(ref.results.tilt_max_ship[0]) : "—"}</td>
+        <td class="n"><b>${deg(r.tilt_max_ship[0])}</b></td><td class="n">${fr(r.g_min_ship[0] * 9.80665, 2)}–${fr(r.g_max_ship[0] * 9.80665, 2)}</td></tr>`);
+    });
+  }).catch(() => {});
+
+  /* Mode couplé du LOX (§ 6.2) */
+  Promise.all(["T_balayage_z", "V_chicanes8_balayage_z", "V_bassin2_balayage_z"].map(series)).then((ds) => {
+    const labs = ["chicanes ζ 3 % (retenue)", "chicanes ζ 8 %", "second bassin de 8 t"];
+    lineChart(document.getElementById("ch-lox-z"), {
+      xLog: true, yLog: true, xLabel: "fréquence d'excitation (Hz)", xName: "f =", xUnit: " Hz", yLabel: "inclinaison du plancher (°)", yUnit: "°",
+      xFmt: (v) => fr(v, v < 0.01 ? 3 : 2),
+      series: ds.map((d, i) => ({ name: labs[i], x: d.sweep.map((p) => p[0]), y: d.sweep.map((p) => p[1]) })),
+      vrefs: [{ x: 0.25, label: "LOX" }],
+    });
+  }).catch(() => {});
+
   /* Rupture d'un câble (§ 7) */
   getJSON("data/summary.json").then((S) => {
-    const R = S.rupture || {};
+    const R = Object.assign({}, S.rupture || {}, S.brins || {});
     const ROWS = [
       ["X_rupture_milieu", "Rupture au milieu d'un côté"], ["X_rupture_attache", "Rupture à une attache"],
       ["Y_moyeu_rupture", "Moyeu à 3 rayons, rupture d'un côté"], ["Y_moyeu_rupture_largage", "Moyeu à 3 rayons + coupe-câbles, rupture d'un côté"],
       ["Y_moyeu_rupture_rayon", "Moyeu à 3 rayons, rupture d'un rayon"],
       ["Z_moyeu_double_rupture", "Rayons doublés + coupe-câbles, rupture d'un côté"], ["Z_moyeu_double_rupture_rayon", "Rayons doublés + coupe-câbles, rupture d'un rayon"],
+      ["W_brins2_rupture", "Deux brins par côté + coupe-câbles, rupture d'un brin"], ["W_brins2_sans_largage", "Deux brins, sans coupe-câbles"],
+      ["W_brins2_attache", "Deux brins + coupe-câbles, brin rompu à l'attache"], ["W_brins2_ecartes", "Deux brins écartés de 2 m aux attaches + coupe-câbles"],
+      ["W_brins3_rupture", "Trois brins par côté + coupe-câbles, rupture d'un brin"],
     ];
     const tb = document.querySelector("#t-rupture tbody");
     ROWS.forEach(([name, lab]) => {
@@ -1101,6 +1243,10 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
     ["X_rupture_milieu", "sans moyeu", gMs2(1)], ["Y_moyeu_rupture", "moyeu à 3 rayons", gMs2(1)],
     ["Z_moyeu_double_rupture", "rayons doublés + coupe-câbles", gMs2(1)],
   ], { tMax: 300, yLabel: "gravité ressentie (m/s²)", yUnit: " m/s²", refs: [{ y: 3.711, label: "Mars" }], vrefs: [{ x: 1, label: "rupture" }] });
+  rupChart("ch-brins-tilt", [
+    ["Z_moyeu_double_rupture", "moyeu, rayons doublés + coupe-câbles", (d) => envelope(d.tilt[1], 10)],
+    ["W_brins2_rupture", "deux brins + coupe-câbles", (d) => envelope(d.tilt[1], 10)], ["W_brins3_rupture", "trois brins + coupe-câbles", (d) => envelope(d.tilt[1], 10)],
+  ], { tMax: 660, yLabel: "inclinaison du plancher, enveloppe sur ±5 s (°)", yUnit: "°", vrefs: [{ x: 1, label: "rupture" }] });
 
   /* Amortisseur à liquide accordé (§ 6.1) */
   getJSON("data/summary.json").then((S) => {

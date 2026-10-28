@@ -18,10 +18,11 @@ Site statique : `docs/build_site.sh <dossier>` construit `index.html`, `grand-pu
 | Fichier | Rôle |
 |---|---|
 | `tether_sim.py` | Simulateur multicorps (NumPy) : vaisseaux rigides (modèle de masse par éléments, pendules de ballottement, bassin d'eau accordé), câbles unilatéraux discrétisés, masses internes mobiles, amortisseur interne |
-| `run_scenarios.py` | Campagnes de scénarios en parallèle : `rotation`, `internes`, `final` (étude préliminaire), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur` |
+| `run_scenarios.py` | Campagnes de scénarios en parallèle : `rotation`, `internes`, `final` (étude préliminaire), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses` |
 | `mission_mass.py` | Masse d'un Starship après l'injection vers Mars |
 | `slosh_modes.py` | Modèle linéaire hors plan (vaisseau + ergols) : modes couplés |
 | `tld_design.py` | Dimensionnement du bassin d'eau accordé (modèle linéaire amorti, balayage en temps) |
+| `lox_search.py` | Mode couplé du LOX : chicanes plus efficaces ou second bassin (même modèle linéaire) |
 | `chrono_validation.py` | Validation croisée avec Project Chrono (PyChrono 10) |
 | `make_web_data.py` | Export des résultats vers `docs/data/` (séries, trajectoires 3D, validation) |
 | `docs/shared/` | Visualiseur 3D (three.js), graphiques SVG, schémas des configurations |
@@ -45,6 +46,12 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python run_scenarios.py retenue      # solution retenue : ergols libres, réservoirs à chicanes
 .venv/bin/python run_scenarios.py amortisseur  # bassin d'eau accordé (~3 h)
 .venv/bin/python run_scenarios.py rupture      # rupture d'un câble, moyeu et rayons, coupe-câbles (~1 h 30)
+.venv/bin/python run_scenarios.py brins        # câbles doublés ou triplés, rupture d'un brin (~45 min)
+.venv/bin/python run_scenarios.py moyeu        # confort avec moyeu et rayons doublés (~2 h 30)
+.venv/bin/python run_scenarios.py montee       # mise en rotation de 0,1 à 1 tr/min (~1 h 30)
+.venv/bin/python run_scenarios.py lox          # chicanes du LOX à 8 % ou second bassin (~1 h 30)
+.venv/bin/python run_scenarios.py masses       # transfert d'ergols : 220 / 805 / 805 t à 0,87 tr/min (~1 h)
+.venv/bin/python lox_search.py                 # mode du LOX (modèle linéaire)
 .venv/bin/python tld_design.py                 # dimensionnement du bassin (modèle linéaire)
 .venv/bin/python slosh_modes.py                # modes couplés vaisseau + ergols (modèle linéaire)
 .venv/bin/python make_web_data.py              # met à jour docs/data/
@@ -64,7 +71,7 @@ Prévisualisation locale des pages : `docs/_preview/build.sh`, puis `python3 -m 
 
 ## Résultats principaux
 
-Solution retenue (610 t, ergols libres, chicanes) : roulis 0,09° après une perturbation ; 50 t déplacées de 3,5 m sur un pont : 0,61° ; changement de pont et marche : 0,19° ; pire balancement entretenu par 4 t : 2,7° sans bassin, 0,46° avec le bassin de 25 t. Câbles : 4,8 % de leur résistance en route ; un câble réaliste (tressé, gainé, brins redondants) pèse 24 t pour les trois en Dyneema SK99, jusqu'à 47 t en Kevlar.
+Solution retenue (610 t, ergols libres, chicanes) : roulis 0,09° après une perturbation ; 50 t déplacées de 3,5 m sur un pont : 0,61° ; changement de pont et marche : 0,19° ; pire balancement entretenu par 4 t : 2,7° sans bassin, 0,46° avec le bassin de 25 t, 0,32° si les chicanes du LOX amortissent 8 % au lieu de 3 %. Mise en rotation de 0,1 à 1 tr/min en 30 min, 20 t d'ergols, plancher penché de 2,6°. Contre la rupture d'un câble : deux brins de demi-section par côté (même masse) et des coupe-câbles. Câbles : 4,8 % de leur résistance en route ; un câble réaliste (tressé, gainé, brins redondants) pèse 24 t pour les trois en Dyneema SK99, jusqu'à 47 t en Kevlar.
 
 Historique de l'étude :
 
@@ -79,6 +86,11 @@ Historique de l'étude :
 - Ballottement des ergols (`--slosh free`, pendules d'Abramson, NASA SP-106) : 139 t de LOX et 47 t de CH4 ballottent par vaisseau. Mode couplé du LOX à 0,25 Hz (vérifié par `slosh_modes.py`). Sans chicanes (ζ ≈ 0,1 %), il résonne et met des minutes à s'éteindre : jusqu'à 4,3° au pire rythme. Avec chicanes (ζ = 3 %), il s'éteint en 20 s, mais le pire balancement double (2,7° contre 1,3° ergols figés) car le liquide n'accompagne plus la coque. Cargaison et marche quasi inchangées.
 - Amortisseur à liquide accordé (`--tld-mass-t`, dimensionné par `tld_design.py`) : bassin de 25 t d'eau, Ø 7,2 m × 0,61 m, à 12 m de la pointe, accordé à 0,117 Hz, ζ = 0,15. Pire balayage hors plan 2,70° → 0,46°, dans le plan 1,28° → 0,44° ; peu sensible à l'accord, à ζ (0,08–0,20) et à la masse du vaisseau (560 t : 0,50°). Placé côté moteurs, il serait presque inutile.
 - Rupture d'un câble (`--break-cable`, `--break-at`, `--release-delay`) : un câble de 11 cm ne craint presque pas les météorites (≈ 10⁻⁶ coupure par voyage, flux de Grün) ; un fil de 2 mm, si (0,3 à 27 %). Sans parade, la rupture d'un côté ouvre le triangle : les câbles restants tiennent (10,5 MN, 38 % de la résistance), mais la station « respire » (période 46 s), à-coups de 2 g et vaisseaux qui tournoient ; la rotation tombe à 0,56 tr/min. Parade (`--hub-mass-t 20 --hub-spokes 2`) : moyeu central relié au nez de chaque vaisseau par deux rayons de 313 m, plus coupe-câbles qui larguent les morceaux : la station garde sa forme et sa rotation (2,1 MN au plus, secousses d'une vingtaine de secondes) ; avec un seul rayon par vaisseau, la perte d'un rayon libère le moyeu (à-coup de 10,7 MN).
+- Câbles doublés (`--side-strands 2`) : deux brins de demi-section par côté, sur les mêmes ferrures, même masse de câble. Si un brin casse, l'autre monte à 1,9 MN (14 % de sa résistance), le triangle garde sa forme et la rotation ; plancher à 16° pendant quelques secondes, sous 3° en 75 s (10 min avec le moyeu). Coupe-câbles indispensables (sans eux, les morceaux fouettent pendant des dizaines de minutes).
+- Confort avec le moyeu (campagne `moyeu`) : résonances inchangées ; cargaison sur un pont 0,26° au lieu de 0,60° (les rayons doublés forment une seconde patte d'oie).
+- Mise en rotation (`--spin-from 0.1 --spin-k 0.05`) : α = k·ω² garde constante l'inclinaison de la gravité apparente ; 1 tr/min en 30 min, 20 t d'ergols (Isp 300 s), plancher à 2,6° puis 0,04°, câbles toujours tendus. Quatre fois plus vite : 10°. À α constant : 28° au départ, liquides déplacés de 1 à 2 m. Poussée à l'arrière : −4 % d'ergols, 4,1°.
+- Mode couplé du LOX (campagne `lox`, `lox_search.py`) : chicanes à ζ = 8 % → pic du LOX 0,46° → 0,25°, pire cas 0,32° (à 0,36 Hz, étirement des câbles) ; un second bassin de 8 t fait moins bien.
+- Transfert d'ergols (`--masses-t 220,805,805 --attach-x 9 --target-ship 0 --rpm 0.87`) : équilibre conforme au calcul statique (449 m, 0,47 / 1,74 MN, cargos pivotés de 5,3°) ; mais le vaisseau habité devient six fois plus sensible (cargaison 3,5°, marche 1,0°), M·h passant de 15 200 à 2 500 t·m ; son balancement hors plan descend à 0,072 Hz, loin de l'accord du bassin : 4,6° au pire rythme, 1,25° avec un bassin réaccordé (19 t, Ø 8,8 m, 0,31 m), où l'eau se déplace de 1,1 m.
 - Validation : énergie et moment cinétique conservés à 10⁻⁸ ou mieux ; Project Chrono reproduit les mêmes trajectoires (écart de temps de doublement 0,03 à 0,13 %).
 
 ## Licence

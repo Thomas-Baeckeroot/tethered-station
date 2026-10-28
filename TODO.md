@@ -4,23 +4,24 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 
 ## Priorité haute
 
-- **Mise en rotation après l'injection vers Mars** : rapprochement des trois vaisseaux, déroulement des câbles sans détente, montée à 1 tr/min (poussée des moteurs ou du RCS, durée, ergols consommés, risque de mou dans les câbles).
-- **Moyeu et rayons doublés** (parade retenue contre la rupture d'un câble, carnet § 7) : l'intégrer aux campagnes de la solution retenue (confort, balayages) ; déploiement des côtés et des rayons depuis le moyeu, treuils, mise en rotation avec moyeu.
+- **Déploiement avant la mise en rotation** : rapprochement des trois vaisseaux, déroulement des câbles sous 0,1 tr/min (quelques kN de tension), treuils. La montée de 0,1 à 1 tr/min est simulée (carnet § 5.4 : α = 0,05·ω², 30 min, 20 t d'ergols, plancher à 2,6°).
+- **Câbles doublés** (meilleure parade simulée contre la rupture, carnet § 7.4) : ferrures (communes aux deux brins, un arrachement les emporte ensemble ; écartées, la rupture secoue davantage), entretoises, emmêlement du brin rompu avec le brin sain.
+- **Moyeu et rayons doublés** (carnet § 7.3 ; confort vérifié, campagne `moyeu`) : déploiement des côtés et des rayons depuis le moyeu, treuils ; les rayons, réglés pour 1 tr/min, sont presque détendus pendant la montée.
 - **Premier retour du brin rompu** : il touche une coiffe 6 s après la rupture, même avec coupe-câbles. Frein anti-retour près des attaches (comme pour les amarres de navires), protection de la coiffe, ou brin captif (câbles doublés).
 - **Contact câble–coque** : absent du modèle (brins qui frappent les coques, câbles qui s'enroulent autour d'une coiffe quand un vaisseau tournoie) ; nécessaire pour la suite d'une rupture sans moyeu.
-- **Vaisseaux de masses inégales** (vaisseau d'équipage contre cargos) : cas du transfert d'ergols vers les cargos (220 / 805 / 805 t, 0,87 tr/min, carnet § 15) ; triangle déséquilibré, centre de rotation décalé, gravité différente d'un vaisseau à l'autre.
+- **Vaisseau habité allégé** (carnet § 5.5) : le transfert complet des ergols (220 / 805 / 805 t, 0,87 tr/min) rend son plancher six fois plus sensible, et son balancement hors plan (0,072 Hz) échappe au bassin : 4,6°, 1,25° avec un bassin réaccordé à la limite de la coque. Simuler le transfert de moitié (415 / 708 / 708 t, 0,93 tr/min) ou un lest bas.
 - **Pattes d'oie** : répartir chaque câble sur plusieurs points d'ancrage du nez, écartés aussi selon l'axe de rotation, pour raidir le balancement hors plan (complément ou alternative au bassin).
-- **Amortir davantage le mode couplé du LOX (≈ 0,26 Hz)** : avec le bassin, c'est lui qui fixe le pic restant (0,44 à 0,46°) ; chicanes plus efficaces ou second bassin accordé sur ce mode.
+- **Chicanes du LOX à ζ = 8 %** (carnet § 6.2 : pire cas 0,46° → 0,32°) : vérifier qu'un anneau juste sous la surface libre, dont le niveau ne change pas en route, atteint cet amortissement. Pics restants ≈ 0,3° vers 0,1 Hz et 0,36 Hz (mode d'étirement des câbles).
 - **Bassin d'eau en eau peu profonde, non linéaire** : au pire rythme, la masse équivalente se déplace de 25 à 31 cm pour 0,61 m de profondeur. Vérifier par un modèle d'écoulement en eau peu profonde (déferlement, ressaut, efficacité des grilles), et la tenue de l'accord quand le niveau baisse (l'eau sert aussi de réserve).
 - **Fluage des câbles sur 259 jours** : chiffrer avec les données fabricant (Dyneema DM20 / SK99, Vectran) à la température réelle du câble ; allongement inégal → compensation par treuils.
 
 ## Priorité moyenne
 
-- **Câbles doublés à palonniers et diagonales, tronçons remplaçables, maillage triangulaire** (carnet § 7.4) : simuler un brin coupé dans une travée, le report de charge par les diagonales et l'emmêlement ; raideur hors plan apportée par des brins écartés selon l'axe de rotation.
+- **Entretoises entre brins, tronçons remplaçables, maillage triangulaire** (carnet § 7.5) : brin rompu captif sans coupe-câbles ; raccords ; filet de 9 triangles autour du moyeu.
 - **Absorbeurs d'énergie aux attaches** (sangles à déchirement) : plafonner les à-coups ; course nécessaire.
 - **Câble réaliste** : tresse à brins multiples (type Hoytether), gaine ; perte de brins par micrométéorites ; masse 24 t (Dyneema SK99 redondant) à 47 t (Kevlar) d'après le § 2.3 du carnet.
 - **Ancrages sur la coiffe** : capacité des points d'attache du Starship (non publiée) ; en route 1,31 MN par câble et 2,26 MN par vaisseau (9,1 et 15,7 MN à 1 600 t et 1 g).
-- **Thermique des câbles** : gaine blanche (≈ −70 °C au soleil à 1 UA) plutôt que métallisée (+78 °C) ; constante de temps ≈ 6 h, donc pas de cycles dus à la rotation (carnet § 7.4). Reste la dilatation négative du Dyneema et l'ombre des vaisseaux.
+- **Thermique des câbles** : gaine blanche (≈ −70 °C au soleil à 1 UA) plutôt que métallisée (+78 °C) ; constante de temps ≈ 6 h, donc pas de cycles dus à la rotation (carnet § 7.5). Reste la dilatation négative du Dyneema et l'ombre des vaisseaux.
 - **Orientation de l'axe de rotation** : le garder pointé vers le Soleil coûte 70 à 90 t d'ergols sur le transfert ; axe fixe et panneaux orientables (joint tournant à 1 tr/min) à étudier.
 - **Câbles ANCF continus dans Chrono** : modes de câble rapides, raideur en torsion (rappel de roulis négligé aujourd'hui, ce qui va dans le sens de la sécurité).
 - **Flexibilité de la coque** et modes de ballottement supérieurs (aujourd'hui : structure rigide, premier mode seulement, réservoirs à fond plat).
