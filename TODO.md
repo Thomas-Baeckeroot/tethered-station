@@ -13,6 +13,8 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 - **Pattes d'oie** : répartir chaque câble sur plusieurs points d'ancrage du nez, écartés aussi selon l'axe de rotation, pour raidir le balancement hors plan (complément ou alternative au bassin).
 - **Chicanes du LOX à ζ = 8 %** (carnet § 6.2 : pire cas 0,46° → 0,32°) : vérifier qu'un anneau juste sous la surface libre, dont le niveau ne change pas en route, atteint cet amortissement. Pics restants ≈ 0,3° vers 0,1 Hz et 0,36 Hz (mode d'étirement des câbles).
 - **Bassin d'eau en eau peu profonde, non linéaire** : au pire rythme, la masse équivalente se déplace de 25 à 31 cm pour 0,61 m de profondeur. Vérifier par un modèle d'écoulement en eau peu profonde (déferlement, ressaut, efficacité des grilles), et la tenue de l'accord quand le niveau baisse (l'eau sert aussi de réserve).
+- **Thermique face au Soleil** (carnet § 5.6, `sun_pointing.py`, modèle 2D) : valeur réelle de la conductance des tuiles et de leur feutre sous vide et à froid (0,1 à 0,6 W/m²·K supposés), qui fixe le refroidissement net ; montage des panneaux (dos chaud à 50 °C, ≈ 500 W/m² : voile ou mâts) ; régulation des ergols, qui gèleraient (CH4 à 90,7 K) sans ≈ 1 kW de chauffage ; échanges par le dôme commun ; stratification du gaz du ciel.
+- **Propulseurs à gaz chauds** pour le pivotement de l'axe (63 à 89 t de méthane-oxygène sur le voyage, impulsions de 18 N au passage de la ligne des nœuds) : le Starship n'a aujourd'hui que des propulseurs à gaz froid (170 à 410 t).
 - **Fluage des câbles sur 259 jours** : chiffrer avec les données fabricant (Dyneema DM20 / SK99, Vectran) à la température réelle du câble ; allongement inégal → compensation par treuils.
 
 ## Priorité moyenne
@@ -22,14 +24,13 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 - **Câble réaliste** : tresse à brins multiples (type Hoytether), gaine ; perte de brins par micrométéorites ; masse 24 t (Dyneema SK99 redondant) à 47 t (Kevlar) d'après le § 2.3 du carnet.
 - **Ancrages sur la coiffe** : capacité des points d'attache du Starship (non publiée) ; en route 1,31 MN par câble et 2,26 MN par vaisseau (9,1 et 15,7 MN à 1 600 t et 1 g).
 - **Thermique des câbles** : gaine blanche (≈ −70 °C au soleil à 1 UA) plutôt que métallisée (+78 °C) ; constante de temps ≈ 6 h, donc pas de cycles dus à la rotation (carnet § 7.5). Reste la dilatation négative du Dyneema et l'ombre des vaisseaux.
-- **Orientation de l'axe de rotation** : le garder pointé vers le Soleil coûte 70 à 90 t d'ergols sur le transfert ; axe fixe et panneaux orientables (joint tournant à 1 tr/min) à étudier.
 - **Câbles ANCF continus dans Chrono** : modes de câble rapides, raideur en torsion (rappel de roulis négligé aujourd'hui, ce qui va dans le sens de la sécurité).
 - **Flexibilité de la coque** et modes de ballottement supérieurs (aujourd'hui : structure rigide, premier mode seulement, réservoirs à fond plat).
 - **Ailerons du Starship** dans l'inertie (orientation préférée faible).
 
 ## Priorité basse
 
-- Contrôle actif : RCS pour corriger l'axe de rotation et amortir les balancements (le choix actuel est passif).
+- Contrôle actif : RCS pour amortir les balancements (le choix actuel est passif ; le pivotement de l'axe vers le Soleil est simulé, § 5.6).
 - Gradient de gravité complet en orbite terrestre (repère de Hill) ; en transit héliocentrique, l'effet est négligeable.
 - Amarrage d'un véhicule en route (non prévu par le scénario).
 - Vieillissement des câbles : rayonnement, micrométéorites, fluage sous charge permanente (lié au fluage ci-dessus).

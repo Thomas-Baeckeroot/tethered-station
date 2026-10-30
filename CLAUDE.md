@@ -14,6 +14,7 @@ Personal research project: dynamics of a rotating, cable-connected space station
 - **Tuned liquid damper**: 25 t water pool, Ø 7.2 m × 0.61 m, floor 12 m from the nose, tuned to 0.117 Hz, ζ = 0.15. Cuts the worst out-of-plane resonance from 2.7° to ≈ 0.45°.
 
 - **Cable-break safety** (notebook § 7): best simulated parade = two half-section strands per side, same cable mass (`--side-strands 2`, campaign `brins`, § 7.4), plus cutters that drop the broken strand's pieces (`--release-delay 1`). Both strands of a side must leave from that side's fitting (common fitting, or side by side in the rotation plane): roll about the ship axis is held only by the bridle effect, so strands stacked along the spin axis or crossed under the nose cause roll trouble (`--strand-layout`, figure in § 7.4). A hub (20 t) tied to each nose by two spokes (`--hub-mass-t 20 --hub-spokes 2`, campaigns `rupture`, `moyeu`, § 7.3) also covers the loss of a whole side; it does not change comfort.
+- **Sun pointing** (notebook § 5.6, `sun_pointing.py`, campaign `soleil`): the spin axis follows the Sun (180° over the transfer) with out-of-plane pulses at the line of nodes (`--precess-rate`, `--precess-pulse`; 63–89 t hot-gas propellant). Fixed panels on the lit side; the heat-shield tiles stay in shade and radiate, so the propellant does not boil off (it needs ~1 kW of heating). A fixed axis would let sunlit tiles boil it off.
 - **Other studies on top of the retained solution**: spin-up from 0.1 to 1 rpm with α = k·ω² (`--spin-from`, campaign `montee`, § 5.4); LOX baffles at ζ = 8 % for the remaining LOX peak (campaign `lox`, `lox_search.py`, § 6.2); unequal masses after a propellant transfer (`--masses-t 220,805,805 --attach-x 9 --target-ship 0 --rpm 0.87`, campaign `masses`, § 5.5): the crew ship becomes ~6× more sensitive.
 
 Rejected alternatives (keep as chapters, don't reopen unless asked): two ships (roll about the cable is neutral, drifts freely), horizontal ships (need masts, worse resonances), generic modules (preliminary study).
@@ -33,11 +34,12 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 
 | File | Role |
 |---|---|
-| `tether_sim.py` | Simulator: rigid ships (`starship_mass_model`: element mass model, slosh pendulums, optional water pool `tld=`), discretised unilateral cables, prescribed internal masses, Kane damper; options: hub and spokes (`--hub-*`), cable break and piece release (`--break-*`, `--release-delay`), strands per side (`--side-strands`, `--strand-gap`, `--strand-layout`), spin-up thrust (`--spin-*`), unequal masses (`--masses-t`, `--attach-x`, `--target-ship`), second pool (`--tld2-*`) |
-| `run_scenarios.py` | Campaigns: `rotation`, `internes`, `final` (generic study), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses` |
+| `tether_sim.py` | Simulator: rigid ships (`starship_mass_model`: element mass model, slosh pendulums, optional water pool `tld=`), discretised unilateral cables, prescribed internal masses, Kane damper; options: hub and spokes (`--hub-*`), cable break and piece release (`--break-*`, `--release-delay`), strands per side (`--side-strands`, `--strand-gap`, `--strand-layout`), spin-up thrust (`--spin-*`), axis pivot toward the Sun (`--precess-*`), unequal masses (`--masses-t`, `--attach-x`, `--target-ship`), second pool (`--tld2-*`) |
+| `run_scenarios.py` | Campaigns: `rotation`, `internes`, `final` (generic study), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses`, `soleil` |
 | `mission_mass.py` | Starship mass after trans-Mars injection |
 | `slosh_modes.py` | Linear out-of-plane model (attachment, tilt, slosh pendulums): coupled modes |
 | `tld_design.py` | Damped linear model integrated in time (same sweep program as the simulator): TLD design search |
+| `sun_pointing.py` | Sun pointing: Sun direction on the transfer, axis-pivot impulse, 2D tank heat balance by orientation and coverings → `docs/data/soleil.json` |
 | `lox_search.py` | Same linear model: stronger LOX baffles or a second pool against the coupled LOX mode |
 | `chrono_validation.py` | Cross-validation with Project Chrono (PyChrono 10) |
 | `make_web_data.py` | Export to `docs/data/` (summary, series incl. sweep curves, 3D animations listed in `ANIMATIONS`) |
