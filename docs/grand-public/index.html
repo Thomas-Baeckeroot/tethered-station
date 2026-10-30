@@ -352,6 +352,46 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </figure>
 </section>
 
+<section class="col" id="soleil">
+  <span class="eyebrow">6 · Le voyage</span>
+  <h2>Tournée vers le Soleil</h2>
+  <p>Pendant les 259 jours du voyage, la station garde son axe de rotation pointé vers le Soleil, comme un tournesol. Chaque vaisseau présente donc toujours le même côté au Soleil, et garde l'autre à l'ombre. Ce simple choix règle deux questions à la fois : l'électricité et le froid des ergols.</p>
+  <figure>
+    <div id="gp-soleil-station" style="max-width:440px"></div>
+    <figcaption><b>La station face au Soleil.</b> Les trois vaisseaux tournent dans un plan perpendiculaire à la direction du Soleil ; leurs panneaux, fixes, restent toujours face à lui.</figcaption>
+  </figure>
+</section>
+
+<section class="trap wide" id="soleil-ombre">
+  <div class="txt">
+    <span class="tag">Orientation</span>
+    <h3>Un côté au soleil, un côté à l'ombre</h3>
+    <p>Du côté éclairé, les panneaux solaires sont fixes, déployés de part et d'autre du vaisseau, toujours face au Soleil. La coque y est couverte d'un isolant argenté qui renvoie la lumière.</p>
+    <p>De l'autre côté se trouvent les tuiles noires du bouclier thermique, qui protégeront le vaisseau lors de son entrée dans l'atmosphère de Mars. Restées à l'ombre, elles rayonnent leur chaleur vers le ciel, à −270 °C. L'oxygène et le méthane liquides, vers −180 °C, restent froids d'eux-mêmes : ils ne s'évaporent pas, et il faut même les chauffer un peu, avec environ 1 kW par vaisseau, pour que le méthane ne gèle pas.</p>
+    <p class="verdict">Si le Soleil tournait autour des vaisseaux, les tuiles noires chaufferaient et conduiraient cette chaleur jusqu'aux ergols : des réservoirs vides en quelques semaines, et encore 30 à 200 t perdues avec une housse isolante sur les tuiles.</p>
+  </div>
+  <figure>
+    <div id="gp-soleil-coupe"></div>
+    <figcaption><b>Coupe d'un vaisseau au niveau des réservoirs.</b> Le Soleil arrive toujours d'en haut. Les panneaux et l'isolant argenté prennent la lumière ; les tuiles, en bas, restent à l'ombre et laissent s'échapper la chaleur.</figcaption>
+  </figure>
+</section>
+
+<section class="trap wide" id="soleil-axe">
+  <div class="txt">
+    <span class="tag">Pilotage</span>
+    <h3>Suivre le Soleil</h3>
+    <p>Entre la Terre et Mars, la station fait un demi-tour autour du Soleil. Vue de la station, la direction du Soleil tourne donc de 180° pendant le voyage, lentement : 0,7° par jour en moyenne. Or une station qui tourne est un gyroscope : son axe garde sa direction tant qu'on ne le pousse pas.</p>
+    <p>Pour qu'il suive le Soleil, chaque vaisseau donne une petite poussée chaque fois qu'il passe en haut ou en bas du cercle : environ 20 N, le poids d'un pack d'eau, pendant 5 secondes, deux fois par minute. Comme pour un gyroscope, pousser en haut et en bas fait pivoter l'axe sur le côté. Nous l'avons simulé, en accéléré : l'axe tourne exactement comme prévu, et le plancher ne bouge que d'un millième de degré.</p>
+    <p class="verdict">Pour tout le voyage, il faut environ 70 t de méthane et d'oxygène pour les trois vaisseaux, brûlés dans de petits propulseurs. Les propulseurs actuels du Starship, qui détendent ces gaz sans les brûler, en consommeraient trois à cinq fois plus.</p>
+  </div>
+  <figure>
+    <div id="gp-soleil-orbite"></div>
+    <figcaption><b>Le voyage vu de dessus.</b> La station, vue par la tranche, garde son axe (flèche) pointé vers le Soleil, alors qu'un axe laissé libre garderait sa direction de départ (pointillés).</figcaption>
+    <div id="gp-soleil-pivot" style="max-width:440px"></div>
+    <figcaption><b>La poussée au passage en haut et en bas du cercle.</b> L'axe pivote d'un cheveu à chaque fois, sur le côté, comme celui d'un gyroscope.</figcaption>
+  </figure>
+</section>
+
 <section class="wide final" id="final">
   <div class="col" style="margin:0;max-width:46rem">
     <span class="eyebrow">Le résultat</span>
@@ -363,6 +403,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <li><b>Plancher stable</b><span><span class="num" data-bind="R_cargaison_laterale.tilt_max">—</span> au pire quand 50 t traversent un pont, <span class="num" data-bind="R_equipage.tilt_max">—</span> quand l'équipage marche, rien quand on change de pont, <span class="num" data-bind="T_balayage_z.tilt_max">—</span> au pire rythme grâce au bassin.</span></li>
     <li><b>Gravité stable</b><span>Entre <span class="num" data-bind="R_perturbation.g_min" data-fmt="ms2">—</span> et <span class="num" data-bind="R_perturbation.g_max" data-fmt="ms2">—</span>, pour 3,711 m/s² visés.</span></li>
     <li><b>Mise en rotation en douceur</b><span>Des propulseurs amènent la station de 0,1 à 1 tour par minute en une demi-heure, avec 20 t d'ergols au total : pendant la manœuvre, le plancher penche de <span class="num" data-bind="S_montee_k005.spin.tilt_max_on">—</span> et les câbles restent tendus.</span></li>
+    <li><b>Face au Soleil</b><span>Panneaux fixes et ergols qui restent froids d'eux-mêmes ; l'axe suit le Soleil grâce à de petites poussées, environ 70 t d'ergols pour tout le voyage.</span></li>
     <li><b>Marge de résistance</b><span>Câbles dimensionnés pour des vaisseaux pleins à 1 g avec un facteur de sécurité de 3 : en route, ils ne travaillent qu'à 5 % de leur résistance.</span></li>
   </ul>
   <p class="verdict">Le point sensible était le balancement des vaisseaux, plus légers qu'au départ et alourdis d'ergols qui ne suivent pas la coque : 4 t (une cinquantaine de personnes) se balançant en cadence toutes les 8 secondes faisaient pencher le plancher de 2,7°. Un bassin de 25 t d'eau sous la coiffe de chaque vaisseau ramène ce pire cas à <span class="num" data-bind="T_balayage_z.tilt_max">—</span>, sans moteur ni pièce mobile.</p>
@@ -370,7 +411,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 </section>
 
 <section class="col" id="rupture">
-  <span class="eyebrow">6 · La sécurité</span>
+  <span class="eyebrow">7 · La sécurité</span>
   <h2>Et si un câble cassait&nbsp;?</h2>
   <p>Dans le triangle, chaque câble retient deux vaisseaux. Un sceptique dira que 540 m de câble, c'est long, et qu'une micrométéorite finit toujours par le couper. Les câbles qui ont volé ont en effet souvent été coupés, mais c'étaient des fils de moins d'un millimètre. Pour couper un câble de 11 cm, il faut une pierre de 2 à 5 cm ; entre la Terre et Mars, la probabilité d'en croiser une pendant le voyage est de l'ordre d'une sur un million.</p>
   <p>Les vraies menaces sont plus banales : une attache mal faite, l'usure là où le câble frotte, un défaut de fabrication, un câble abîmé en l'enroulant. Une station sûre doit donc survivre à la perte de n'importe quel câble. Nous en avons coupé un, en route.</p>
@@ -438,12 +479,11 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <li><b>Un câble qui se surveille</b><span>Une fibre optique dans le câble mesure son allongement sur toute sa longueur et signale un brin rompu ou un échauffement. Un robot grimpeur peut l'inspecter, poser un manchon de réparation, ou tirer un câble neuf le long de l'ancien.</span></li>
     <li><b>Ranger les câbles à l'abri</b><span>Hors service, les câbles doivent être enroulés sous une coiffe : en orbite basse, les débris, l'oxygène atomique et les ultraviolets les abîment bien plus que le vide entre les planètes. Les trois tiennent dans 15 à 20 m³. Un câble laissé déployé sans tension se vrille et s'emmêle.</span></li>
     <li><b>Une gaine blanche</b><span>Au soleil, une gaine blanche garde le câble vers −70 °C, là où le Dyneema est le plus solide ; une gaine métallique nue le chaufferait à près de 80 °C, ce qui accélère son fluage. Le câble met des heures à changer de température : la rotation d'une minute ne lui impose aucun cycle.</span></li>
-    <li><b>Un axe de rotation fixe</b><span>Faire suivre le Soleil à toute la station pendant le voyage, pour des panneaux solaires fixes, coûterait 70 à 90 t d'ergols. Mieux vaut garder l'axe fixe et orienter les panneaux.</span></li>
   </ul>
 </section>
 
 <section class="col" id="alternatives">
-  <span class="eyebrow">7 · Les alternatives</span>
+  <span class="eyebrow">8 · Les alternatives</span>
   <h2>Ce que nous avons écarté, et pourquoi</h2>
   <p>La configuration retenue est le résultat d'une série de comparaisons. Avant de choisir les Starships, nous avons étudié des modules génériques&nbsp;: de gros cylindres de 1 600 t, en orbite autour de la Terre. C'est là que sont apparus les pièges qui ont dicté les règles de conception. Puis, avec les Starships, nous avons comparé les vaisseaux debout et couchés, à deux et à trois.</p>
 </section>
@@ -572,7 +612,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 </section>
 
 <section class="col">
-  <span class="eyebrow">8 · La suite</span>
+  <span class="eyebrow">9 · La suite</span>
   <h2>Ce qu'il reste à étudier</h2>
   <ul class="todo">
     <li>Le déploiement après l'injection vers Mars : rapprocher les trois vaisseaux et dérouler les câbles avant la mise en rotation, quand ils ne portent presque rien.</li>
@@ -581,7 +621,8 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <li>Le moyeu et ses rayons en détail : déploiement des câbles depuis le moyeu, treuils, et le contact des câbles avec les coques, que notre modèle ne représente pas.</li>
     <li>Les attaches des câbles doublés, les entretoises entre brins et des tronçons remplaçables en vol.</li>
     <li>Un vaisseau habité allégé mais lesté en bas, pour tourner plus lentement sans perdre en confort.</li>
-    <li>Plus tard, le contrôle actif : les moteurs de manœuvre pour corriger l'axe de rotation et amortir les balancements.</li>
+    <li>La thermique réelle des vaisseaux face au Soleil : conduction des tuiles, montage des panneaux, réglage de la température des ergols.</li>
+    <li>Plus tard, le contrôle actif : les moteurs de manœuvre pour amortir les balancements.</li>
     <li>Le vieillissement des câbles : rayonnement, micrométéorites, fluage du Dyneema sous charge permanente.</li>
   </ul>
 </section>
@@ -599,6 +640,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 <script src="shared/station3d.js"></script>
 <script src="shared/charts.js"></script>
 <script src="shared/schema.js"></script>
+<script src="shared/soleil.js"></script>
 <script>
 (function () {
   "use strict";
@@ -632,6 +674,10 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 
   /* Schémas (posters des visualiseurs + figures) */
   document.querySelectorAll("[data-schema]").forEach((p) => drawSchema(p, JSON.parse(p.dataset.schema)));
+  drawStationSun(document.getElementById("gp-soleil-station"), {});
+  drawShipSection(document.getElementById("gp-soleil-coupe"), {});
+  drawSunOrbit(document.getElementById("gp-soleil-orbite"), { propellant_t: 70 });
+  drawStationSun(document.getElementById("gp-soleil-pivot"), { pulses: true });
   drawSchema(document.getElementById("schema-F"), { topology: "triangle", module: "axial", caption: "Triangle, attache unique, modules parallèles à l'axe." });
   drawSchema(document.getElementById("schema-Z"), { topology: "triangle2", module: "tangential", bridle: 20, caption: "Deux attaches par module, surélevées de 20 m." });
   const SS = { ship: "starship", radius: 4.5, length: 50 };
