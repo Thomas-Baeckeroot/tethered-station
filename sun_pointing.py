@@ -191,7 +191,7 @@ T_CABIN = 293.0                 # K, soute habitée au-dessus du dôme du CH4 (v
 NB = 144                        # éléments sur le pourtour
 
 
-def hull_heat(cfg, S, P, crew=True, T_liq=None):
+def hull_heat(cfg, S, P, crew=True, T_liq=None, tilt_deg=0.0):
     """Chaleur entrant dans chaque réservoir (W), moyenne sur une rotation,
     pour un flux solaire S (W/m²). Repère de la section : y tangentiel (dans
     le plan de rotation), z selon l'axe de rotation ; le Soleil est en +z
@@ -213,7 +213,10 @@ def hull_heat(cfg, S, P, crew=True, T_liq=None):
             if orient == "B":
                 Qa = alpha * S * abs(n[0]) / math.pi        # moyenne de max(0, n·s) sur un tour
             else:
-                lit = max(0.0, n[1])
+                # axe écarté du Soleil de tilt_deg, dans le plan de la section
+                # (cas le plus défavorable : le bord des tuiles s'éclaire)
+                t = math.radians(tilt_deg)
+                lit = max(0.0, n[0] * math.sin(t) + n[1] * math.cos(t))
                 for y0, y1, zp in PANELS[panels]:
                     if zp > p[1] and abs(y0 + y1) < 1e-9 and y0 <= p[0] <= y1:
                         lit = 0.0                           # à l'ombre de l'écran
@@ -353,6 +356,13 @@ def main():
                       f"CH4 {q['CH4']:+5.0f} W (équilibre {Teq['CH4']:5.1f} K)")
 
     # Gaz évaporé réutilisé : impulsion qu'il fournirait, oxygène respiré
+    # Tolérance de pointage : axe écarté du Soleil, bord des tuiles éclairé
+    print("\nA · isolant côté Soleil : chaleur nette par vaisseau (W) selon l'écart de l'axe au Soleil, à 1 UA")
+    pointing = {}
+    for tilt in (0, 5, 10, 15, 20):
+        pointing[tilt] = {pk: sum(hull_heat(cfg, S0, P, True, tilt_deg=tilt).values()) for pk, P in PARAMS.items()}
+        print(f"  {tilt:2d}° : " + ", ".join(f"{pk} {v:+6.0f}" for pk, v in pointing[tilt].items()))
+
     print("\nRéemploi du gaz évaporé (orientation B, isolant partout, fourchette centrale)")
     bo = res["B_mli_tout"]["central"]["total3_t"] * 1e3
     for name, isp in THRUSTERS:
@@ -366,7 +376,7 @@ def main():
                station=dict(I=st["I"], L=st["L"], v=v, couple=tau, F_moy=4 / math.pi * tau / R_SHIP, F_impulsion=F_pulse,
                             dJ_impulsion=dJ),
                pivotement=cases, propulseurs=[dict(nom=n, isp=i) for n, i in THRUSTERS],
-               ecran={str(k): v for k, v in shade.items()}, thermique=res, equilibre=eq, parametres=PARAMS)
+               ecran={str(k): v for k, v in shade.items()}, thermique=res, equilibre=eq, pointage=pointing, parametres=PARAMS)
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "soleil.json")
     with open(path, "w") as fh:
         json.dump(out, fh, indent=1, ensure_ascii=False)

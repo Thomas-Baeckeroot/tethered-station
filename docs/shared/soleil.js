@@ -291,8 +291,8 @@
         const mx = (x0 + x1) / 2 + 5 * Math.sin(t), my = (y0 + y1) / 2 + 5 * Math.cos(t);
         el("path", { d: `M ${x0} ${y0} Q ${mx} ${my} ${x1} ${y1}`, class: "so-cold", "marker-end": mk("c") }, svg);
       }
-      lab(cx, H - 30, tech ? "les tuiles rayonnent ≈ 1 kW vers le ciel à −270 °C," : "la chaleur s'échappe vers l'espace à −270 °C :", "middle");
-      lab(cx, H - 16, tech ? "plus que toutes les fuites réunies : il faut même chauffer un peu" : "les ergols restent froids d'eux-mêmes", "middle", "so-s");
+      lab(cx, H - 30, tech ? "les tuiles rayonnent vers le ciel à −270 °C :" : "la chaleur s'échappe vers l'espace à −270 °C :", "middle");
+      lab(cx, H - 16, tech ? "0,6 à 1 kW de refroidissement net, il faut même chauffer" : "les ergols restent froids d'eux-mêmes", "middle", "so-s");
     } else {
       for (const a of [-115, -90, -65]) {
         const [x0, y0] = pt(R + 40, a), [x1, y1] = pt(R + 8, a);
