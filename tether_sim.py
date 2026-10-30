@@ -93,7 +93,7 @@ def slosh_tank(m, depth, a=SHIP_TANK_RADIUS):
     return dict(m=m, depth=depth, ms=ms, L=L, H=H, hb=hb, mf=mf, hf=hf)
 
 
-def starship_mass_model(M_t, slosh=True, tld=None):
+def starship_mass_model(M_t, slosh=True, tld=None, ballast=None):
     """Starship en route : structure et charge utile (SHIP_PARTS), ergols
     restants (rapport de mélange 3,6) posés au fond de leurs réservoirs par la
     gravité artificielle. Partie rigide : éléments de structure, charge, masse
@@ -105,12 +105,16 @@ def starship_mass_model(M_t, slosh=True, tld=None):
     tels dicts) : bassin d'eau cylindrique de rayon a dont le fond est à x de
     la pointe ; son eau est prise sur la charge utile (masse totale
     inchangée). Toujours libre. Réservoirs vides (vaisseau sans ergols) :
-    ignorés."""
+    ignorés.
+
+    ballast : lest bas, dict(m_t, x) : masse prise sur la charge utile
+    (réserves, eau en conteneurs) et posée à x de la pointe, sans
+    ballottement (masse totale inchangée)."""
     tlds = tld if isinstance(tld, list) else ([tld] if tld else [])
     rigid = []  # (masse kg, x, I_axe propre, I_transverse propre)
     for name, m_t, x0, x1, r, shell in SHIP_PARTS:
         if name == "charge":
-            m_t -= sum(t["m_t"] for t in tlds)
+            m_t -= sum(t["m_t"] for t in tlds) + (ballast["m_t"] if ballast else 0.0)
         m, ell = m_t * 1e3, x1 - x0
         rigid.append((m, (x0 + x1) / 2, m * r * r * (1.0 if shell else 0.5), m * (r * r * (0.5 if shell else 0.25) + ell * ell / 12)))
     prop = (M_t - sum(p[1] for p in SHIP_PARTS)) * 1e3
@@ -130,6 +134,8 @@ def starship_mass_model(M_t, slosh=True, tld=None):
             pend.append(tk)
         else:
             rigid.append((tk["ms"], tk["x_bob"], 0.0, 0.0))
+    if ballast:
+        rigid.append((ballast["m_t"] * 1e3, ballast["x"], 0.0, 0.0))
     for k, td in enumerate(tlds):
         m = td["m_t"] * 1e3
         tk = slosh_tank(m, m / (1000.0 * math.pi * td["a"] ** 2), td["a"])
@@ -293,7 +299,9 @@ class Station:
                 tld.append(dict(m_t=args.tld_mass_t, x=args.tld_x, a=args.tld_radius, zeta=args.tld_zeta))
             if getattr(args, "tld2_mass_t", 0) > 0:
                 tld.append(dict(m_t=args.tld2_mass_t, x=args.tld2_x, a=args.tld2_radius, zeta=args.tld2_zeta))
-            self.ships = [starship_mass_model(mt, slosh=slosh == "free", tld=tld) for mt in masses_t]
+            bal = dict(m_t=args.ballast_t, x=args.ballast_x) if getattr(args, "ballast_t", 0) > 0 else None
+            self.ships = [starship_mass_model(mt, slosh=slosh == "free", tld=tld, ballast=bal if b == getattr(args, "ballast_ship", 0) else None)
+                          for b, mt in enumerate(masses_t)]
             self.ship = self.ships[0]
             x_att = getattr(args, "attach_x", None)
             h_att, M_rigid, off = [], [], []
@@ -1687,6 +1695,9 @@ def make_parser():
     p.add_argument("--precess-rate", type=float, default=0.0, help="pivotement de l'axe de rotation (°/jour, autour de l'axe inertiel x ; 0 = sans). "
                    "Suivre le Soleil vers Mars : 0,695 °/jour en moyenne")
     p.add_argument("--precess-pulse", type=float, default=0.0, help="pivotement : impulsions à ± cet angle (°) de la ligne des nœuds ; 0 = poussée continue")
+    p.add_argument("--ballast-t", type=float, default=0.0, help="lest bas (t) : charge utile déplacée en bas d'un vaisseau (masse inchangée)")
+    p.add_argument("--ballast-x", type=float, default=44.0, help="lest bas : position, en m depuis la pointe")
+    p.add_argument("--ballast-ship", type=int, default=0, help="lest bas : vaisseau concerné")
     p.add_argument("--slosh-zeta", type=float, default=0.001, help="amortissement du ballottement (parois : ~1e-4 à 1e-3 ; chicanes : 0,02 à 0,05)")
     p.add_argument("--hub-mass-t", type=float, default=0.0, help="moyeu central (t) relié au nez de chaque module par un rayon (0 = sans)")
     p.add_argument("--spoke-tension", type=float, default=0.15, help="prétension des rayons, en fraction de la tension nominale d'un côté")

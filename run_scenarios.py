@@ -77,6 +77,16 @@ UNEQ = SV3 + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", 
               "--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "--tld-zeta", "0.15",
               "--masses-t", "220,805,805", "--attach-x", "9", "--target-ship", "0", "--rpm", "0.87"]
 
+
+
+def UNEQ_K(masses, rpm):
+    """Masses inégales (même modèle que UNEQ) : masses et vitesse données."""
+    a = list(UNEQ)
+    a[a.index("--masses-t") + 1] = masses
+    a[a.index("--rpm") + 1] = rpm
+    return a
+
+
 CAMPAIGNS = {
     "rotation": [
         ("A_haltere_tangentiel", A + ["--duration", "1800"]),
@@ -245,6 +255,19 @@ CAMPAIGNS = {
         # allégé (≈ 0,072 Hz au lieu de 0,117 Hz) : 19 t, Ø 8,8 m, 0,31 m
         ("U_balayage_z_bassin", UNEQ + ["--tld-mass-t", "19", "--tld-radius", "4.4"] + SWEEP_L + LATZ),
     ],
+    # Vaisseau habité allégé : transfert partiel de ses ergols vers les
+    # cargos (100, 195, 300 t, rapport de mélange conservé), vitesse de
+    # rotation qui garde 3,711 m/s² à son bord pour des câbles inchangés ; ou
+    # transfert complet et 50 t de charge utile descendues en bas du vaisseau
+    # habité (lest, masse inchangée). Contrôle de convergence : 32 segments
+    "allege": [
+        (f"{k}_{sc}", base + extra)
+        for k, base in (("K100", UNEQ_K("510,660,660", "0.9614")), ("K195", UNEQ_K("415,708,708", "0.9285")),
+                        ("K300", UNEQ_K("310,760,760", "0.8959")),
+                        ("KL50", UNEQ_K("220,805,805", "0.8705") + ["--ballast-t", "50", "--ballast-x", "44"]))
+        for sc, extra in (("perturbation", PERT), ("cargaison_laterale", CARGO + LAT + TRAJ), ("equipage", WALK + LAT),
+                          ("balayage_z", SWEEP_L + LATZ), ("balayage_t", SWEEP_L + LAT))
+    ] + [("K195_balayage_z_seg32", UNEQ_K("415,708,708", "0.9285") + SWEEP_L + LATZ + ["--segments", "32"])],
     # Câbles multiples (même masse de câble) : un brin sur deux ou trois
     # rompt au milieu, les autres reprennent la charge ; brins sur la même
     # ferrure, ou écartés de 2 m selon l'axe de rotation
