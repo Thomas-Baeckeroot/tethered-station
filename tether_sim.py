@@ -967,6 +967,37 @@ class Station:
             T = np.cross(arm, F)
         return F, T, alpha
 
+    def precess_thrust(self, t):
+        """Pivotement de l'axe de rotation (--precess-rate) : poussées
+        perpendiculaires au plan de rotation, au centre de masse de chaque
+        vaisseau, qui font tourner le moment cinétique L autour de l'axe
+        inertiel x (dans le plan de rotation au départ) à la vitesse Ω_p :
+        couple τ = Ω_p · x × L. Poussée continue, de moindre norme (F ∝ cos ψ,
+        ψ : angle du vaisseau à la ligne des nœuds), ou impulsions de force
+        constante à ±--precess-pulse degrés de la ligne des nœuds. Mise en
+        route progressive sur 30 s. Renvoie les forces (N)."""
+        a = self.args
+        L = self.angular_momentum()
+        eL = L / np.linalg.norm(L)
+        ex = np.array([1.0, 0.0, 0.0])
+        ex = ex - (ex @ eL) * eL
+        ex /= np.linalg.norm(ex)
+        Om = math.radians(a.precess_rate) / 86400.0 * smooth(min(1.0, t / 30.0))
+        tau = Om * np.cross(ex, L)
+        c = self.Mb @ self.xb / self.Mb.sum()
+        r = self.xb - c
+        r -= np.outer(r @ eL, eL)
+        if a.precess_pulse > 0:
+            hw = math.radians(a.precess_pulse)
+            rn = np.linalg.norm(r, axis=1)
+            cos_psi = (r @ ex) / rn
+            Fp = math.pi * np.linalg.norm(tau) / (2 * self.nb * rn.mean() * math.sin(hw))
+            f = np.where(np.abs(cos_psi) >= math.cos(hw), Fp * np.sign(cos_psi), 0.0)
+        else:
+            G = np.cross(r, eL)                       # couple par newton de poussée, vaisseau par vaisseau
+            f = np.linalg.pinv(G.T) @ tau
+        return f[:, None] * eL
+
     def hull_axes(self):
         """Axe de chaque coque (pointe, arrière), en repère inertiel."""
         L = self.args.module_length
@@ -1243,6 +1274,12 @@ def run(args):
                            "Tc", "rship", "wsys", "gap", "clear", "vwhip", "thrust")}
     Fth, Tth, _ = st.spin_thrust(0.0)
     impulse = 0.0
+    prec = getattr(args, "precess_rate", 0.0) > 0
+    Fp = st.precess_thrust(0.0) if prec else np.zeros_like(Fth)
+    impulse_p = 0.0
+    if prec:
+        p(f"Pivotement axe  : {args.precess_rate:g} °/jour autour de l'axe x, "
+          + (f"impulsions à ±{args.precess_pulse:g}° de la ligne des nœuds" if args.precess_pulse > 0 else "poussée continue (sinus)"))
     # Rupture : segment qui cède, nœuds libres du câble rompu
     nc, ns = st.n_cables, st.n
     brk = getattr(args, "break_cable", -1)
@@ -1295,7 +1332,7 @@ def run(args):
             np.add.at(Fd, i_s, f)
             np.add.at(Fd, j_s, -f)
             Fb, _ = st.wrench(Fd[st.nf:], rw)
-            Fb = Fb + Fbi + Fbs + Fth  # force spécifique de la structure : câbles, poussée, réactions des masses internes et des ergols
+            Fb = Fb + Fbi + Fbs + Fth + Fp  # force spécifique de la structure : câbles, poussée, réactions des masses internes et des ergols
             Fn = np.linalg.norm(Fb, axis=1)
             up = np.einsum("bij,bj->bi", st.R, st.up_body)
             tilt = np.degrees(np.arccos(np.clip(np.sum(up * Fb, axis=1) / Fn, -1, 1)))
@@ -1324,7 +1361,7 @@ def run(args):
             tpk[:] = 0.0
             rec["rship"].append(np.linalg.norm((st.xb - com)[:, :2], axis=1))
             rec["wsys"].append(st.spin_rate())
-            rec["thrust"].append(float(np.linalg.norm(Fth, axis=1).sum()))
+            rec["thrust"].append(float(np.linalg.norm(Fth + Fp, axis=1).sum()))
             hA, hB = st.hull_axes()
             rec["gap"].append([segment_segment_dist(hA[a], hB[a], hA[b], hB[b]) - 2 * args.module_radius for a, b in pairs])
             if k_brk is not None:
@@ -1341,7 +1378,7 @@ def run(args):
             traj["pa"].append(P[st.nf:].copy())
             traj["xi"].append(st.xi.copy())
             traj["xs"].append(st.xs.copy())
-        st.kick(dt / 2, F, rw, Fi, Fbi + Fbs + Fth, Tbi + Tbs + Tth, Td, Fs)
+        st.kick(dt / 2, F, rw, Fi, Fbi + Fbs + Fth + Fp, Tbi + Tbs + Tth, Td, Fs)
         st.drift(dt)
         P, rw = st.points()
         F, t_spr, *_ = st.spring_forces(P)
@@ -1352,7 +1389,10 @@ def run(args):
         if spin:
             Fth, Tth, _ = st.spin_thrust(t + dt)
             impulse += dt * float(np.linalg.norm(Fth, axis=1).sum())
-        st.kick(dt / 2, F, rw, Fi, Fbi + Fbs + Fth, Tbi + Tbs + Tth, Td, Fs)
+        if prec:
+            Fp = st.precess_thrust(t + dt)
+            impulse_p += dt * float(np.linalg.norm(Fp, axis=1).sum())
+        st.kick(dt / 2, F, rw, Fi, Fbi + Fbs + Fth + Fp, Tbi + Tbs + Tth, Td, Fs)
         w_diss += st.damp(dt)
         if st.cd:
             w_diss += dt * np.sum(Td * (st.omega_world() - st.hs / st.J))
@@ -1372,6 +1412,9 @@ def run(args):
     if st.ships:
         x_att = [shp["x_c"] - float(-st.att_r[b * len(st.topo["attach"])] @ np.array([1.0, 0.0, 0.0])) for b, shp in enumerate(st.ships)]
         info["h_ships"] = [shp["x_tot"] - xa for shp, xa in zip(st.ships, x_att)]
+    if prec:
+        info["precess"] = dict(rate_deg_day=args.precess_rate, pulse_deg=args.precess_pulse, impulse_Ns=impulse_p,
+                               propellant_t=impulse_p / (args.isp * G0) / 1e3)
     if spin:
         info["spin"] = dict(t_reach=st.spin_done, impulse_Ns=impulse, propellant_t=impulse / (args.isp * G0) / 1e3)
     if st.ship:
@@ -1443,7 +1486,7 @@ def break_results(rec, info, args):
 def report(st, rec, E0, L0v, args, info, p):
     t = rec["t"]
     # Énergie non conservée : travail des masses asservies, ou amortissement des ergols
-    forced = args.motion != "none" or bool(np.any(st.s_zeta > 0)) or "spin" in info
+    forced = args.motion != "none" or bool(np.any(st.s_zeta > 0)) or "spin" in info or "precess" in info
     dE = (rec["E"] - E0) / E0
     dL = np.linalg.norm(rec["L"] - L0v, axis=1) / np.linalg.norm(L0v)
     roll_abs = np.abs(rec["roll"]).max(axis=1)
@@ -1466,6 +1509,22 @@ def report(st, rec, E0, L0v, args, info, p):
     res["rpm_mean"] = float(rec["wsys"].mean() * 60 / (2 * math.pi))
     if "break" in info:
         res["break"] = break_results(rec, info, args)
+    if "precess" in info:
+        pr = dict(info["precess"])
+        Lh = rec["L"] / np.linalg.norm(rec["L"], axis=1)[:, None]
+        ang = np.degrees(np.arccos(np.clip(Lh @ (L0v / np.linalg.norm(L0v)), -1, 1)))
+        # angle prévu : Ω_p (t − 15 s) une fois la mise en route (30 s) passée
+        pred = args.precess_rate / 86400.0 * max(t[-1] - 15.0, 0.0)
+        Lm = float(np.linalg.norm(L0v))
+        R_m = float(rec["rship"][0].mean())
+        dth = math.radians(float(ang[-1]))
+        J_th = (dth * Lm / R_m) * ((4 / math.pi) if args.precess_pulse <= 0 else
+                                   math.radians(args.precess_pulse) / math.sin(math.radians(args.precess_pulse)))
+        pr.update(angle_deg=float(ang[-1]), angle_pred_deg=pred, plane_deg=float(rec["plane"][-1]),
+                  impulse_pred_Ns=J_th, impulse_ratio=pr["impulse_Ns"] / J_th if J_th > 0 else None,
+                  tilt_max_after=float(rec["tilt"][t > 60.0].max()), tilt_max=float(rec["tilt"].max()),
+                  angle_t=[float(v) for v in ang[:: max(1, len(ang) // 200)]], t=[float(v) for v in t[:: max(1, len(ang) // 200)]])
+        res["precess"] = pr
     if "spin" in info:
         sp = info["spin"]
         # inclinaison pendant la poussée, quand la gravité ressentie dépasse
@@ -1499,6 +1558,11 @@ def report(st, rec, E0, L0v, args, info, p):
         p(f"Mise en rotation: atteinte à t = {sp['t_reach'] or float('nan'):.0f} s ; impulsion {sp['impulse_Ns']:.3g} N·s, soit "
           f"{sp['propellant_t']:.1f} t d'ergols (Isp {args.isp:g} s) ; plancher max pendant la poussée (g > 0,5 m/s²) {sp['tilt_max_on'] or 0:.2f}°, après {sp['tilt_max_after'] or 0:.2f}° ; "
           f"tension min {sp['T_min_MN']:.3f} MN ; vitesse finale {sp['rpm_final']:.3f} tr/min")
+    if "precess" in res:
+        pr = res["precess"]
+        p(f"Pivotement axe  : L a tourné de {pr['angle_deg']:.3f}° (prévu {pr['angle_pred_deg']:.3f}°), plan des vaisseaux {pr['plane_deg']:.3f}° ; "
+          f"impulsion {pr['impulse_Ns']:.4g} N·s (formule {pr['impulse_pred_Ns']:.4g}, rapport {pr['impulse_ratio']:.3f}), "
+          f"{pr['propellant_t']:.2f} t (Isp {args.isp:g} s) ; plancher max {pr['tilt_max']:.3f}° (après 60 s : {pr['tilt_max_after']:.3f}°)")
     if "break" in res:
         b = res["break"]
         p(f"Rupture         : t = {b['t']:g} s, énergie du segment {b['E_seg_kJ']:.0f} kJ, énergie élastique du câble {b['E_cable_kJ']:.0f} kJ ; "
@@ -1619,7 +1683,10 @@ def make_parser():
     p.add_argument("--spin-k", type=float, default=0.05, help="mise en rotation : α = k·ω² (inclinaison ressentie arctan k)")
     p.add_argument("--spin-alpha", type=float, default=0.0, help="mise en rotation : accélération angulaire constante (rad/s² ; remplace --spin-k)")
     p.add_argument("--spin-thrust-x", type=float, help="mise en rotation : poussée appliquée à cette distance de la pointe (m) ; défaut : centre de masse")
-    p.add_argument("--isp", type=float, default=300.0, help="impulsion spécifique des propulseurs de mise en rotation (s)")
+    p.add_argument("--isp", type=float, default=300.0, help="impulsion spécifique des propulseurs de mise en rotation et de pivotement (s)")
+    p.add_argument("--precess-rate", type=float, default=0.0, help="pivotement de l'axe de rotation (°/jour, autour de l'axe inertiel x ; 0 = sans). "
+                   "Suivre le Soleil vers Mars : 0,695 °/jour en moyenne")
+    p.add_argument("--precess-pulse", type=float, default=0.0, help="pivotement : impulsions à ± cet angle (°) de la ligne des nœuds ; 0 = poussée continue")
     p.add_argument("--slosh-zeta", type=float, default=0.001, help="amortissement du ballottement (parois : ~1e-4 à 1e-3 ; chicanes : 0,02 à 0,05)")
     p.add_argument("--hub-mass-t", type=float, default=0.0, help="moyeu central (t) relié au nez de chaque module par un rayon (0 = sans)")
     p.add_argument("--spoke-tension", type=float, default=0.15, help="prétension des rayons, en fraction de la tension nominale d'un côté")

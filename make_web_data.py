@@ -233,7 +233,7 @@ def main():
     os.makedirs(args.dest, exist_ok=True)
     summary = {}
     for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement", "retenue", "amortisseur", "rupture",
-                     "moyeu", "montee", "lox", "masses", "brins"):
+                     "moyeu", "montee", "lox", "masses", "brins", "soleil"):
         if os.path.isdir(os.path.join(OUT, campaign)):
             summary[campaign] = export_series(campaign, args.dest, SERIES_STEP.get(campaign, 1.0))
             print(f"séries : {campaign} ({len(summary[campaign])} scénarios)")

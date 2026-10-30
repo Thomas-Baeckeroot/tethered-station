@@ -226,6 +226,15 @@ CAMPAIGNS = {
         ("V_chicanes8_balayage_z", [a if a != "0.03" else "0.08" for a in TLD] + SWEEP_L + LATZ),
         ("V_bassin2_balayage_z", TLD + ["--tld2-mass-t", "8", "--tld2-x", "46", "--tld2-radius", "1.8", "--tld2-zeta", "0.1"] + SWEEP_L + LATZ),
     ],
+    # Axe face au Soleil : l'axe de rotation pivote pour suivre le Soleil
+    # (0,695 °/jour en moyenne, sun_pointing.py), ici 1 000 fois plus vite
+    # pour que l'effet se mesure en 20 min ; poussée continue ou impulsions au
+    # passage de la ligne des nœuds. Effets (inclinaison, forces) ÷ 1 000 en vrai
+    "soleil": [
+        ("P_pivot_sinus", TLD + ["--dv-radial", "0", "--dv-z", "0", "--droll", "0", "--precess-rate", "695", "--duration", "1200"]),
+        ("P_pivot_impulsions", TLD + ["--dv-radial", "0", "--dv-z", "0", "--droll", "0", "--precess-rate", "695",
+                                      "--precess-pulse", "15", "--duration", "1200"]),
+    ],
     # Masses inégales (transfert d'ergols vers les cargos)
     "masses": [
         ("U_perturbation", UNEQ + PERT),
