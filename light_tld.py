@@ -22,6 +22,10 @@ import tld_design as td
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 POOL = dict(m_t=25.0, x=12.0, a=3.6, zeta=0.15)
+# Bassins réaccordés simulés (campagnes allege et masses, scénarios *_bassin)
+SIM_POOL = {"K100": dict(m_t=15.0, x=12.0, a=3.4, zeta=0.2), "K195": dict(m_t=35.0, x=12.0, a=4.4, zeta=0.2),
+            "K300": dict(m_t=25.0, x=12.0, a=4.4, zeta=0.3), "U390": dict(m_t=19.0, x=12.0, a=4.4, zeta=0.15),
+            "KL50": dict(m_t=25.0, x=12.0, a=4.4, zeta=0.3)}
 # (nom, masse t, lest, tr/min, rayon du vaisseau habité m, tension MN, longueur sous charge m)
 CASES = (
     ("610", 610.0, None, 1.0, 338.4, 1.31, 539.0),
@@ -73,6 +77,10 @@ def main():
         print(f"   bassin réaccordé : {best[1]:g} t, Ø {2 * best[2]:.1f} m, profondeur {best[4]:.2f} m, ζ {best[3]:g} → pic {best[0]:.2f}°", flush=True)
         out[name] = dict(modes=[float(v) for v in modes(case, [])], peak_none=float(p0), peak_pool=float(p1),
                          sweep_none=sw0.tolist(), sweep_pool=sw1.tolist(), best=best)
+        if name in SIM_POOL:
+            v = td.sweep([SIM_POOL[name]], **k)
+            out[name]["peak_sim_pool"] = float(v[:, 1].max())
+            print(f"   bassin simulé {SIM_POOL[name]} → pic {out[name]['peak_sim_pool']:.2f}°", flush=True)
     with open(os.path.join(HERE, "out", "light_tld.json"), "w") as fh:
         json.dump(out, fh)
 

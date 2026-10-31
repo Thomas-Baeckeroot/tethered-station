@@ -138,6 +138,9 @@ figure { margin: 0; display: grid; gap: 10px; }
 .trap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 28px; align-items: start; }
 .trap .txt { display: grid; gap: 0.9rem; min-width: 0; }
 .trap .tag { font: 500 0.75rem/1.2 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+#allege { grid-template-columns: 1fr; }
+#allege .txt { max-width: 46rem; }
+#allege figure { max-width: 880px; }
 .trap .verdict { font: 500 0.88rem/1.45 var(--f-mono); padding-left: 12px; border-left: 3px solid var(--accent); color: var(--ink); }
 @media (max-width: 860px) { .trap { grid-template-columns: 1fr; } }
 .stack { display: grid; gap: 18px; }
@@ -352,6 +355,21 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </figure>
 </section>
 
+<section class="trap wide" id="allege">
+  <div class="txt">
+    <span class="tag">Variante</span>
+    <h3>Alléger le vaisseau habité pour tourner moins vite</h3>
+    <p>Une astuce permettrait de tourner un peu moins vite : avant la mise en rotation, transvaser des ergols du vaisseau habité dans les deux cargos. Plus léger, il tourne plus loin du centre, et il faut moins de tours par minute pour garder la gravité de Mars à son bord : 0,93 tour par minute si l'on transvase la moitié de ses ergols, 0,87 si l'on transvase tout. C'est 7 à 13 % de moins pour l'oreille interne.</p>
+    <p>Mais ces ergols lestaient le bas du vaisseau. Sans eux, il est plus léger, son centre de gravité remonte vers les câbles, et il penche plus facilement. Surtout, il se balance plus lentement, et le bassin d'eau, réglé sur l'ancien rythme, ne suit plus : tout transvasé, 4 t au pire rythme font pencher le plancher de <span data-bind="U_balayage_z.tilt_max_ship.0">—</span> au lieu de <span data-bind="T_balayage_z.tilt_max_ship.0">—</span>.</p>
+    <p>Nous avons simulé plusieurs étapes du transfert, et deux parades qui se combinent. Régler le bassin sur le nouveau rythme, en l'élargissant à toute la largeur de la coque. Et garder du poids en bas, en y rangeant 50 t de réserves (eau, vivres). La moitié transvasée avec un bassin réglé, le pire rythme ne fait plus pencher le plancher que de <span data-bind="K195_balayage_z_bassin.tilt_max_ship.0">—</span> ; tout transvasé, avec le lest et un bassin réglé, de <span data-bind="KL50_balayage_z_bassin.tilt_max_ship.0">—</span>.</p>
+    <p class="verdict">C'est faisable, mais 50 t déplacées sur un pont font encore pencher le plancher de <span data-bind="K195_cargaison_laterale.tilt_max_ship.0">—</span> (moitié transvasée) au lieu de <span data-bind="T_cargaison_laterale.tilt_max_ship.0">—</span>. À 1 tour par minute, la station est déjà confortable : nous gardons la solution simple, et cette variante en réserve.</p>
+  </div>
+  <figure>
+    <div id="gp-allege"></div>
+    <figcaption><b>Le transfert pas à pas.</b> Faites glisser le curseur ou cliquez sur « animer ». De dessus : le vaisseau habité (orange) s'éloigne du centre à mesure qu'il s'allège. De côté : ses ergols (bleu, vert) partent, son centre de gravité remonte vers les attaches. Les jauges montrent l'inclinaison du plancher, exagérée cinq fois ; cochez « lest » et « bassin réaccordé » pour voir les parades.</figcaption>
+  </figure>
+</section>
+
 <section class="col" id="soleil">
   <span class="eyebrow">6 · Le voyage</span>
   <h2>Tournée vers le Soleil</h2>
@@ -407,7 +425,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <li><b>Marge de résistance</b><span>Câbles dimensionnés pour des vaisseaux pleins à 1 g avec un facteur de sécurité de 3 : en route, ils ne travaillent qu'à 5 % de leur résistance.</span></li>
   </ul>
   <p class="verdict">Le point sensible était le balancement des vaisseaux, plus légers qu'au départ et alourdis d'ergols qui ne suivent pas la coque : 4 t (une cinquantaine de personnes) se balançant en cadence toutes les 8 secondes faisaient pencher le plancher de 2,7°. Un bassin de 25 t d'eau sous la coiffe de chaque vaisseau ramène ce pire cas à <span class="num" data-bind="T_balayage_z.tilt_max">—</span>, sans moteur ni pièce mobile.</p>
-  <p>Une astuce pourrait aussi ralentir la rotation : transvaser avant la mise en rotation les ergols du vaisseau habité dans les deux cargos. Plus léger, il tournerait plus loin du centre, à 447 m au lieu de 338 m, et 0,87 tour par minute suffirait pour garder la gravité de Mars à bord, 13 % de moins pour l'oreille interne. Les cargos, eux, tomberaient à 2,5 m/s². Nous l'avons simulé : le compte est bon, mais le vaisseau habité devient six fois plus sensible aux mouvements à bord, parce qu'il est plus léger et que son centre de gravité remonte vers le nez. Marcher y fait pencher le plancher de <span class="num" data-bind="U_equipage.tilt_max_ship.0">—</span>, déplacer 50 t de <span class="num" data-bind="U_cargaison_laterale.tilt_max_ship.0">—</span>. Un compromis : n'en transvaser que la moitié donnerait 0,93 tour par minute, pour une sensibilité moins que doublée (<a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi#masses-inegales" target="_blank" rel="noopener">détails dans le carnet</a>).</p>
+  <p>Une variante permettrait de tourner un peu moins vite, à 0,93 tour par minute, en transvasant la moitié des ergols du vaisseau habité dans les cargos et en réglant son bassin en conséquence (voir « Alléger le vaisseau habité », chapitre 5 ; <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi#masses-inegales" target="_blank" rel="noopener">détails dans le carnet</a>).</p>
 </section>
 
 <section class="col" id="rupture">
@@ -641,6 +659,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 <script src="shared/charts.js"></script>
 <script src="shared/schema.js"></script>
 <script src="shared/soleil.js"></script>
+<script src="shared/allege.js"></script>
 <script>
 (function () {
   "use strict";
@@ -687,6 +706,19 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   /* Données */
   const cache = {};
   const getJSON = (p) => cache[p] || (cache[p] = fetch(p).then((r) => { if (!r.ok) throw new Error(p); return r.json(); }));
+  /* Vaisseau habité allégé : figure statique + valeurs simulées (campagnes amortisseur, masses, allege) */
+  Promise.all([getJSON("data/summary.json"), getJSON("data/allege.json")]).then(([S, D]) => {
+    const crew = (c, n) => { const i = S[c] && S[c][n]; return i && i.results.tilt_max_ship ? i.results.tilt_max_ship[0] : null; };
+    const pool = (c, n) => { const i = S[c] && S[c][n]; return i ? { m: i.args.tld_mass_t, a: i.args.tld_radius } : null; };
+    const CASES = [[0, "amortisseur", "T", false], [100, "allege", "K100", true], [195, "allege", "K195", true], [300, "allege", "K300", true], [390, "masses", "U", true]];
+    const sim = {}, peak = { lest: { 390: { actuel: crew("allege", "KL50_balayage_z"), bassin: crew("allege", "KL50_balayage_z_bassin"), pool: pool("allege", "KL50_balayage_z_bassin") } } };
+    CASES.forEach(([tr, c, p, re]) => {
+      sim[tr] = { tilt: crew(c, p + "_cargaison_laterale") };
+      peak[tr] = { actuel: crew(c, p + "_balayage_z"), bassin: crew(c, p + (re ? "_balayage_z_bassin" : "_balayage_z")), pool: re ? pool(c, p + "_balayage_z_bassin") : null };
+    });
+    sim[390].tilt_lest = crew("allege", "KL50_cargaison_laterale");
+    drawLightShip(document.getElementById("gp-allege"), D.statique, { sim, peak, start: 195 });
+  }).catch(() => {});
 
   /* Visualiseurs 3D : un seul actif à la fois (en plus de l'ouverture) */
   let active = null;
@@ -775,7 +807,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     }).catch(() => {});
   getJSON("data/summary.json").then((s) => {
     const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {}, s.starship || {}, s.mission || {}, s.ballottement || {}, s.retenue || {}, s.amortisseur || {}, s.rupture || {},
-                               s.moyeu || {}, s.montee || {}, s.lox || {}, s.masses || {}, s.brins || {});
+                               s.moyeu || {}, s.montee || {}, s.lox || {}, s.masses || {}, s.brins || {}, s.allege || {});
     document.querySelectorAll("[data-bind]").forEach((n) => {
       // chemin : scénario.clé[.sous-clé][.indice] (résultats, sinon informations)
       const [name, key, ...sub] = n.dataset.bind.split(".");

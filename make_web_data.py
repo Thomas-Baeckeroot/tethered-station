@@ -48,6 +48,10 @@ ANIMATIONS = [
     ("rupture", "Y_moyeu_rupture_largage", 50, 650, 0.5),
     ("rupture", "Z_moyeu_double_rupture", 50, 650, 0.5),
     ("brins", "W_brins2_rupture", 50, 350, 0.5),
+    ("allege", "K195_resonance_z", 0, 900, 0.5),
+    ("allege", "K195_resonance_z_bassin", 0, 900, 0.5),
+    ("allege", "K195_cargaison_laterale", 0, 1500, 1.0),
+    ("allege", "KL50_cargaison_laterale", 0, 1500, 1.0),
 ]
 # Pas des séries exportées (s) : plus fin pour les ruptures (fouet des brins)
 SERIES_STEP = {"rupture": 0.5, "brins": 0.5, "montee": 2.0}
@@ -232,8 +236,16 @@ def export_allege(dest):
             row["tilt" + key] = math.degrees(math.sqrt(3) * delta / (3.5 + math.sqrt(3) * h))
         row["depth"] = {tk["name"]: tk["depth"] for tk in sm["tanks"] if tk["name"] in ("LOX", "CH4")}
         rows.append(row)
+    # Modèle linéaire (light_tld.py) : modes hors plan, pics du balayage sans
+    # bassin, avec le bassin d'origine, avec le bassin réaccordé simulé
+    lin = {}
+    path = os.path.join(OUT, "light_tld.json")
+    if os.path.exists(path):
+        for name, v in json.load(open(path)).items():
+            lin[name] = dict(modes=v["modes"], none=v["peak_none"], pool=v["peak_pool"], sim_pool=v.get("peak_sim_pool"),
+                             best=dict(zip(("peak", "m_t", "a", "zeta", "depth"), v["best"])))
     with open(os.path.join(dest, "allege.json"), "w") as fh:
-        json.dump(r(rows, 4), fh, separators=(",", ":"), ensure_ascii=False)
+        json.dump(r(dict(statique=rows, lineaire=lin), 4), fh, separators=(",", ":"), ensure_ascii=False)
 
 
 def export_validation(dest):
@@ -264,7 +276,7 @@ def main():
     os.makedirs(args.dest, exist_ok=True)
     summary = {}
     for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement", "retenue", "amortisseur", "rupture",
-                     "moyeu", "montee", "lox", "masses", "brins", "soleil"):
+                     "moyeu", "montee", "lox", "masses", "brins", "soleil", "allege"):
         if os.path.isdir(os.path.join(OUT, campaign)):
             summary[campaign] = export_series(campaign, args.dest, SERIES_STEP.get(campaign, 1.0))
             print(f"séries : {campaign} ({len(summary[campaign])} scénarios)")

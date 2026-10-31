@@ -9,7 +9,7 @@ for p in grand-public technique; do
   mkdir -p "$DEST/$p/shared" "$DEST/$p/data/series" "$DEST/$p/data/anim"
   cp "$SRC/$p/index.html" "$DEST/$p/"
   cp "$SRC"/shared/*.js "$DEST/$p/shared/"
-  cp "$SRC/data/summary.json" "$SRC/data/soleil.json" "$DEST/$p/data/"
+  cp "$SRC/data/summary.json" "$SRC/data/soleil.json" "$SRC/data/allege.json" "$DEST/$p/data/"
 done
 # Grand public : uniquement les données référencées
 for n in R_perturbation R_cargaison_laterale D_echelle_axial B_haltere_axial B_amortisseur SV2_perturbation L_libre_resonance X_rupture_milieu Z_moyeu_double_rupture W_brins2_rupture; do

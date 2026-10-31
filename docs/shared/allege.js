@@ -1,14 +1,18 @@
 /* Vaisseau habité allégé : figure interactive (SVG, couleurs par variables CSS).
  *
- * drawLightShip(container, rows, {sim})
+ * drawLightShip(container, rows, {sim, peak, start})
  *   rows : data/allege.json (calcul statique tous les 5 t transvasés : masses,
  *          vitesse, rayons, h, inclinaison pour 50 t déplacées de 3,5 m,
  *          niveaux des ergols ; variantes « _lest » avec 50 t descendues à 44 m)
- *   sim  : {tr: {tilt, tilt_lest}} inclinaisons simulées (facultatif)
+ *   sim  : {tr: {tilt, tilt_lest}} cargaison simulée (facultatif)
+ *   peak : {tr: {actuel, bassin, pool: {m, a}}, lest: {…}} pic du balayage hors
+ *          plan simulé, bassin d'origine ou réaccordé (facultatif ; interpolé
+ *          entre les cas simulés)
  * Deux vues : la station de dessus (centre de rotation fixe, triangle qui se
  * déplace, configuration de départ en pointillés) et le vaisseau habité de
- * côté (ergols, lest, attaches, centre de masse, h). Curseur, case « lest »,
- * bouton de lecture qui fait varier le transfert de 0 à 390 t.
+ * côté (ergols, lest, bassin, attaches, centre de masse, h, deux jauges).
+ * Curseur, cases « lest » et « bassin réaccordé », bouton de lecture qui fait
+ * varier le transfert de 0 à 390 t.
  */
 (function () {
   "use strict";
@@ -37,6 +41,7 @@
 .lg-g { stroke: var(--muted); stroke-width: 1.4; }
 .lg-floor { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
 .lg-level { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.lg-pool-ghost { fill: none; stroke: #5cc8ff; stroke-width: 1; stroke-dasharray: 3 2; }
 .lg-title { font: 600 13px var(--f-display); fill: var(--ink); letter-spacing: 0.02em; }
 .lg-t { font: 400 10.5px var(--f-mono); fill: var(--ink-2); }
 .lg-s { font: 400 9.5px var(--f-mono); fill: var(--muted); }
@@ -75,7 +80,7 @@
   }
 
   function topView(row, ref, mk, g) {
-    const W = 360, cx = 180, cy = 206, k = 0.33, ex = 2.4;
+    const W = 360, cx = 180, cy = 214, k = 0.33, ex = 2.4;
     g.replaceChildren();
     el("text", { x: 10, y: 18, class: "lg-title" }, g, "La station vue de dessus");
     const a = 338.4, V = [[0, a], [-a * Math.sqrt(3) / 2, -a / 2], [a * Math.sqrt(3) / 2, -a / 2]];
@@ -117,10 +122,39 @@
       el("text", { x, y: s.p[1] + 43, class: "lg-s", "text-anchor": anchor }, g, `à ${fr(row.Rc)} m`);
       el("text", { x, y: s.p[1] + 55, class: "lg-s", "text-anchor": anchor }, g, `${fr(row.gc, 2)} m/s²`);
     }
-    el("text", { x: 10, y: 390, class: "lg-s" }, g, `pointillés : départ, 610 t partout · vaisseaux agrandis ×${fr(ex, 1)}`);
+    el("text", { x: 10, y: 420, class: "lg-s" }, g, `pointillés : départ, 610 t partout · vaisseaux agrandis ×${fr(ex, 1)}`);
   }
 
-  function sideView(row, ref, lest, mk, g, simTilt) {
+  /* Jauge : plancher incliné (angle ×5), titre au-dessus, valeur en dessous. */
+  function gauge(g, gx, gy, title, tilt, val, note) {
+    el("text", { x: gx, y: gy - 30, class: "lg-s", "text-anchor": "middle" }, g, title);
+    el("text", { x: gx, y: gy - 17, class: "lg-s", "text-anchor": "middle" }, g, note);
+    el("line", { x1: gx - 44, y1: gy, x2: gx + 44, y2: gy, class: "lg-level" }, g);
+    if (tilt == null) {
+      el("text", { x: gx, y: gy + 22, class: "lg-t", "text-anchor": "middle" }, g, "non simulé");
+      return;
+    }
+    const th = tilt * 5 * Math.PI / 180;
+    el("line", { x1: gx - 44 * Math.cos(th), y1: gy + 44 * Math.sin(th), x2: gx + 44 * Math.cos(th), y2: gy - 44 * Math.sin(th), class: "lg-floor" }, g);
+    el("text", { x: gx, y: gy + 24, class: "lg-acc", "text-anchor": "middle" }, g, val);
+  }
+
+  /* Valeur simulée au transfert tr : exacte sur un cas simulé, sinon
+     interpolée linéairement entre les deux cas voisins (null hors bornes). */
+  function interp(table, tr, key) {
+    const ks = Object.keys(table).filter((k) => k !== "lest" && table[k][key] != null).map(Number).sort((a, b) => a - b);
+    if (!ks.length) return [null, false];
+    if (table[tr] && table[tr][key] != null) return [table[tr][key], true];
+    for (let i = 0; i + 1 < ks.length; i++) {
+      if (tr > ks[i] && tr < ks[i + 1]) {
+        const u = (tr - ks[i]) / (ks[i + 1] - ks[i]);
+        return [table[ks[i]][key] * (1 - u) + table[ks[i + 1]][key] * u, false];
+      }
+    }
+    return [null, false];
+  }
+
+  function sideView(row, ref, lest, mk, g, simTilt, pk) {
     const W = 360, x0 = 120, y0 = 46, k = 5.6;              // pointe en (x0, y0), axe vers le bas
     const Y = (x) => y0 + x * k, X = (y) => x0 + y * k;
     g.replaceChildren();
@@ -132,8 +166,9 @@
       + `C ${P(6.5, -4.5)} ${P(0, -2.9)} ${P(0, 0)} Z`, class: "lg-hull" }, g);
     // Soute habitée, bassin
     el("rect", { x: X(-4), y: Y(4), width: 8 * k, height: 16 * k, class: "lg-zone" }, g);
-    const pool = 25 / (Math.PI * 3.6 * 3.6);
-    el("rect", { x: X(-3.6), y: Y(12 - pool), width: 7.2 * k, height: pool * k, class: "lg-pool" }, g);
+    const pl = (pk && pk.pool) || { m: 25, a: 3.6 }, pool = pl.m / (Math.PI * pl.a * pl.a);
+    if (pk && pk.pool) el("rect", { x: X(-3.6), y: Y(12 - 25 / (Math.PI * 3.6 * 3.6)), width: 7.2 * k, height: 25 / (Math.PI * 3.6 * 3.6) * k, class: "lg-pool-ghost" }, g);
+    el("rect", { x: X(-pl.a), y: Y(12 - pool), width: 2 * pl.a * k, height: pool * k, class: "lg-pool" }, g);
     // Réservoirs et ergols
     el("rect", { x: X(-4.5), y: Y(22), width: 9 * k, height: 13 * k, class: "lg-tank" }, g);
     el("rect", { x: X(-4.5), y: Y(35), width: 9 * k, height: 11 * k, class: "lg-tank" }, g);
@@ -159,7 +194,7 @@
     // Légendes à droite
     const lx = X(4.5) + 14, lab = (y, t, cls = "lg-t") => el("text", { x: lx, y, class: cls }, g, t);
     lab(Y(9) + 4, "attaches");
-    lab(Y(12) + 4, "soute habitée, bassin", "lg-s");
+    lab(Y(12) + 4, pk && pk.pool ? `bassin ${fr(pl.m)} t, Ø ${fr(2 * pl.a, 1)} m` : "soute habitée, bassin", "lg-s");
     lab(Y(xc) + 4, "centre de masse", "lg-t");
     if (dC > 0) lab(Y(35 - dC / 2) + 4, `méthane ${fr(dC, 1)} m`, "lg-s");
     if (dL > 0) lab(Y(46 - dL / 2) + 4, `oxygène ${fr(dL, 1)} m`, "lg-s");
@@ -167,15 +202,12 @@
     // Gravité
     el("line", { x1: 22, y1: Y(30), x2: 22, y2: Y(40), class: "lg-g", "marker-end": mk("m") }, g);
     el("text", { x: 28, y: Y(36), class: "lg-s" }, g, "gravité");
-    // Jauge : plancher pour 50 t déplacées de 3,5 m
+    // Jauges : 50 t déplacées de 3,5 m (formule ; simulé si disponible), 4 t au pire rythme hors plan (simulé)
     const tilt = lest ? row.tilt_lest : row.tilt;
-    const gx = 262, gy = 368;
-    el("text", { x: gx, y: gy - 30, class: "lg-s", "text-anchor": "middle" }, g, "50 t déplacées de 3,5 m :");
-    const th = tilt * 5 * Math.PI / 180;
-    el("line", { x1: gx - 44, y1: gy, x2: gx + 44, y2: gy, class: "lg-level" }, g);
-    el("line", { x1: gx - 44 * Math.cos(th), y1: gy + 44 * Math.sin(th), x2: gx + 44 * Math.cos(th), y2: gy - 44 * Math.sin(th), class: "lg-floor" }, g);
-    el("text", { x: gx, y: gy + 24, class: "lg-acc", "text-anchor": "middle" }, g, `plancher ${fr(tilt, 2)}°`);
-    el("text", { x: gx, y: gy - 16, class: "lg-s", "text-anchor": "middle" }, g, simTilt != null ? `simulé : ${fr(simTilt, 2)}° · angle ×5` : "angle ×5");
+    el("line", { x1: 10, y1: 338, x2: W - 10, y2: 338, class: "lg-level" }, g);
+    gauge(g, 90, 396, "cargaison 50 t, ±3,5 m", tilt, `${fr(tilt, 2)}°`, simTilt != null ? `simulé : ${fr(simTilt, 2)}°` : "formule du palonnier");
+    if (pk) gauge(g, 270, 396, "4 t au pire rythme", pk.v, pk.v == null ? "" : `${pk.exact ? "" : "≈ "}${fr(pk.v, 2)}°`, pk.v == null ? "" : (pk.exact ? "simulé" : "interpolé"));
+    el("text", { x: W - 10, y: 424, class: "lg-s", "text-anchor": "end" }, g, "angles ×5");
   }
 
   function drawLightShip(container, rows, opts = {}) {
@@ -183,8 +215,8 @@
     const ref = rows[0];
     const row2 = document.createElement("div");
     row2.className = "sc-row";
-    const [s1, g1, mk1] = svgBox(360, 400, "La station vue de dessus, selon les ergols transvasés");
-    const [s2, g2, mk2] = svgBox(360, 400, "Le vaisseau habité vu de côté : ergols, centre de masse, hauteur sous les attaches");
+    const [s1, g1, mk1] = svgBox(360, 430, "La station vue de dessus, selon les ergols transvasés");
+    const [s2, g2, mk2] = svgBox(360, 430, "Le vaisseau habité vu de côté : ergols, centre de masse, hauteur sous les attaches");
     row2.append(s1, s2);
     container.appendChild(row2);
     const ctrl = document.createElement("div");
@@ -201,7 +233,12 @@
     const cb = document.createElement("input");
     cb.type = "checkbox";
     lb.append(cb, document.createTextNode(" 50 t de lest en bas"));
+    const lp = document.createElement("label");
+    const cp = document.createElement("input");
+    cp.type = "checkbox";
+    lp.append(cp, document.createTextNode(" bassin réaccordé"));
     ctrl.append(btn, lab, lb);
+    if (opts.peak) ctrl.append(lp);
     const out = document.createElement("div");
     out.className = "readout";
     container.append(ctrl, out);
@@ -210,11 +247,24 @@
       const row = rows[Math.round(tr / 5)];
       const sim = opts.sim && opts.sim[row.tr];
       const simTilt = sim ? (cb.checked ? sim.tilt_lest : sim.tilt) : null;
+      let pk = null;
+      if (opts.peak) {
+        const key = cp.checked ? "bassin" : "actuel";
+        const tab = cb.checked ? (opts.peak.lest || {}) : opts.peak;
+        const [v, exact] = cb.checked ? [tab[row.tr] ? tab[row.tr][key] : null, true] : interp(tab, row.tr, key);
+        // Bassin dessiné : celui du cas simulé le plus proche
+        let pool = null;
+        if (cp.checked) {
+          const ks = Object.keys(tab).filter((k) => k !== "lest" && tab[k].pool).map(Number);
+          if (ks.length) pool = tab[ks.reduce((a, b) => (Math.abs(b - row.tr) < Math.abs(a - row.tr) ? b : a))].pool;
+        }
+        pk = { v: v ?? null, exact, pool };
+      }
       topView(row, ref, mk1, g1);
-      sideView(row, ref, cb.checked, mk2, g2, simTilt);
+      sideView(row, ref, cb.checked, mk2, g2, simTilt, pk);
       const tilt = cb.checked ? row.tilt_lest : row.tilt;
       out.textContent = `${fr(row.tr)} t transvasées : ${fr(row.mh)} / ${fr(row.mc)} / ${fr(row.mc)} t · ${fr(row.rpm, 3)} tr/min `
-        + `(${fr((row.rpm - 1) * 100, 1)} %) · plancher ${fr(tilt / ref.tilt, 1)} fois plus sensible qu'au départ`;
+        + `(${fr((row.rpm - 1) * 100, 1).replace("-", "−")} %) · plancher ${fr(tilt / ref.tilt, 1)} fois plus sensible qu'au départ`;
       range.value = row.tr;
       btn.textContent = playing ? "❚❚ pause" : "▶ animer";
     };
@@ -234,6 +284,7 @@
     });
     range.addEventListener("input", () => { tr = +range.value; show(); });
     cb.addEventListener("change", show);
+    cp.addEventListener("change", show);
     show();
   }
 
