@@ -14,7 +14,8 @@ Starships (--slosh) : ergols en pendules = ChBody ponctuels reliés à
 l'articulation par un ChLinkTSDA (tige raide amortie), amortisseur latéral
 par rapport à la paroi appliqué par accumulateur à chaque pas ; câbles
 unilatéraux (ressort-amortisseur qui ne pousse pas) ; rupture d'un câble
-(--break-*) et largage des morceaux (--release-delay) : liens retirés.
+(--break-*, une seconde avec --break-cable2) et largage des morceaux
+(--release-delay) : liens retirés.
 
 Compare le roulis autour du câble avec la simulation NumPy du même scénario
 (relancée ici) et trace les deux courbes ; pour les Starships, aussi
@@ -242,29 +243,31 @@ def main():
     ships = st.ships is not None
     brk = args.break_cable
     sysm, modules, nodes, ex = build_chrono(st, args.alpha, unilateral=ships or brk >= 0)
-    k_brk = cut = None
-    if brk >= 0:
-        f0 = st.cable_first_seg[brk]
-        k_brk = f0 + min(int(args.break_at * st.n), st.n - 1)
-        cut = [f0, f0 + st.n - 1]
+    # Ruptures : (instant, segment qui cède, segments d'attache coupés au largage)
+    events = []
+    for cb, tb in ((brk, args.break_time), (args.break_cable2 if brk >= 0 else -1,
+                                            args.break_time if args.break_time2 is None else args.break_time2)):
+        if cb >= 0:
+            f0 = st.cable_first_seg[cb]
+            events.append(dict(t=tb, k=f0 + min(int(args.break_at * st.n), st.n - 1), cut=[f0, f0 + st.n - 1], done=None))
 
     rec = {k: [] for k in ("t", "roll", "dL", "tilt", "T", "slosh", "rship")}
     n_steps = int(round(args.duration / args.chrono_dt))
     every = max(1, int(round(args.record_dt / args.chrono_dt)))
     removed = set()
-    t_break = None
     t0 = time.time()
     for k in range(n_steps + 1):
         tc = k * args.chrono_dt
-        if k_brk is not None and t_break is None and tc >= args.break_time:
-            sysm.RemoveLink(ex["springs"][k_brk])
-            removed.add(k_brk)
-            t_break = tc
-        if t_break is not None and args.release_delay >= 0 and tc >= t_break + args.release_delay:
-            for s_ in cut:
-                if s_ not in removed:
-                    sysm.RemoveLink(ex["springs"][s_])
-                    removed.add(s_)
+        for ev in events:
+            if ev["done"] is None and tc >= ev["t"]:
+                sysm.RemoveLink(ex["springs"][ev["k"]])
+                removed.add(ev["k"])
+                ev["done"] = tc
+            if ev["done"] is not None and args.release_delay >= 0 and tc >= ev["done"] + args.release_delay:
+                for s_ in ev["cut"]:
+                    if s_ not in removed:
+                        sysm.RemoveLink(ex["springs"][s_])
+                        removed.add(s_)
         if ships:
             lateral_damping(st, modules, ex)
         if k % every == 0:
