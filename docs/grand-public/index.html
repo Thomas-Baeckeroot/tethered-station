@@ -184,7 +184,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <div class="hero-text">
     <span class="eyebrow">Étude de faisabilité · simulation numérique</span>
     <h1>Gravité au bout du fil</h1>
-    <p class="lede">Trois vaisseaux en route vers Mars, reliés par des câbles d'un demi-kilomètre, font un tour par minute. À bord, l'équipage pèse ce qu'il pèsera sur Mars, pendant les neuf mois du voyage, sans poutre géante, avec des câbles de 11 cm de diamètre.</p>
+    <p class="lede">Trois vaisseaux en route vers Mars, reliés par des câbles d'un demi-kilomètre, font un tour par minute. Sur le pont principal, l'équipage pèse ce qu'il pèsera sur Mars, pendant les huit mois et demi du voyage, sans poutre géante, avec des câbles de 11 cm de diamètre.</p>
     <p class="tech-note">Pour qui veut les équations, les hypothèses et tous les résultats : le <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi" target="_blank" rel="noopener">carnet de calcul technique</a>.</p>
   </div>
   <figure class="wide">
@@ -209,7 +209,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 <section class="col">
   <span class="eyebrow">1 · Le principe</span>
   <h2>Copier la gravité par une rotation</h2>
-  <p>En orbite comme pendant le voyage vers Mars, tout tombe en même temps : c'est l'apesanteur. Elle fait fondre les os et les muscles des astronautes : environ 1 % de masse osseuse perdue par mois. Un équipage qui arriverait sur Mars après neuf mois d'apesanteur serait affaibli au moment le plus délicat. Pour recréer une pesanteur, on fait tourner l'habitat. Le plancher pousse alors en permanence les occupants vers le centre, et ils ressentent cette poussée comme un poids, dirigé vers l'extérieur.</p>
+  <p>En orbite comme pendant le voyage vers Mars, tout tombe en même temps : c'est l'apesanteur. Elle fait fondre les os et les muscles des astronautes : environ 1 % de masse osseuse perdue par mois. Un équipage qui arriverait sur Mars après huit mois et demi d'apesanteur serait affaibli au moment le plus délicat. Pour recréer une pesanteur, on fait tourner l'habitat. Le plancher pousse alors en permanence les occupants vers le centre, et ils ressentent cette poussée comme un poids, dirigé vers l'extérieur. Personne ne sait encore si la gravité de Mars, un peu plus du tiers de la nôtre, suffit à protéger les os et les muscles : aucune expérience humaine ne l'a mesurée, et les essais sur des rongeurs sont partiels. C'est en tout cas celle que l'équipage retrouvera à l'arrivée.</p>
   <p>La gravité ressentie vaut <span class="num">a = ω² × R</span> : elle dépend de la vitesse de rotation et de la distance au centre. On peut tourner vite près du centre ou lentement loin du centre. Le corps humain préfère la lenteur : au-delà de 2 à 4 tours par minute, chaque mouvement de tête provoque des vertiges et le mal des transports. À 1 tour par minute, il faut s'éloigner de <b>338 m</b> du centre pour peser comme sur Mars.</p>
   <p>La copie n'est pas parfaite. Le poids est le bon, mais l'oreille interne sent la rotation : en tournant la tête, on mélange deux rotations, celle de la tête et celle de la station, et les canaux semi-circulaires signalent un mouvement que les yeux ne voient pas. À 1 tour par minute, l'effet est faible et le corps s'y habitue en quelques jours. Marcher ou monter une échelle fait aussi intervenir la force de Coriolis, que nous retrouverons plus loin.</p>
 </section>
@@ -240,7 +240,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <span class="eyebrow">2 · Le projet</span>
   <h2>Trois vaisseaux en route vers Mars</h2>
   <p>Nous avons pris pour vaisseau le Starship de SpaceX, aujourd'hui le plus à même de faire ce trajet avec un équipage et des centaines de tonnes de fret ; l'étude vaut pour tout vaisseau de taille comparable. Il mesure 9 m de diamètre et 50 m de haut. Son intérieur est découpé en ponts, comme les étages d'un immeuble, parce qu'il est conçu pour se poser debout, sur la Terre comme sur Mars.</p>
-  <p>Le scénario&nbsp;: trois vaisseaux quittent l'orbite basse, pleins, à 1 600 t chacun. Ils allument leurs moteurs pour s'insérer sur l'orbite de transfert vers Mars, un voyage de 259 jours. Gagner les 3,6 km/s nécessaires brûle près de 1 000 t d'ergols&nbsp;: une fois en route, chaque vaisseau ne pèse plus qu'environ <b>610 t</b>. Les trois vaisseaux se relient alors par des câbles et se mettent à tourner. L'un emmène l'équipage, les deux autres sont des cargos.</p>
+  <p>Le scénario&nbsp;: trois vaisseaux quittent l'orbite basse, chargés à 1 600 t chacun, dont 1 380 t d'ergols. Ils allument leurs moteurs pour s'insérer sur l'orbite de transfert vers Mars, un voyage de 259 jours. Gagner les 3,6 km/s nécessaires brûle près de 1 000 t d'ergols&nbsp;: une fois en route, chaque vaisseau ne pèse plus qu'environ <b>610 t</b>. Les trois vaisseaux se relient alors par des câbles et se mettent à tourner. L'un emmène l'équipage, les deux autres sont des cargos.</p>
   <p>La gravité visée est celle de Mars, 3,711 m/s², pour que l'équipage arrive déjà habitué. Personne ne doit rejoindre la station en route : elle est assemblée une fois pour toutes après le départ.</p>
 </section>
 
@@ -248,21 +248,21 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <span class="eyebrow">3 · La structure</span>
   <h2>Des câbles plutôt qu'une poutre</h2>
   <p>Une poutre rigide de 680 m serait énorme. Un câble ne travaille qu'en traction, et la rotation le tend en permanence. C'est exactement ce qu'il faut. En route, chaque câble tire avec une force d'environ <b>130 tonnes-force</b>.</p>
-  <p>Les câbles sont pourtant dimensionnés pour des vaisseaux pleins tournant à <b>1 g</b>, avec un facteur de sécurité de 3. En Dyneema, une fibre plus résistante que l'acier à poids égal, cela donne un câble de 11 cm de diamètre. Les trois câbles pèsent ensemble 14 tonnes. En route, ils ne travaillent qu'à 5 % de leur résistance et s'allongent de moins d'un mètre.</p>
+  <p>Les câbles sont pourtant dimensionnés pour des vaisseaux chargés tournant à <b>1 g</b>, avec un facteur de sécurité de 3. En Dyneema, une fibre plus résistante que l'acier à poids égal, cela donne un câble de 11 cm de diamètre. Les trois câbles pèsent ensemble 14 tonnes. En route, ils ne travaillent qu'à 5 % de leur résistance et s'allongent de moins d'un mètre.</p>
 </section>
 
 <section class="col">
   <span class="eyebrow">4 · La configuration</span>
   <h2>Debout, en triangle</h2>
-  <p>Un objet qui tourne n'est pas toujours stable, et un vaisseau suspendu à un câble peut se mettre à pivoter, à se balancer ou à basculer. Nous avons simulé la station sur ordinateur, avec les vraies masses, les vraies inerties, des câbles élastiques et les ergols qui clapotent dans les réservoirs, pour chercher ce qui pouvait dérailler. Les résultats principaux ont été recalculés avec un second logiciel indépendant, Project Chrono, qui donne les mêmes chiffres à 0,1 % près.</p>
+  <p>Un objet qui tourne n'est pas toujours stable, et un vaisseau suspendu à un câble peut se mettre à pivoter, à se balancer ou à basculer. Nous avons simulé la station sur ordinateur, avec les vraies masses, les vraies inerties, des câbles élastiques et les ergols qui clapotent dans les réservoirs, pour chercher ce qui pouvait dérailler. Le simulateur a été vérifié sur des cas de référence avec un second logiciel indépendant, Project Chrono, qui retrouve les mêmes chiffres.</p>
 </section>
 
 <section class="trap wide" id="starship-debout">
   <div class="txt">
     <span class="tag">Premier choix</span>
     <h3>Debout, attaché par le nez</h3>
-    <p>Chaque vaisseau se tient debout, le nez tourné vers le centre et les moteurs vers l'extérieur : la gravité tire vers les moteurs, comme sur le pas de tir ou sur Mars. L'intérieur reste utilisable tel quel, ponts horizontaux, et la coque travaille le long de son axe, comme elle est faite pour le faire.</p>
-    <p>Le nez possède déjà des points d'ancrage renforcés, ceux qu'utilise la tour de lancement pour soulever le vaisseau. Les câbles s'y attachent, environ 25 m au-dessus du centre de gravité. Suspendu par le haut, le vaisseau se comporte comme un fil à plomb : il revient de lui-même à la verticale.</p>
+    <p>Chaque vaisseau se tient debout, le nez tourné vers le centre et les moteurs vers l'extérieur : la gravité tire vers les moteurs, comme sur le pas de tir ou sur Mars. L'intérieur reste utilisable tel quel, ponts horizontaux, et l'effort des câbles suit l'axe de la coque. Mais suspendue par le nez, la coque est étirée, alors que sur le pas de tir elle est comprimée. Les réservoirs, sous pression, supportent bien davantage ; la coiffe et la soute, qui ne le sont pas, doivent transmettre l'effort des câbles jusqu'à eux.</p>
+    <p>Les câbles s'attachent au nez, environ 25 m au-dessus du centre de gravité. Le nez du Starship porte des points de levage, qu'utilise la tour de lancement pour soulever le vaisseau, mais leur position et leur capacité ne sont pas publiées. Ils sont faits pour soulever un vaisseau vide sur Terre, alors qu'ici chaque vaisseau tire en permanence environ 2,4 MN, le poids de 245 t sur Terre. Des ancrages renforcés sont une <b>hypothèse</b> de l'étude, et le premier point de structure à vérifier. Suspendu par le haut, le vaisseau se comporte comme un fil à plomb : il revient de lui-même à la verticale.</p>
     <p class="verdict">Les grands déplacements se font d'un pont à l'autre, dans l'axe du câble, et ne font rien pencher.</p>
   </div>
   <figure>
@@ -328,8 +328,8 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <div class="txt">
     <span class="tag">Amortisseur</span>
     <h3>Un bassin d'eau contre le balancement</h3>
-    <p>Certains gratte-ciel combattent leurs oscillations avec un bassin d'eau : quand la tour se balance, l'eau clapote à contretemps et absorbe le mouvement. Il suffit de régler la profondeur du bassin pour que l'eau clapote au même rythme que la tour, et de freiner le clapotis par des grilles. Le système est entièrement passif : ni capteur, ni pompe, ni électronique, rien qui puisse tomber en panne. L'eau répond d'elle-même au balancement.</p>
-    <p>Nous avons cherché le meilleur bassin pour nos vaisseaux. Il faut le placer en haut, sous la coiffe : le vaisseau se balance autour de son centre de gravité, et un bassin posé près des moteurs ne bougerait presque pas. Il faut 25 t d'eau, dans un bassin rond de 7,2 m de diamètre et 60 cm de profondeur, qui clapote toutes les 8,5 secondes. C'est beaucoup pour un vaisseau spatial, 4 % de sa masse, mais cette eau n'est pas du poids mort : l'équipage en a besoin de toute façon, pour boire et se laver, et quelques dizaines de centimètres d'eau sont l'un des meilleurs abris contre les radiations. Plus d'eau n'apporte rien.</p>
+    <p>Certains gratte-ciel combattent leurs oscillations avec un bassin d'eau : quand la tour se balance, l'eau clapote à contretemps et absorbe le mouvement. Il suffit de régler la profondeur du bassin pour que l'eau clapote au même rythme que la tour, et de freiner le clapotis par des grilles. Le système est passif : ni capteur ni électronique ne commandent le clapotis, l'eau répond d'elle-même au balancement. Il faut seulement garder le bon niveau d'eau, car c'est la profondeur qui règle le rythme.</p>
+    <p>Nous avons cherché le meilleur bassin pour nos vaisseaux. Il faut le placer en haut, sous la coiffe : le vaisseau se balance autour de son centre de gravité, et un bassin posé près des moteurs ne bougerait presque pas. Il faut 25 t d'eau, dans un bassin rond de 7,2 m de diamètre et 60 cm de profondeur, qui clapote toutes les 8,5 secondes. C'est beaucoup pour un vaisseau spatial, 4 % de sa masse, mais cette eau n'est pas tout à fait du poids mort : c'est une réserve de secours, maintenue à niveau, et quelques dizaines de centimètres d'eau sont l'un des meilleurs abris contre les radiations. Plus d'eau n'apporte rien. Il faut aussi la couvrir : si un câble cédait, le plancher pencherait assez pour vider un bassin ouvert.</p>
     <p class="verdict">Avec le bassin, au pire rythme, le plancher ne penche plus que de <b data-bind="T_balayage_z.tilt_max">—</b> au lieu de 2,7°. Ce qui reste vient surtout du clapotis de l'oxygène : des chicanes plus efficaces, placées juste sous la surface du liquide, dont le niveau ne change pas pendant le voyage, le ramèneraient à <b data-bind="V_chicanes8_balayage_z.tilt_max">—</b>.</p>
   </div>
   <figure>
@@ -362,6 +362,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <p>Une astuce permettrait de tourner un peu moins vite : avant la mise en rotation, transvaser des ergols du vaisseau habité dans les deux cargos. Plus léger, il tourne plus loin du centre, et il faut moins de tours par minute pour garder la gravité de Mars à son bord : 0,93 tour par minute si l'on transvase la moitié de ses ergols, 0,87 si l'on transvase tout. C'est 7 à 13 % de moins pour l'oreille interne.</p>
     <p>Mais ces ergols lestaient le bas du vaisseau. Sans eux, il est plus léger, son centre de gravité remonte vers les câbles, et il penche plus facilement. Surtout, il se balance plus lentement, et le bassin d'eau, réglé sur l'ancien rythme, ne suit plus : tout transvasé, 4 t au pire rythme font pencher le plancher de <span data-bind="U_balayage_z.tilt_max_ship.0">—</span> au lieu de <span data-bind="T_balayage_z.tilt_max_ship.0">—</span>.</p>
     <p>Nous avons simulé plusieurs étapes du transfert, et deux parades qui se combinent. Régler le bassin sur le nouveau rythme, en l'élargissant à toute la largeur de la coque. Et garder du poids en bas, en y rangeant 50 t de réserves (eau, vivres). La moitié transvasée avec un bassin réglé, le pire rythme ne fait plus pencher le plancher que de <span data-bind="K195_balayage_z_bassin.tilt_max_ship.0">—</span> ; tout transvasé, avec le lest et un bassin réglé, de <span data-bind="KL50_balayage_z_bassin.tilt_max_ship.0">—</span>.</p>
+    <p>Avant l'arrivée, il faudrait aussi rendre ses ergols au vaisseau habité, qui en a besoin pour se poser : un second transfert, rotation arrêtée.</p>
     <p class="verdict">C'est faisable, mais 50 t déplacées sur un pont font encore pencher le plancher de <span data-bind="K195_cargaison_laterale.tilt_max_ship.0">—</span> (moitié transvasée) au lieu de <span data-bind="T_cargaison_laterale.tilt_max_ship.0">—</span>. À 1 tour par minute, la station est déjà confortable : nous gardons la solution simple, et cette variante en réserve.</p>
   </div>
   <figure>
@@ -385,7 +386,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <span class="tag">Orientation</span>
     <h3>Un côté au soleil, un côté à l'ombre</h3>
     <p>Du côté éclairé, les panneaux solaires sont fixes, déployés de part et d'autre du vaisseau, toujours face au Soleil. La coque y est couverte d'un isolant argenté qui renvoie la lumière.</p>
-    <p>De l'autre côté se trouvent les tuiles noires du bouclier thermique, qui protégeront le vaisseau lors de son entrée dans l'atmosphère de Mars. Restées à l'ombre, elles rayonnent leur chaleur vers le ciel, à −270 °C. L'oxygène et le méthane liquides, vers −180 °C, restent froids d'eux-mêmes : ils ne s'évaporent pas, et il faut même les chauffer un peu, avec environ 1 kW par vaisseau, pour que le méthane ne gèle pas.</p>
+    <p>De l'autre côté se trouvent les tuiles noires du bouclier thermique, qui protégeront le vaisseau lors de son entrée dans l'atmosphère de Mars. Restées à l'ombre, elles rayonnent leur chaleur vers le ciel, à −270 °C. L'oxygène et le méthane liquides, vers −180 et −150 °C, restent froids d'eux-mêmes : ils ne s'évaporent pas, et il faut même les chauffer un peu, avec environ 1 kW par vaisseau, pour que le méthane ne gèle pas.</p>
     <p class="verdict">Si le Soleil tournait autour des vaisseaux, les tuiles noires chaufferaient et conduiraient cette chaleur jusqu'aux ergols : des réservoirs vides en quelques semaines ; même avec une housse isolante sur les tuiles, les trois vaisseaux perdraient encore 30 à 200 t.</p>
   </div>
   <figure>
@@ -422,7 +423,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <li><b>Gravité stable</b><span>Entre <span class="num" data-bind="R_perturbation.g_min" data-fmt="ms2">—</span> et <span class="num" data-bind="R_perturbation.g_max" data-fmt="ms2">—</span>, pour 3,711 m/s² visés.</span></li>
     <li><b>Mise en rotation en douceur</b><span>Des propulseurs amènent la station de 0,1 à 1 tour par minute en une demi-heure, avec 20 t d'ergols au total : pendant la manœuvre, le plancher penche de <span class="num" data-bind="S_montee_k005.spin.tilt_max_on">—</span> et les câbles restent tendus.</span></li>
     <li><b>Face au Soleil</b><span>Panneaux fixes et ergols qui restent froids d'eux-mêmes ; l'axe suit le Soleil grâce à de petites poussées, environ 70 t d'ergols pour tout le voyage.</span></li>
-    <li><b>Marge de résistance</b><span>Câbles dimensionnés pour des vaisseaux pleins à 1 g avec un facteur de sécurité de 3 : en route, ils ne travaillent qu'à 5 % de leur résistance.</span></li>
+    <li><b>Marge de résistance</b><span>Câbles dimensionnés pour des vaisseaux chargés à 1 g avec un facteur de sécurité de 3 : en route, ils ne travaillent qu'à 5 % de leur résistance.</span></li>
   </ul>
   <p class="verdict">Le point sensible était le balancement des vaisseaux, plus légers qu'au départ et alourdis d'ergols qui ne suivent pas la coque : 4 t (une cinquantaine de personnes) se balançant en cadence toutes les 8 secondes faisaient pencher le plancher de 2,7°. Un bassin de 25 t d'eau sous la coiffe de chaque vaisseau ramène ce pire cas à <span class="num" data-bind="T_balayage_z.tilt_max">—</span>, sans moteur ni pièce mobile.</p>
   <p>Une variante permettrait de tourner un peu moins vite, à 0,93 tour par minute, en transvasant la moitié des ergols du vaisseau habité dans les cargos et en réglant son bassin en conséquence (voir « Alléger le vaisseau habité », chapitre 5 ; <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi#masses-inegales" target="_blank" rel="noopener">détails dans le carnet</a>).</p>
@@ -626,7 +627,17 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <span class="eyebrow">Autres effets vérifiés</span>
   <h3>Le rebond et la lente valse de l'axe</h3>
   <p><b>Le rebond.</b> Les câbles sont élastiques : la station peut « respirer », les vaisseaux s'éloignant et se rapprochant du centre de quelques centimètres, en quelques secondes. Le poids ressenti varie de moins de 1 %, ce qui est imperceptible.</p>
-  <p><b>La valse de l'axe.</b> En orbite autour de la Terre, la Terre attire un peu plus le module le plus proche que le plus éloigné. Sur un objet de 680 m, cet écart est minuscule, mais il agit en continu : si l'axe de rotation est incliné par rapport à l'orbite, il décrit un cône complet en une douzaine de jours. En route vers Mars, le problème disparaît : loin de la Terre, l'effet de marée du Soleil est environ vingt millions de fois plus faible, et l'axe reste fixe dans l'espace pendant tout le voyage.</p>
+  <p><b>La valse de l'axe.</b> En orbite autour de la Terre, la Terre attire un peu plus le module le plus proche que le plus éloigné. Sur un objet de 680 m, cet écart est minuscule, mais il agit en continu : si l'axe de rotation est incliné par rapport à l'orbite, il décrit un cône complet en une douzaine de jours. En route vers Mars, le problème disparaît : loin de la Terre, l'effet de marée du Soleil est environ vingt millions de fois plus faible : laissé libre, l'axe resterait fixe dans l'espace pendant tout le voyage. On le fait pivoter volontairement pour suivre le Soleil (§ 6).</p>
+</section>
+
+<section class="col" id="statut">
+  <span class="eyebrow">Ce que valent ces résultats</span>
+  <h3>Simulé, estimé ou supposé</h3>
+  <ul class="checks">
+    <li><b>Simulé</b><span>Le comportement de la station : rotation, balancements, clapotis des ergols et du bassin, mouvements de l'équipage et des cargaisons, rupture d'un câble, mise en rotation, pivotement vers le Soleil. Le simulateur est vérifié avec Project Chrono sur des cas de référence.</span></li>
+    <li><b>Estimé</b><span>Par des calculs plus simples, sans simulation : la masse après l'injection, la résistance, la masse et la température des câbles, les ergols pour faire tourner et pivoter la station, la chaleur reçue par les réservoirs, le risque de météorites.</span></li>
+    <li><b>Supposé</b><span>Ce que les sources publiques ne disent pas : la capacité des ancrages du nez et de la coiffe, la masse à vide du Starship V3 et la répartition de ses masses, la place disponible sous la coiffe pour le bassin. Ce sont les premiers points à confirmer.</span></li>
+  </ul>
 </section>
 
 <section class="col">
@@ -634,6 +645,13 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <h2>Ce qu'il reste à étudier</h2>
   <ul class="todo">
     <li>Le déploiement après l'injection vers Mars : rapprocher les trois vaisseaux et dérouler les câbles avant la mise en rotation, quand ils ne portent presque rien.</li>
+    <li>L'arrivée à Mars : arrêter la rotation, rentrer les câbles, séparer les vaisseaux, et retirer ou larguer ce qui ne supporterait pas l'entrée dans l'atmosphère (isolant côté Soleil, panneaux, ferrures).</li>
+    <li>Les corrections de trajectoire en route : les trois vaisseaux doivent pousser ensemble, ou la station doit cesser de tourner.</li>
+    <li>Les ancrages du nez et le chemin de l'effort jusqu'aux réservoirs, à travers la coiffe et la soute ; le passage des câbles près des ailerons avant.</li>
+    <li>La place du bassin dans l'ogive, qui se rétrécit vers la pointe.</li>
+    <li>Le plein en orbite basse : plusieurs dizaines de vols de ravitailleurs, et un transfert d'ergols pas encore démontré à cette échelle.</li>
+    <li>Les antennes : le Soleil reste dans l'axe, mais la Terre s'en écarte pendant le voyage ; il faut des antennes orientables, qui suivent la rotation.</li>
+    <li>La physiologie : l'effet de la gravité de Mars sur les os et les muscles, sur des mois.</li>
     <li>Le clapotis réel du bassin d'eau aux grandes amplitudes (vagues qui déferlent), que nos pendules ne représentent pas.</li>
     <li>Des pattes d'oie sur plusieurs points d'ancrage du nez, pour raidir le balancement perpendiculaire au plan de rotation, aujourd'hui le plus sensible.</li>
     <li>Le moyeu et ses rayons en détail : déploiement des câbles depuis le moyeu, treuils, et le contact des câbles avec les coques, que notre modèle ne représente pas.</li>
@@ -646,7 +664,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 </section>
 
 <footer>
-  <p>Simulations : modèle multicorps écrit pour l'étude (Python, NumPy), validé par comparaison avec <a href="https://projectchrono.org/" target="_blank" rel="noopener">Project Chrono</a>. Les vaisseaux sont des corps rigides et les câbles des chaînes de ressorts élastiques. Chaque Starship est modélisé par éléments (coiffe, fût, moteurs, charge utile) ; ses ergols, posés au fond des réservoirs, ballottent selon le modèle à pendules de la NASA. Dimensions et masses d'après les sources publiques sur le Starship V2 et V3.</p>
+  <p>Simulations : modèle multicorps écrit pour l'étude (Python, NumPy), vérifié sur des cas de référence avec <a href="https://projectchrono.org/" target="_blank" rel="noopener">Project Chrono</a>. Les vaisseaux sont des corps rigides et les câbles des chaînes de ressorts élastiques. Chaque Starship est modélisé par éléments (coiffe, fût, moteurs, charge utile) ; ses ergols, posés au fond des réservoirs, ballottent selon le modèle à pendules de la NASA. Dimensions et masses d'après les sources publiques sur le Starship V2 et V3.</p>
   <p id="tech-link">Le détail des calculs, des hypothèses et de tous les résultats est dans le <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi" target="_blank" rel="noopener">carnet de calcul technique</a>.</p>
   <p>Textes, figures et données : <a href="https://creativecommons.org/licenses/by/4.0/deed.fr" target="_blank" rel="noopener">CC BY 4.0</a> · code : licence MIT · © 2026 Thomas Baeckeroot · code source : <a href="https://github.com/Thomas-Baeckeroot/tethered-station" target="_blank" rel="noopener">GitHub</a>.</p>
 </footer>

@@ -4,6 +4,10 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 
 ## Priorité haute
 
+- **Ancrages du nez et chemin d'effort** (relecture du 31 octobre 2026, carnet § 2.4) : position et capacité des points de levage non publiées, faits pour un vaisseau vide sous 1 g (≈ 1 MN) ; ici 2,4 MN par vaisseau en route, 15,7 MN au dimensionnement, plus les à-coups d'une rupture. Coque en traction : chemin de l'effort à travers la coiffe et la soute non pressurisées jusqu'aux réservoirs. Dégagement câbles–ailerons avant.
+- **Arrivée à Mars** : arrêt de la rotation, rentrée des câbles, séparation, retrait ou largage de ce qui ne survit pas à l'entrée (isolant côté Soleil, panneaux, ferrures, housse) ; variante allégée : rendre ses ergols au vaisseau habité.
+- **Corrections de trajectoire en route** : poussées synchronisées des trois vaisseaux, ou arrêt de la rotation.
+- **Bassin dans l'ogive** : diamètre utile à 12 m de la pointe (≈ 4,2 m de rayon pour une ogive tangente de 17 m, longueur à confirmer) ; couvercle pour les ruptures (plancher à 16–37°, à-coups de 2 à 5 m/s²).
 - **Déploiement avant la mise en rotation** : rapprochement des trois vaisseaux, déroulement des câbles sous 0,1 tr/min (quelques kN de tension), treuils. La montée de 0,1 à 1 tr/min est simulée (carnet § 5.4 : α = 0,05·ω², 30 min, 20 t d'ergols, plancher à 2,6°).
 - **Câbles doublés** (meilleure parade simulée contre la rupture, carnet § 7.4) : ferrures (communes aux deux brins, imposées par la stabilité en roulis, § 7.4 ; un arrachement les emporte ensemble), entretoises, emmêlement du brin rompu avec le brin sain.
 - **Moyeu et rayons doublés** (carnet § 7.3 ; confort vérifié, campagne `moyeu`) : déploiement des côtés et des rayons depuis le moyeu, treuils ; les rayons, réglés pour 1 tr/min, sont presque détendus pendant la montée.
@@ -19,6 +23,9 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 
 ## Priorité moyenne
 
+- **Avitaillement en orbite basse** : 3 × 1 380 t d'ergols (V3 pleins : 4 800 t), plusieurs dizaines de vols de ravitailleurs ; hypothèse de programme.
+- **Télécommunications** : antennes orientables (la Terre s'écarte de l'axe pointé vers le Soleil), compensant la rotation.
+- **Physiologie** : efficacité de 0,38 g contre la perte osseuse et musculaire, non démontrée chez l'humain.
 - **Entretoises entre brins, tronçons remplaçables, maillage triangulaire** (carnet § 7.5) : brin rompu captif sans coupe-câbles ; raccords ; filet de 9 triangles autour du moyeu.
 - **Absorbeurs d'énergie aux attaches** (sangles à déchirement) : plafonner les à-coups ; course nécessaire.
 - **Câble réaliste** : tresse à brins multiples (type Hoytether), gaine ; perte de brins par micrométéorites ; masse 24 t (Dyneema SK99 redondant) à 47 t (Kevlar) d'après le § 2.3 du carnet.
