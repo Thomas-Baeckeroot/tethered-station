@@ -32,18 +32,25 @@ M_INT = 4e3
 SWEEP = dict(amp=3.5, f1=0.4, duration=5460.0)
 
 
-def system(mass_t=610, free=True, zeta_prop=0.03, tld=None):
-    """Matrices M, C, K, vecteur de force et ligne d'observation du plancher."""
-    sm = ts.starship_mass_model(mass_t, slosh=free, tld=tld)
-    x_att = sm["x_tot"] - H
+def system(mass_t=610, free=True, zeta_prop=0.03, tld=None, omega=OMEGA, R_tot=R_TOT, x_att=None,
+           T_cable=T_CABLE, L_cable=L_CABLE, ballast=None):
+    """Matrices M, C, K, vecteur de force et ligne d'observation du plancher.
+    Par défaut, la solution retenue (610 t, attaches à H = 25 m au-dessus du
+    centre de masse) ; sinon vaisseau de mass_t (lest éventuel), attaches à
+    x_att de la pointe, centre de masse au rayon R_tot, câbles de tension
+    T_cable et de longueur L_cable, vitesse omega (masses inégales, § 5.5)."""
+    OMEGA = omega
+    sm = ts.starship_mass_model(mass_t, slosh=free, tld=tld, ballast=ballast)
+    if x_att is None:
+        x_att = sm["x_tot"] - H
     hr = sm["x_c"] - x_att
     Mr, Ir = sm["M_rigid"], sm["I_tr"]
-    ra = R_TOT - H
+    ra = R_tot - (sm["x_tot"] - x_att)
     pend = sm["pendulums"]
     n = 2 + len(pend)
     M, K, C = np.zeros((n, n)), np.zeros((n, n)), np.zeros((n, n))
     M[0, 0], M[0, 1], M[1, 0], M[1, 1] = Mr, Mr * hr, Mr * hr, Mr * hr ** 2 + Ir
-    K[0, 0] = 2 * T_CABLE / L_CABLE
+    K[0, 0] = 2 * T_cable / L_cable
     K[1, 1] = OMEGA ** 2 * (ra * Mr * hr + Ir + Mr * hr ** 2)
     for i, t in enumerate(pend):
         m, l, L = t["ms"], t["x_hinge"] - x_att, t["L"]

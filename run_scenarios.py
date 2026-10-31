@@ -78,6 +78,11 @@ UNEQ = SV3 + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", 
               "--masses-t", "220,805,805", "--attach-x", "9", "--target-ship", "0", "--rpm", "0.87"]
 
 
+# 4 t oscillant hors plan pendant 4 min au pire rythme du vaisseau habité
+# allégé de 195 t avec le bassin d'origine (0,092 Hz, période 10,9 s)
+RESO_K = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "3.5", "--motion-axis", "z",
+          "--motion-period", "10.9", "--motion-stop", "240", "--duration", "900"]
+
 
 def UNEQ_K(masses, rpm):
     """Masses inégales (même modèle que UNEQ) : masses et vitesse données."""
@@ -267,7 +272,21 @@ CAMPAIGNS = {
                         ("KL50", UNEQ_K("220,805,805", "0.8705") + ["--ballast-t", "50", "--ballast-x", "44"]))
         for sc, extra in (("perturbation", PERT), ("cargaison_laterale", CARGO + LAT + TRAJ), ("equipage", WALK + LAT),
                           ("balayage_z", SWEEP_L + LATZ), ("balayage_t", SWEEP_L + LAT))
-    ] + [("K195_balayage_z_seg32", UNEQ_K("415,708,708", "0.9285") + SWEEP_L + LATZ + ["--segments", "32"])],
+    ] + [("K195_balayage_z_seg32", UNEQ_K("415,708,708", "0.9285") + SWEEP_L + LATZ + ["--segments", "32"])]
+    # Bassin réaccordé sur le balancement hors plan du vaisseau habité
+    # (light_tld.py : Ø 8,8 m, toute la largeur de la coque, sauf K100) ; forçage
+    # au pire rythme du bassin d'origine (K195 : 0,092 Hz) avec l'un ou l'autre
+    + [(f"{k}_{sc}_bassin", base + pool + extra)
+       for k, base, pool in (("K100", UNEQ_K("510,660,660", "0.9614"), ["--tld-mass-t", "15", "--tld-radius", "3.4", "--tld-zeta", "0.2"]),
+                             ("K195", UNEQ_K("415,708,708", "0.9285"), ["--tld-mass-t", "35", "--tld-radius", "4.4", "--tld-zeta", "0.2"]),
+                             ("K300", UNEQ_K("310,760,760", "0.8959"), ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]),
+                             ("KL50", UNEQ_K("220,805,805", "0.8705") + ["--ballast-t", "50", "--ballast-x", "44"],
+                              ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]))
+       for sc, extra in (("balayage_z", SWEEP_L + LATZ), ("balayage_t", SWEEP_L + LAT))
+       if sc == "balayage_z" or k in ("K195", "KL50")]
+    + [("K195_resonance_z", UNEQ_K("415,708,708", "0.9285") + RESO_K + TRAJ),
+       ("K195_resonance_z_bassin", UNEQ_K("415,708,708", "0.9285") + ["--tld-mass-t", "35", "--tld-radius", "4.4", "--tld-zeta", "0.2"]
+        + RESO_K + TRAJ)],
     # Câbles multiples (même masse de câble) : un brin sur deux ou trois
     # rompt au milieu, les autres reprennent la charge ; brins sur la même
     # ferrure, ou écartés de 2 m selon l'axe de rotation
