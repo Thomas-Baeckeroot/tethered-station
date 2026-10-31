@@ -18,11 +18,12 @@ Site statique : `docs/build_site.sh <dossier>` construit `index.html`, `grand-pu
 | Fichier | Rôle |
 |---|---|
 | `tether_sim.py` | Simulateur multicorps (NumPy) : vaisseaux rigides (modèle de masse par éléments, pendules de ballottement, bassin d'eau accordé), câbles unilatéraux discrétisés, masses internes mobiles, amortisseur interne |
-| `run_scenarios.py` | Campagnes de scénarios en parallèle : `rotation`, `internes`, `final` (étude préliminaire), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses`, `soleil` |
+| `run_scenarios.py` | Campagnes de scénarios en parallèle : `rotation`, `internes`, `final` (étude préliminaire), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses`, `soleil`, `allege` |
 | `mission_mass.py` | Masse d'un Starship après l'injection vers Mars |
 | `slosh_modes.py` | Modèle linéaire hors plan (vaisseau + ergols) : modes couplés |
 | `tld_design.py` | Dimensionnement du bassin d'eau accordé (modèle linéaire amorti, balayage en temps) |
 | `lox_search.py` | Mode couplé du LOX : chicanes plus efficaces ou second bassin (même modèle linéaire) |
+| `light_tld.py` | Vaisseau habité allégé : modes hors plan et pic du balayage, bassin d'origine ou réaccordé (modèle linéaire généralisé aux masses inégales) |
 | `sun_pointing.py` | Orientation face au Soleil : direction du Soleil sur le transfert, impulsion pour faire pivoter l'axe, bilan thermique des réservoirs (modèle 2D) selon l'orientation et les revêtements ; écrit `docs/data/soleil.json` |
 | `chrono_validation.py` | Validation croisée avec Project Chrono (PyChrono 10) |
 | `make_web_data.py` | Export des résultats vers `docs/data/` (séries, trajectoires 3D, validation) |
@@ -52,6 +53,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python run_scenarios.py montee       # mise en rotation de 0,1 à 1 tr/min (~1 h 30)
 .venv/bin/python run_scenarios.py lox          # chicanes du LOX à 8 % ou second bassin (~1 h 30)
 .venv/bin/python run_scenarios.py masses       # transfert d'ergols : 220 / 805 / 805 t à 0,87 tr/min (~1 h)
+.venv/bin/python run_scenarios.py allege       # transferts partiels, lest bas, bassins réaccordés (~10 h)
+.venv/bin/python light_tld.py                  # vaisseau allégé : modes et bassin réaccordé (modèle linéaire)
 .venv/bin/python lox_search.py                 # mode du LOX (modèle linéaire)
 .venv/bin/python run_scenarios.py soleil       # pivotement de l'axe vers le Soleil, 1 000 fois accéléré (~40 min)
 .venv/bin/python sun_pointing.py               # orientation face au Soleil : impulsion, bilan thermique
@@ -94,6 +97,7 @@ Historique de l'étude :
 - Mise en rotation (`--spin-from 0.1 --spin-k 0.05`) : α = k·ω² garde constante l'inclinaison de la gravité apparente ; 1 tr/min en 30 min, 20 t d'ergols (Isp 300 s), plancher à 2,6° puis 0,04°, câbles toujours tendus. Quatre fois plus vite : 10°. À α constant : 28° au départ, liquides déplacés de 1 à 2 m. Poussée à l'arrière : −4 % d'ergols, 4,1°.
 - Mode couplé du LOX (campagne `lox`, `lox_search.py`) : chicanes à ζ = 8 % → pic du LOX 0,46° → 0,25°, pire cas 0,32° (à 0,36 Hz, étirement des câbles) ; un second bassin de 8 t fait moins bien.
 - Transfert d'ergols (`--masses-t 220,805,805 --attach-x 9 --target-ship 0 --rpm 0.87`) : équilibre conforme au calcul statique (449 m, 0,47 / 1,74 MN, cargos pivotés de 5,3°) ; mais le vaisseau habité devient six fois plus sensible (cargaison 3,5°, marche 1,0°), M·h passant de 15 200 à 2 500 t·m ; son balancement hors plan descend à 0,072 Hz, loin de l'accord du bassin : 4,6° au pire rythme, 1,25° avec un bassin réaccordé (19 t, Ø 8,8 m, 0,31 m), où l'eau se déplace de 1,1 m.
+- Transferts partiels et lest (campagne `allege`, `--ballast-t`) : le balancement hors plan ralentit (0,113 → 0,094 Hz après 195 t) et décroche du bassin : pire rythme 0,73° (100 t), 1,72° (195 t), 3,23° (300 t). Bassin réaccordé : 0,51°, 0,58° (35 t, Ø 8,8 m), 0,70°. Tout transvasé avec 50 t de réserves descendues à 44 m (h 11,4 → 18,6 m) : 1,81°, 0,63° avec bassin réaccordé. Le modèle linéaire (`light_tld.py`) suit le simulateur à 2–6 %.
 - Validation : énergie et moment cinétique conservés à 10⁻⁸ ou mieux ; Project Chrono reproduit les mêmes trajectoires (écart de temps de doublement 0,03 à 0,13 %).
 
 - Face au Soleil (`sun_pointing.py`, campagne `soleil`, carnet § 5.6) : l'axe suit le Soleil (180° en 259 jours, 1,08 à 0,47 °/jour). Impulsion 2,6·10⁸ N·s en poussée continue, 2,1·10⁸ par impulsions à ±15° de la ligne des nœuds (18 N, 5 s, deux fois par tour) : 63 à 89 t de méthane-oxygène brûlés (gaz froid : 170 à 410 t). Le simulateur (1 000 fois accéléré) retrouve l'angle et l'impulsion à 10⁻³ près. Thermique : avec l'axe fixe, les tuiles éclairées conduisent 5 à 26 kW vers les ergols (réservoirs vides en quelques semaines ; 11 à 70 t par vaisseau avec une housse) ; face au Soleil, les tuiles à l'ombre refroidissent les ergols de 0,6 à 1 kW nets (≈ 1 kW de chauffage pour que le CH4 ne gèle pas).
