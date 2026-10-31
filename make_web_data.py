@@ -205,6 +205,37 @@ def export_anim(campaign, name, ta, tb, step, dest):
     return len(frames)
 
 
+def export_allege(dest):
+    """Vaisseau habité allégé, calcul statique (§ 5.5) : ergols transvasés à
+    parts égales dans les cargos (rapport de mélange conservé), câbles
+    inchangés (même triangle des centres de masse), 3,711 m/s² à bord du
+    vaisseau habité ; avec ou sans 50 t de charge utile descendues à 44 m.
+    Inclinaison statique pour 50 t déplacées de 3,5 m sur un pont : formule
+    du palonnier (static_tilt_prediction), s = 3,5 m."""
+    tld = [dict(m_t=25.0, x=12.0, a=3.6, zeta=0.15)]
+    rows = []
+    a = 338.4                                     # sommets du triangle (masses égales : R = 338,4 m)
+    P = [(0.0, a), (-a * math.sqrt(3) / 2, -a / 2), (a * math.sqrt(3) / 2, -a / 2)]
+    for tr in range(0, 391, 5):
+        mh, mc = 610.0 - tr, 610.0 + tr / 2
+        m = [mh, mc, mc]
+        cy = sum(mi * p[1] for mi, p in zip(m, P)) / sum(m)
+        R, Rc = a - cy, math.hypot(P[1][0], P[1][1] - cy)
+        w = math.sqrt(3.711 / R)
+        row = dict(tr=tr, mh=mh, mc=mc, R=R, Rc=Rc, cy=cy, rpm=w * 60 / (2 * math.pi), gc=w * w * Rc)
+        for key, bal in (("", None), ("_lest", dict(m_t=50.0, x=44.0))):
+            sm = ts.starship_mass_model(mh, slosh=True, tld=tld, ballast=bal)
+            h = sm["x_tot"] - 9.0
+            delta = 50.0 * 3.5 / mh
+            row["h" + key] = h
+            row["x" + key] = sm["x_tot"]
+            row["tilt" + key] = math.degrees(math.sqrt(3) * delta / (3.5 + math.sqrt(3) * h))
+        row["depth"] = {tk["name"]: tk["depth"] for tk in sm["tanks"] if tk["name"] in ("LOX", "CH4")}
+        rows.append(row)
+    with open(os.path.join(dest, "allege.json"), "w") as fh:
+        json.dump(r(rows, 4), fh, separators=(",", ":"), ensure_ascii=False)
+
+
 def export_validation(dest):
     res = {}
     for path in sorted(glob.glob(os.path.join(OUT, "validation", "*_validation.json"))):
@@ -243,6 +274,7 @@ def main():
         n = export_anim(campaign, name, ta, tb, step, args.dest)
         if n:
             print(f"animation : {name} ({n} images)")
+    export_allege(args.dest)
     export_validation(args.dest)
     print("validation exportée")
 
