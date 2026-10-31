@@ -1310,11 +1310,20 @@ def run(args):
     nc, ns = st.n_cables, st.n
     brk = getattr(args, "break_cable", -1)
     k_brk, brk_meta = None, None
+    # Seconde rupture (deux brins d'un même côté, par exemple), au même endroit le long du câble
+    brk2 = getattr(args, "break_cable2", -1) if brk >= 0 else -1
+    t_brk2 = args.break_time if getattr(args, "break_time2", None) is None else args.break_time2
+    k_brk2, brk2_meta = None, None
     if brk >= 0:
         f0 = st.cable_first_seg[brk]
         k_brk = f0 + min(int(args.break_at * ns), ns - 1)
-        brk_nodes = np.unique(st.seg[f0:f0 + ns][st.seg[f0:f0 + ns] < st.nf])
+        cabs = [brk] + ([brk2] if brk2 >= 0 else [])
+        brk_nodes = np.unique(np.concatenate([st.seg[st.cable_first_seg[c]:st.cable_first_seg[c] + ns] for c in cabs]))
+        brk_nodes = brk_nodes[brk_nodes < st.nf]
         p(f"Rupture         : câble {brk}, segment {k_brk - f0 + 1}/{ns} (fraction {args.break_at:g}), à t = {args.break_time:g} s")
+        if brk2 >= 0:
+            k_brk2 = st.cable_first_seg[brk2] + k_brk - f0
+            p(f"Seconde rupture : câble {brk2}, même segment, à t = {t_brk2:g} s")
     pairs = [(a, b) for a in range(st.nb) for b in range(a + 1, st.nb)]
     tpk = np.zeros(nc)  # tension de crête par câble depuis le dernier enregistrement
     traj = {k: [] for k in ("t", "xb", "R", "xn", "pa", "xi", "xs")}
@@ -1328,25 +1337,30 @@ def run(args):
     nb = st.nb
     for step in range(n_steps + 1):
         t = step * dt
-        if k_brk is not None and brk_meta is None and t >= args.break_time:
-            # Le segment cède : son énergie élastique est perdue (comptée dissipée)
-            _, _, stretch, taut, _ = st.spring_forces(P)
-            E_rel = 0.5 * st.k[k_brk] * stretch[k_brk] ** 2 if taut[k_brk] else 0.0
-            w_diss += E_rel
-            st.alive[k_brk] = False
-            brk_meta = dict(t=t, cable=brk, seg=int(k_brk), E_seg_J=float(E_rel))
-            F, *_ = st.spring_forces(P)
-        if (brk_meta and args.release_delay >= 0 and "released" not in brk_meta
-                and t >= brk_meta["t"] + args.release_delay):
-            # Coupe-câbles : les deux segments d'attache du câble rompu sont
-            # coupés, les morceaux sont largués
-            f0 = st.cable_first_seg[brk]
-            cut = [k for k in (f0, f0 + ns - 1) if st.alive[k]]
-            _, _, stretch, taut, _ = st.spring_forces(P)
-            w_diss += float(np.sum(np.where(taut[cut], 0.5 * st.k[cut] * stretch[cut] ** 2, 0.0)))
-            st.alive[cut] = False
-            brk_meta["released"] = dict(t=t, segs=[int(k) for k in cut])
-            F, *_ = st.spring_forces(P)
+        for kb, cb, tb, key in ((k_brk, brk, args.break_time, 0), (k_brk2, brk2, t_brk2, 1)):
+            if kb is not None and (brk_meta, brk2_meta)[key] is None and t >= tb:
+                # Le segment cède : son énergie élastique est perdue (comptée dissipée)
+                _, _, stretch, taut, _ = st.spring_forces(P)
+                E_rel = 0.5 * st.k[kb] * stretch[kb] ** 2 if taut[kb] else 0.0
+                w_diss += E_rel
+                st.alive[kb] = False
+                meta = dict(t=t, cable=cb, seg=int(kb), E_seg_J=float(E_rel))
+                if key:
+                    brk2_meta = meta
+                else:
+                    brk_meta = meta
+                F, *_ = st.spring_forces(P)
+        for m, cb in ((brk_meta, brk), (brk2_meta, brk2)):
+            if m and args.release_delay >= 0 and "released" not in m and t >= m["t"] + args.release_delay:
+                # Coupe-câbles : les deux segments d'attache du câble rompu sont
+                # coupés, les morceaux sont largués
+                f0 = st.cable_first_seg[cb]
+                cut = [k for k in (f0, f0 + ns - 1) if st.alive[k]]
+                _, _, stretch, taut, _ = st.spring_forces(P)
+                w_diss += float(np.sum(np.where(taut[cut], 0.5 * st.k[cut] * stretch[cut] ** 2, 0.0)))
+                st.alive[cut] = False
+                m["released"] = dict(t=t, segs=[int(k) for k in cut])
+                F, *_ = st.spring_forces(P)
         if step % rec_every == 0:
             # Forces réelles (ressort + amortisseur) pour les diagnostics
             Pv = st.point_velocities(rw)
@@ -1434,6 +1448,8 @@ def run(args):
                 hub_mass_t=st.hub_m / 1e3, spokes=st.topo.get("spokes", []), args=vars(args))
     if brk_meta:
         info["break"] = brk_meta
+    if brk2_meta:
+        info["break2"] = brk2_meta
     info["masses_t"] = st.masses_t
     if st.g_ref_x is not None:
         info["g_ref"] = dict(x=st.g_ref_x, R=st.R_ref)
@@ -1485,7 +1501,8 @@ def break_results(rec, info, args):
     # fouet : jusqu'au largage des morceaux (ensuite ils filent en ligne droite)
     whip = after & (t <= (b["released"]["t"] if "released" in b else b["t"] + 60))
     tail = t >= t[-1] - 300
-    keep = [c for c in range(rec["Tc"].shape[1]) if c != b["cable"]]
+    broken = [b["cable"]] + ([info["break2"]["cable"]] if "break2" in info else [])
+    keep = [c for c in range(rec["Tc"].shape[1]) if c not in broken]
     Tk = rec["Tc"][:, keep]
     i_T = np.unravel_index(np.argmax(np.where(after[:, None], Tk, -1)), Tk.shape)
     cl = np.where(after[:, None], rec["clear"], np.inf)
@@ -1496,7 +1513,7 @@ def break_results(rec, info, args):
     E_cable = 0.5 * info["T_eq_cables"][b["cable"]] ** 2 * info["L_eq"] / (MATERIALS[a["material"]]["E"] * info["area_cm2"] * 1e-4)
     w = rec["wsys"]
     hit = np.where(after & np.any(rec["clear"] < 0, axis=1))[0]
-    return dict(t=b["t"], cable=b["cable"], E_seg_kJ=b["E_seg_J"] / 1e3, E_cable_kJ=E_cable / 1e3,
+    return dict(t=b["t"], cable=b["cable"], cables=broken, E_seg_kJ=b["E_seg_J"] / 1e3, E_cable_kJ=E_cable / 1e3,
                 contact_t=float(t[hit[0]] - b["t"]) if len(hit) else None,
                 contact_ship=int(np.argmin(rec["clear"][hit[0]])) if len(hit) else None,
                 v_whip_max=float(rec["vwhip"][whip].max()),
@@ -1725,6 +1742,8 @@ def make_parser():
     p.add_argument("--spoke-tension", type=float, default=0.15, help="prétension des rayons, en fraction de la tension nominale d'un côté")
     p.add_argument("--break-cable", type=int, default=-1, help="câble qui rompt (indice ; −1 = aucun ; avec moyeu, 3 à 5 = rayons)")
     p.add_argument("--break-time", type=float, default=60.0, help="instant de la rupture (s)")
+    p.add_argument("--break-cable2", type=int, default=-1, help="seconde rupture : câble (indice ; −1 = aucune), au même endroit le long du câble")
+    p.add_argument("--break-time2", type=float, default=None, help="seconde rupture : instant (s ; défaut : celui de la première)")
     p.add_argument("--release-delay", type=float, default=-1.0, help="coupe-câbles : largage des morceaux du câble rompu après ce délai (s ; −1 = jamais)")
     p.add_argument("--hub-spokes", type=int, choices=[1, 2], default=1, help="rayons par vaisseau (2 : depuis chacun des deux points d'attache du nez)")
     p.add_argument("--side-strands", type=int, choices=[1, 2, 3], default=1, help="brins par côté du triangle (chacun pour 1/N de la charge)")

@@ -35,7 +35,7 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 | File | Role |
 |---|---|
 | `tether_sim.py` | Simulator: rigid ships (`starship_mass_model`: element mass model, slosh pendulums, optional water pool `tld=`), discretised unilateral cables, prescribed internal masses, Kane damper; options: hub and spokes (`--hub-*`), cable break and piece release (`--break-*`, `--release-delay`), strands per side (`--side-strands`, `--strand-gap`, `--strand-layout`), spin-up thrust (`--spin-*`), axis pivot toward the Sun (`--precess-*`), unequal masses (`--masses-t`, `--attach-x`, `--target-ship`), low ballast (`--ballast-*`), second pool (`--tld2-*`), gravity reference point along the ship (`--g-ref-x`), cable material (`--material`, incl. `sk99`) |
-| `run_scenarios.py` | Campaigns: `rotation`, `internes`, `final` (generic study), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses`, `soleil`, `allege`, `sensibilite` |
+| `run_scenarios.py` | Campaigns: `rotation`, `internes`, `final` (generic study), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses`, `soleil`, `allege`, `sensibilite`, `brins3` |
 | `mission_mass.py` | Starship mass after trans-Mars injection |
 | `slosh_modes.py` | Linear out-of-plane model (attachment, tilt, slosh pendulums): coupled modes |
 | `tld_design.py` | Damped linear model integrated in time (same sweep program as the simulator): TLD design search |

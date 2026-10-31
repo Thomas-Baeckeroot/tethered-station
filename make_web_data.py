@@ -48,12 +48,14 @@ ANIMATIONS = [
     ("rupture", "Y_moyeu_rupture_largage", 50, 650, 0.5),
     ("rupture", "Z_moyeu_double_rupture", 50, 650, 0.5),
     ("brins", "W_brins2_rupture", 50, 350, 0.5),
+    ("brins3", "B3_rupture", 50, 350, 0.5),
+    ("brins3", "B3_double_rupture", 50, 350, 0.5),
     ("allege", "K195_resonance_z", 0, 900, 0.5),
     ("allege", "K195_resonance_z_bassin", 0, 900, 0.5),
     ("allege", "K195_cargaison_laterale", 0, 1500, 1.0),
     ("allege", "KL50_cargaison_laterale", 0, 1500, 1.0),
 ]
-# Pas des séries exportées (s) : plus fin pour les ruptures (fouet des brins)
+# Pas des séries exportées (s) ; 0,5 s au plus pour les ruptures (fouet des brins)
 SERIES_STEP = {"rupture": 0.5, "brins": 0.5, "montee": 2.0}
 
 
@@ -104,7 +106,7 @@ def export_series(campaign, dest, step=1.0):
         info["results"]["tilt_max_ship"] = r(d["tilt"].max(axis=0), 4)
         info["results"]["g_min_ship"] = r(d["g"].min(axis=0), 5)
         info["results"]["g_max_ship"] = r(d["g"].max(axis=0), 5)
-        k = max(1, int(round(step / (t[1] - t[0]))))
+        k = max(1, int(round((min(step, 0.5) if "break" in info else step) / (t[1] - t[0]))))
         ser = dict(t=r(t[::k], 1), roll=r(d["roll"][::k].T, 2), tilt=r(d["tilt"][::k].T, 3),
                    wrel=r(d["wrel"][::k].T, 3), g=r(d["g"][::k].T, 5))
         if "s" in d.files:
@@ -201,6 +203,11 @@ def export_anim(campaign, name, ta, tb, step, dest):
         anim["cut"] = dict(seg=info["break"]["seg"], t=round(info["break"]["t"], 2))
         if "released" in info["break"]:
             anim["release"] = dict(segs=info["break"]["released"]["segs"], t=round(info["break"]["released"]["t"], 2))
+    if "break2" in info:
+        b2 = info["break2"]
+        anim["events"] = [dict(t=round(b2["t"], 2), segs=[b2["seg"]])]
+        if "released" in b2:
+            anim["events"].append(dict(t=round(b2["released"]["t"], 2), segs=b2["released"]["segs"]))
     if info.get("hub_mass_t"):
         anim["hub"] = [0]  # le moyeu est le premier nœud libre
     os.makedirs(os.path.join(dest, "anim"), exist_ok=True)
@@ -286,7 +293,7 @@ def main():
     os.makedirs(args.dest, exist_ok=True)
     summary = {}
     for campaign in ("rotation", "internes", "final", "starship", "mission", "ballottement", "retenue", "amortisseur", "rupture",
-                     "moyeu", "montee", "lox", "masses", "brins", "soleil", "allege", "sensibilite"):
+                     "moyeu", "montee", "lox", "masses", "brins", "soleil", "allege", "sensibilite", "brins3"):
         if os.path.isdir(os.path.join(OUT, campaign)):
             summary[campaign] = export_series(campaign, args.dest, SERIES_STEP.get(campaign, 1.0))
             print(f"séries : {campaign} ({len(summary[campaign])} scénarios)")

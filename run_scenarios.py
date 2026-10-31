@@ -84,6 +84,9 @@ UNEQ = SV3 + DECK + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "
 # (Dyneema SK99 tressé, gainé, redondant : 24 t, EA ×1,5, masse linéique ×1,7)
 V3FULL = [a if a not in ("610", "1600") else {"610": "693", "1600": "1820"}[a] for a in TLD]
 SK99 = TLD + ["--material", "sk99"]
+# Solution retenue, câbles à trois brins par côté (tiers de section, même
+# masse de câble), sur une ferrure commune, coupe-câbles à 1 s
+TLD3 = TLD + ["--side-strands", "3", "--release-delay", "1"]
 
 # 4 t oscillant hors plan pendant 4 min au pire rythme du vaisseau habité
 # allégé de 195 t avec le bassin d'origine (0,092 Hz, période 10,9 s)
@@ -305,6 +308,22 @@ CAMPAIGNS = {
         ("C_balayage_t", SK99 + SWEEP_L + LAT),
         ("C_rupture_milieu", SK99 + BRK + ["--break-at", "0.5", "--duration", "1800"]),
         ("C_brins2_rupture", SK99 + BRK + ["--side-strands", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
+    ],
+    # Câbles à trois brins (solution retenue) : confort en service, rupture
+    # d'un brin (milieu, attache, sans coupe-câbles, câble SK99 réaliste),
+    # puis de deux brins du même côté, ensemble ou à 10 s d'intervalle
+    "brins3": [
+        ("B3_perturbation", TLD3 + PERT + TRAJ),
+        ("B3_cargaison_laterale", TLD3 + CARGO + LAT),
+        ("B3_equipage", TLD3 + WALK + LAT),
+        ("B3_balayage_z", TLD3 + SWEEP_L + LATZ),
+        ("B3_balayage_t", TLD3 + SWEEP_L + LAT),
+        ("B3_rupture", TLD3 + BRK + ["--break-at", "0.5", "--duration", "900"] + TRAJ),
+        ("B3_rupture_attache", TLD3 + BRK + ["--break-at", "0", "--duration", "900"]),
+        ("B3_sans_largage", TLD + BRK + ["--side-strands", "3", "--break-at", "0.5", "--duration", "900"]),
+        ("B3_sk99_rupture", TLD3 + BRK + ["--material", "sk99", "--break-at", "0.5", "--duration", "900"]),
+        ("B3_double_rupture", TLD3 + BRK + ["--break-cable2", "3", "--break-at", "0.5", "--duration", "900"] + TRAJ),
+        ("B3_double_rupture_10s", TLD3 + BRK + ["--break-cable2", "3", "--break-time2", "70", "--break-at", "0.5", "--duration", "900"]),
     ],
     # Câbles multiples (même masse de câble) : un brin sur deux ou trois
     # rompt au milieu, les autres reprennent la charge ; brins sur la même

@@ -166,6 +166,9 @@
       const events = [];
       if (anim.cut) events.push({ t: anim.cut.t, segs: [anim.cut.seg] });
       if (anim.release) events.push({ t: anim.release.t, segs: anim.release.segs });
+      // autres événements (seconde rupture et son largage)
+      (anim.events || []).forEach((e) => events.push(e));
+      events.sort((a, b) => a.t - b.t);
       this.stageTimes = events.map((e) => e.t);
       const skip = new Set(), stages = [build(skip)];
       events.forEach((e) => { e.segs.forEach((k) => skip.add(k)); stages.push(build(skip)); });
