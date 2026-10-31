@@ -55,7 +55,7 @@ FREE = MISSION + ["--slosh", "free", "--slosh-zeta", "0.001"]
 BAFFLED = MISSION + ["--slosh", "free", "--slosh-zeta", "0.03"]
 SWEEP_L = ["--motion", "sweep", "--motion-mass-t", "4", "--duration", "5460", "--sweep-f1", "0.4"]
 RESO = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "0.38", "--motion-axis", "z",
-        "--motion-period", "3.94", "--motion-stop", "240", "--duration", "600"]
+        "--motion-period", "3.89", "--motion-stop", "240", "--duration", "600"]
 
 TLD = BAFFLED + ["--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "--tld-zeta", "0.15"]
 # 4 t oscillant hors plan au rythme du balancement principal (≈ 8 s) pendant 3 min
@@ -186,7 +186,7 @@ CAMPAIGNS = {
         ("L_libre_balayage_z", FREE + SWEEP_L + LATZ),
         ("L_chicanes_balayage_t", BAFFLED + SWEEP_L + LAT),
         ("L_chicanes_balayage_z", BAFFLED + SWEEP_L + LATZ),
-        # Animations : 4 t oscillant hors plan au rythme du ballottement couplé (4,05 s) pendant 3 min
+        # Animations : 4 t oscillant hors plan au rythme du ballottement couplé (3,89 s) pendant 3 min
         ("L_libre_resonance", FREE + RESO + ["--traj-dt", "0.25"]),
         ("L_chicanes_resonance", BAFFLED + RESO + ["--traj-dt", "0.25"]),
     ],
