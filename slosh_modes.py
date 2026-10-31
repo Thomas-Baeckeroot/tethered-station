@@ -18,9 +18,11 @@ import scipy.linalg as la
 import tether_sim as ts
 
 OMEGA = 2 * math.pi / 60
-R_TOT = 3.711 / OMEGA ** 2   # rayon du centre de masse des vaisseaux
+X_REF = 14.0                 # pont principal (m de la pointe) : 3,711 m/s² y est atteint
+R_REF = 3.711 / OMEGA ** 2   # rayon de ce pont
+R_TOT = R_REF + ts.starship_mass_model(610, slosh=True)["x_tot"] - X_REF   # centre de masse des vaisseaux
 H = 25.0                     # attache → centre de masse total
-T_CABLE, L_CABLE = 1.31e6, 539.0
+T_CABLE, L_CABLE = 1.39e6, 573.9
 
 
 def modes(free, mass_t=610):

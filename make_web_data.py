@@ -212,21 +212,25 @@ def export_anim(campaign, name, ta, tb, step, dest):
 def export_allege(dest):
     """Vaisseau habité allégé, calcul statique (§ 5.5) : ergols transvasés à
     parts égales dans les cargos (rapport de mélange conservé), câbles
-    inchangés (même triangle des centres de masse), 3,711 m/s² à bord du
-    vaisseau habité ; avec ou sans 50 t de charge utile descendues à 44 m.
+    inchangés (même triangle des centres de masse), 3,711 m/s² au pont
+    principal du vaisseau habité (14 m de la pointe) ; avec ou sans 50 t de
+    charge utile descendues à 44 m.
     Inclinaison statique pour 50 t déplacées de 3,5 m sur un pont : formule
     du palonnier (static_tilt_prediction), s = 3,5 m."""
     tld = [dict(m_t=25.0, x=12.0, a=3.6, zeta=0.15)]
     rows = []
-    a = 338.4                                     # sommets du triangle (masses égales : R = 338,4 m)
+    x_ref, R_ref = 14.0, 3.711 / (2 * math.pi / 60) ** 2   # pont principal, à 338,4 m à 1 tr/min
+    a = R_ref + ts.starship_mass_model(610.0, slosh=True, tld=tld)["x_tot"] - x_ref   # sommets du triangle (masses égales)
     P = [(0.0, a), (-a * math.sqrt(3) / 2, -a / 2), (a * math.sqrt(3) / 2, -a / 2)]
     for tr in range(0, 391, 5):
         mh, mc = 610.0 - tr, 610.0 + tr / 2
         m = [mh, mc, mc]
         cy = sum(mi * p[1] for mi, p in zip(m, P)) / sum(m)
         R, Rc = a - cy, math.hypot(P[1][0], P[1][1] - cy)
-        w = math.sqrt(3.711 / R)
-        row = dict(tr=tr, mh=mh, mc=mc, R=R, Rc=Rc, cy=cy, rpm=w * 60 / (2 * math.pi), gc=w * w * Rc)
+        Rd = R - (ts.starship_mass_model(mh, slosh=True, tld=tld)["x_tot"] - x_ref)
+        Rcd = Rc - (ts.starship_mass_model(mc, slosh=True, tld=tld)["x_tot"] - x_ref)
+        w = math.sqrt(3.711 / Rd)
+        row = dict(tr=tr, mh=mh, mc=mc, R=R, Rc=Rc, cy=cy, rpm=w * 60 / (2 * math.pi), gc=w * w * Rcd)
         for key, bal in (("", None), ("_lest", dict(m_t=50.0, x=44.0))):
             sm = ts.starship_mass_model(mh, slosh=True, tld=tld, ballast=bal)
             h = sm["x_tot"] - 9.0
@@ -242,6 +246,8 @@ def export_allege(dest):
     path = os.path.join(OUT, "light_tld.json")
     if os.path.exists(path):
         for name, v in json.load(open(path)).items():
+            if name == "cases":
+                continue
             lin[name] = dict(modes=v["modes"], none=v["peak_none"], pool=v["peak_pool"], sim_pool=v.get("peak_sim_pool"),
                              best=dict(zip(("peak", "m_t", "a", "zeta", "depth"), v["best"])))
     with open(os.path.join(dest, "allege.json"), "w") as fh:

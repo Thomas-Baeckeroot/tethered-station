@@ -50,6 +50,11 @@ MATERIALS = {
     "dyneema": dict(E=100e9, rho=970.0, sigma=3.0e9),
     "kevlar": dict(E=112e9, rho=1440.0, sigma=3.0e9),
     "steel": dict(E=200e9, rho=7850.0, sigma=1.5e9),
+    # Câble réaliste (carnet § 2.3) : Dyneema SK99 tressé (4,1 GPa, rendement
+    # 65 %), 33 % de section de redondance, gaine +10 % de masse ; valeurs
+    # ramenées à la section de fibre : σ = 4,1·0,65/1,33, ρ = 980·1,1,
+    # E = 100 GPa (fibre ≈ 150 GPa, tresse ≈ 0,65)
+    "sk99": dict(E=100e9, rho=1078.0, sigma=2.0e9),
 }
 
 # Orientation de l'axe long du module dans le repère local (e_r radial,
@@ -312,6 +317,17 @@ class Station:
             if x_att is not None:
                 self.h = self.ship["x_tot"] - x_att  # vaisseau 0 : centre de masse total sous l'attache
             self.Ib = np.array([[shp["I_ax"], shp["I_tr"], shp["I_tr"]] for shp in self.ships])
+        # Gravité visée à un pont (--g-ref-x, distance à la pointe) plutôt qu'au
+        # centre de masse : nez vers le centre, le pont est plus près de l'axe ;
+        # on éloigne d'autant le centre de masse total du module visé
+        self.g_ref_x = getattr(args, "g_ref_x", None)
+        self.R_ref = self.R_target
+        if self.g_ref_x is not None:
+            if args.module != "radial":
+                raise ValueError("--g-ref-x suppose des modules debout (--module radial)")
+            k0 = max(getattr(args, "target_ship", -1), 0)
+            x_cm = self.ships[k0]["x_tot"] if self.ships else ell / 2
+            self.R_target += x_cm - self.g_ref_x
         topo = build_topology(args.topology, args.spread)
         # Câbles multiples : N brins par côté, chacun dimensionné pour 1/N de
         # la charge (même masse de câble au total), répartis sur ±écart/2 :
@@ -1189,6 +1205,8 @@ def run(args):
     p(f"=== {name} ===")
     p(f"Cible           : {args.g * G0:.3f} m/s² ({args.g:.4f} g) à {args.rpm:g} tr/min → rayon au centre de masse des modules R = {st.R_target:.1f} m "
       f"(1 g avec ce rayon : {rpm_1g:.2f} tr/min)")
+    if st.g_ref_x is not None:
+        p(f"Gravité visée   : au pont à {st.g_ref_x:g} m de la pointe, rayon {st.R_ref:.1f} m")
     p(f"Topologie       : {args.topology}, {st.nb} modules de {args.mass_t:g} t ({args.module}, cylindre Ø{2 * args.module_radius:g} m × {args.module_length:g} m), "
       f"attache à {st.h:g} m du centre de masse")
     p(f"Câble           : dimensionné pour {args.design_mass_t or args.mass_t:g} t à {args.design_g:g} g (facteur {args.safety:g}) : section {st.area * 1e4:.1f} cm² "
@@ -1417,6 +1435,8 @@ def run(args):
     if brk_meta:
         info["break"] = brk_meta
     info["masses_t"] = st.masses_t
+    if st.g_ref_x is not None:
+        info["g_ref"] = dict(x=st.g_ref_x, R=st.R_ref)
     if st.ships:
         x_att = [shp["x_c"] - float(-st.att_r[b * len(st.topo["attach"])] @ np.array([1.0, 0.0, 0.0])) for b, shp in enumerate(st.ships)]
         info["h_ships"] = [shp["x_tot"] - xa for shp, xa in zip(st.ships, x_att)]
@@ -1651,6 +1671,8 @@ def make_parser():
     p.add_argument("--spread", type=float, help="écartement des points d'attache (ladder : selon l'axe de rotation ; triangle2 : selon e_t)")
     p.add_argument("--g", type=float, default=0.38, help="gravité visée en fonctionnement (en g)")
     p.add_argument("--accel", type=float, help="gravité visée en m/s² (remplace --g ; Mars : 3.711)")
+    p.add_argument("--g-ref-x", type=float, help="modules debout : gravité visée au pont à cette distance de la pointe (m), "
+                   "au lieu du centre de masse total du module visé")
     p.add_argument("--design-mass-t", type=float, help="masse de chaque module pour dimensionner les câbles (t, défaut : --mass-t)")
     p.add_argument("--rpm", type=float, default=1.0, help="vitesse de rotation visée (tr/min)")
     p.add_argument("--design-g", type=float, default=1.0, help="gravité de dimensionnement des câbles (en g)")

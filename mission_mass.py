@@ -6,8 +6,10 @@ Hypothèses :
 - orbites de la Terre et de Mars circulaires et coplanaires (Hohmann idéal :
   vitesse d'excès hyperbolique minimale ; une fenêtre réelle demande un peu
   plus, d'où la plage de sensibilité) ;
-- départ d'une orbite basse circulaire, vaisseau plein : 1 600 t au total
-  (structure + charge + ergols) ;
+- départ d'une orbite basse circulaire, vaisseau chargé : 1 600 t au total
+  (105 t de structure, 115 t de charge, 1 380 t d'ergols : réservoirs du
+  bloc 2 presque pleins) ; en sensibilité, un V3 plein (1 600 t d'ergols
+  annoncées, 1 820 t au total) ;
 - poussée des 3 Raptor Vacuum (Isp 380 s, 3 × 2,6 MN), dirigée selon la
   vitesse ; la poussée finie est intégrée numériquement (pertes par gravité),
   et comparée à l'impulsion idéale (équation de Tsiolkovski).
@@ -30,7 +32,8 @@ R_MARS_ORBIT = 227.956e9        # m, demi-grand axe (fiche NASA)
 MU_MARS = 4.2828e13             # m³/s²
 DAY = 86400.0
 
-M0 = 1600e3                     # kg, vaisseau plein en orbite basse
+M0 = 1600e3                     # kg, vaisseau chargé en orbite basse
+M0_V3 = 1820e3                  # kg, V3 aux réservoirs pleins (1 600 t d'ergols)
 ISP = 380.0                     # s, Raptor Vacuum
 THRUST = 3 * 2.6e6              # N, 3 Raptor Vacuum
 
@@ -93,12 +96,13 @@ def main():
 
     # Sensibilité (orbite de 400 km) : impulsion spécifique, fenêtre de tir réelle
     sens = []
-    for label, isp, vi in (("Isp 380 s (Raptor Vacuum)", 380, v_inf),
-                           ("Isp 365 s (6 moteurs)", 365, v_inf),
-                           ("v∞ 3,5 km/s (fenêtre moyenne)", 380, 3500.0),
-                           ("v∞ 4,0 km/s (fenêtre défavorable)", 380, 4000.0)):
-        fb = finite_burn(400e3, vi, isp=isp)
-        sens.append(dict(cas=label, isp=isp, v_inf=vi, m_final_t=fb["m_final"] / 1e3))
+    for label, isp, vi, m0 in (("Isp 380 s (Raptor Vacuum)", 380, v_inf, M0),
+                               ("Isp 365 s (6 moteurs)", 365, v_inf, M0),
+                               ("v∞ 3,5 km/s (fenêtre moyenne)", 380, 3500.0, M0),
+                               ("v∞ 4,0 km/s (fenêtre défavorable)", 380, 4000.0, M0),
+                               ("V3 plein, 1 820 t au départ", 380, v_inf, M0_V3)):
+        fb = finite_burn(400e3, vi, isp=isp, m0=m0)
+        sens.append(dict(cas=label, isp=isp, v_inf=vi, m0_t=m0 / 1e3, m_final_t=fb["m_final"] / 1e3))
         print(f"  sensibilité : {label:34s} → {fb['m_final'] / 1e3:5.0f} t")
 
     out = dict(m0_t=M0 / 1e3, isp=ISP, poussee_MN=THRUST / 1e6, hohmann=h, orbites=rows, sensibilite=sens)

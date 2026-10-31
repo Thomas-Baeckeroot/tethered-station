@@ -24,7 +24,7 @@ import math
 import numpy as np
 
 import tether_sim as ts
-from slosh_modes import OMEGA, R_TOT, H, T_CABLE, L_CABLE
+from slosh_modes import OMEGA, R_TOT, R_REF, X_REF, H, T_CABLE, L_CABLE
 
 import scipy.linalg as sla
 
@@ -32,15 +32,18 @@ M_INT = 4e3
 SWEEP = dict(amp=3.5, f1=0.4, duration=5460.0)
 
 
-def system(mass_t=610, free=True, zeta_prop=0.03, tld=None, omega=OMEGA, R_tot=R_TOT, x_att=None,
+def system(mass_t=610, free=True, zeta_prop=0.03, tld=None, omega=OMEGA, R_tot=None, x_att=None,
            T_cable=T_CABLE, L_cable=L_CABLE, ballast=None):
     """Matrices M, C, K, vecteur de force et ligne d'observation du plancher.
     Par défaut, la solution retenue (610 t, attaches à H = 25 m au-dessus du
     centre de masse) ; sinon vaisseau de mass_t (lest éventuel), attaches à
     x_att de la pointe, centre de masse au rayon R_tot, câbles de tension
-    T_cable et de longueur L_cable, vitesse omega (masses inégales, § 5.5)."""
+    T_cable et de longueur L_cable, vitesse omega (masses inégales, § 5.5).
+    Sans R_tot : pont principal (X_REF) au rayon R_REF, comme --g-ref-x."""
     OMEGA = omega
     sm = ts.starship_mass_model(mass_t, slosh=free, tld=tld, ballast=ballast)
+    if R_tot is None:
+        R_tot = R_REF + sm["x_tot"] - X_REF
     if x_att is None:
         x_att = sm["x_tot"] - H
     hr = sm["x_c"] - x_att

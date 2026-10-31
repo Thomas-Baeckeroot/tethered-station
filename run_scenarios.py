@@ -43,9 +43,10 @@ SH3n = ["--topology", "triangle2", "--module", "tangential", "--spread", "20"] +
 LAT = ["--motion-amp", "3.5", "--motion-axis", "t"]
 LATZ = ["--motion-amp", "3.5", "--motion-axis", "z"]
 # Mission Terre → Mars : triangle vertical, masse après l'injection vers Mars
-# (mission_mass.py : 610 t), câbles dimensionnés pour le vaisseau plein
-# (1 600 t à 1 g), gravité de Mars
-MISSION = SV3 + ["--mass-t", "610", "--design-mass-t", "1600", "--accel", "3.711"]
+# (mission_mass.py : 610 t), câbles dimensionnés pour le vaisseau chargé
+# (1 600 t à 1 g), gravité de Mars au pont principal (14 m de la pointe)
+DECK = ["--g-ref-x", "14"]
+MISSION = SV3 + ["--mass-t", "610", "--design-mass-t", "1600", "--accel", "3.711"] + DECK
 # Ballottement des ergols : modèle de masse du Starship, ergols figés ou libres
 # (pendules d'Abramson), parois raidies (ζ = 0,1 %) ou chicanes (ζ = 3 %) ;
 # balayage prolongé jusqu'à 0,4 Hz pour couvrir le mode de ballottement
@@ -73,10 +74,16 @@ SPIN = ["--spin-from", "0.1", "--dv-radial", "0", "--dv-z", "0", "--droll", "0"]
 # Masses inégales : ergols du vaisseau habité transvasés dans les cargos
 # (220 / 805 / 805 t), attaches sur les points d'ancrage réels (9 m de la
 # pointe), vaisseau habité à 3,711 m/s² : 0,87 tr/min
-UNEQ = SV3 + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", "--slosh-zeta", "0.03",
+UNEQ = SV3 + DECK + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", "--slosh-zeta", "0.03",
               "--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "--tld-zeta", "0.15",
               "--masses-t", "220,805,805", "--attach-x", "9", "--target-ship", "0", "--rpm", "0.87"]
 
+
+# Sensibilité de la solution retenue : V3 aux réservoirs pleins (1 820 t au
+# départ, 693 t en route, câbles dimensionnés pour 1 820 t) ; câble réaliste
+# (Dyneema SK99 tressé, gainé, redondant : 24 t, EA ×1,5, masse linéique ×1,7)
+V3FULL = [a if a not in ("610", "1600") else {"610": "693", "1600": "1820"}[a] for a in TLD]
+SK99 = TLD + ["--material", "sk99"]
 
 # 4 t oscillant hors plan pendant 4 min au pire rythme du vaisseau habité
 # allégé de 195 t avec le bassin d'origine (0,092 Hz, période 10,9 s)
@@ -287,6 +294,18 @@ CAMPAIGNS = {
     + [("K195_resonance_z", UNEQ_K("415,708,708", "0.9285") + RESO_K + TRAJ),
        ("K195_resonance_z_bassin", UNEQ_K("415,708,708", "0.9285") + ["--tld-mass-t", "35", "--tld-radius", "4.4", "--tld-zeta", "0.2"]
         + RESO_K + TRAJ)],
+    "sensibilite": [
+        ("N_perturbation", V3FULL + PERT),
+        ("N_cargaison_laterale", V3FULL + CARGO + LAT),
+        ("N_equipage", V3FULL + WALK + LAT),
+        ("N_balayage_z", V3FULL + SWEEP_L + LATZ),
+        ("N_balayage_t", V3FULL + SWEEP_L + LAT),
+        ("C_perturbation", SK99 + PERT),
+        ("C_balayage_z", SK99 + SWEEP_L + LATZ),
+        ("C_balayage_t", SK99 + SWEEP_L + LAT),
+        ("C_rupture_milieu", SK99 + BRK + ["--break-at", "0.5", "--duration", "1800"]),
+        ("C_brins2_rupture", SK99 + BRK + ["--side-strands", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
+    ],
     # Câbles multiples (même masse de câble) : un brin sur deux ou trois
     # rompt au milieu, les autres reprennent la charge ; brins sur la même
     # ferrure, ou écartés de 2 m selon l'axe de rotation
