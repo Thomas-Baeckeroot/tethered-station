@@ -227,7 +227,7 @@ text.sc-bad { fill: var(--bad); stroke: none; }
     <li><span class="k">Transfert d'ergols</span><span>Transvaser les ergols du vaisseau habité dans les cargos permet de tourner à 0,87 tr/min, mais rend son plancher six fois plus sensible : <span data-bind="masses.U_cargaison_laterale.tilt_max_ship.0" data-fmt="deg">—</span> pour 50 t déplacées sur un pont, et son balancement hors plan échappe au bassin. Variantes simulées : la moitié transvasée (0,93 tr/min) ou tout transvasé avec 50 t de lest en bas, chacune avec un bassin réaccordé, ramènent le pire rythme à <span data-bind="allege.K195_balayage_z_bassin.tilt_max_ship.0" data-fmt="deg">—</span> et <span data-bind="allege.KL50_balayage_z_bassin.tilt_max_ship.0" data-fmt="deg">—</span> (§ 5.5).</span></li>
     <li><span class="k">Alternatives</span><span>Couchés, les vaisseaux demandent des mâts et un intérieur refait, pour une pire résonance plus forte (0,86° contre 0,57° à 1 600 t ; 2,6° sans mâts). À deux vaisseaux, le roulis est neutre : 205° de dérive en 30 min. Modules génériques : un module allongé parallèle à l'axe de rotation est instable (doublement 7,1 s) ; l'haltère est sujet à l'effet Djanibekov.</span></li>
     <li><span class="k">Rupture</span><span>Un câble de 11 cm ne craint presque pas les météorites (≈ 10⁻⁶ coupure par voyage) ; les causes plausibles sont les attaches, l'usure, les défauts. Si un côté casse, les câbles restants tiennent (<span data-bind="rupture.X_rupture_milieu.break.T_max_MN" data-fmt="mn">—</span>, 38 % de leur résistance), mais le triangle s'ouvre et « respire » : à-coups de 2 g, vaisseaux qui tournoient. Meilleure parade simulée : deux brins de demi-section par côté, même masse de câble, et des coupe-câbles qui larguent les morceaux du brin rompu ; la station garde sa forme et sa rotation, et le plancher repasse sous 3° en 75 s (§ 7.4). Un moyeu central relié au nez de chaque vaisseau par deux rayons protège aussi contre la perte d'un côté entier, avec des secousses plus longues (§ 7.3).</span></li>
-    <li><span class="k">Validation</span><span>Conservation de l'énergie et du moment cinétique à 10⁻⁹ ; temps de doublement analytique retrouvé à 0,1 % ; Project Chrono, moteur indépendant, donne le même roulis (écart de temps de doublement <span data-bind="validation.B_haltere_axial.doubling_rel" data-fmt="pct">—</span>) ; ballottement : énergie conservée à 10⁻⁸, fréquence couplée à 1 % du modèle linéaire.</span></li>
+    <li><span class="k">Validation</span><span>Conservation de l'énergie et du moment cinétique à 10⁻⁹ ; temps de doublement analytique retrouvé à 0,1 % ; Project Chrono, moteur indépendant, donne le même roulis (écart de temps de doublement <span data-bind="validation.B_haltere_axial.doubling_rel" data-fmt="pct">—</span>), y compris sur la solution retenue avec ballottement et ruptures de câble ; ballottement : énergie conservée à 10⁻⁸, fréquence couplée à 1 % du modèle linéaire.</span></li>
   </ul>
 </section>
 
@@ -336,8 +336,9 @@ text.sc-bad { fill: var(--bad); stroke: none; }
   <div class="grid2" id="chrono-charts"></div>
   <div class="prose">
     <p><b>Solution retenue dans Chrono.</b> Les cas ci-dessus sont ceux de l'étude préliminaire (modules génériques, câbles). Ceux-ci reprennent la solution retenue (§ 5) : Starships par éléments, ergols et bassin en pendules (masse ponctuelle reliée à l'articulation par une tige raide amortie, <code>ChLinkTSDA</code>, et amortisseur latéral par rapport à la paroi appliqué à chaque pas), câbles qui ne poussent pas (ressort-amortisseur unilatéral), rupture d'un câble et largage des morceaux par retrait des liens. Les masses internes pilotées (cargaison, équipage, balayages) ne sont pas reprises : ce sont des forces imposées, identiques dans les deux moteurs.</p>
+    <p>Quatre cas : petite perturbation de roulis (600 s), rupture d'un câble simple sans moyeu, rupture d'un brin sur deux (§ 7.4) et rupture d'un côté entier avec moyeu (§ 7.3), 300 s chacun. Hors rupture, tensions, ballottement et roulis se superposent (tension au millième, ballottement à quelques pour cent). Au moment de la rupture, les pics de plancher et de tension concordent à 2–10 % près ; ce sont des chocs de quelques centièmes de seconde, sensibles à l'intégrateur. Ensuite, les oscillations du brin restant s'amortissent un peu plus vite dans Chrono : avec deux brins par côté, NumPy est du côté prudent. Sans moyeu, les vaisseaux se mettent à culbuter et le mouvement devient chaotique : les deux moteurs divergent au bout de quelques secondes, comme deux lancers de dés, mais avec le même temps de doublement et les mêmes ordres de grandeur ; seuls les premiers instants sont quantitatifs (§ 7.2).</p>
   </div>
-  <div class="tbl"><table id="t-chrono-ss"><thead><tr><th>Scénario</th><th>Durée</th><th>Plancher max NumPy</th><th>Plancher max Chrono</th><th>Tension max NumPy</th><th>Tension max Chrono</th><th>LOX, écart max NumPy</th><th>LOX, écart max Chrono</th><th>Écart max de roulis</th><th>Dérive L (Chrono)</th></tr></thead><tbody></tbody>
+  <div class="tbl"><table id="t-chrono-ss"><thead><tr><th>Scénario</th><th>Durée</th><th>Plancher max NumPy</th><th>Plancher max Chrono</th><th>Tension max NumPy</th><th>Tension max Chrono</th><th>LOX, écart max NumPy</th><th>LOX, écart max Chrono</th><th>Roulis : écart max, ou doublement NumPy / Chrono</th><th>Dérive L (Chrono)</th></tr></thead><tbody></tbody>
   <caption>Solution retenue (610 t, chicanes, bassin), même état initial dans les deux moteurs. Plancher : vaisseau 0, inclinaison ressentie ; tension : premier segment de chaque câble ; LOX : écart latéral de la masse ballottante du vaisseau 0. Ruptures à t = 60 s, au milieu du câble entre les vaisseaux 0 et 1.</caption></table></div>
   <div class="grid2" id="chrono-ss-charts"></div>
   <div class="tbl"><table id="t-conv"><thead><tr><th>Cas B, 120 s</th><th>Segments</th><th>Pas de temps</th><th>Doublement</th><th>Roulis max</th><th>Dérive énergie</th></tr></thead><tbody></tbody></table></div>
@@ -976,6 +977,10 @@ text.sc-bad { fill: var(--bad); stroke: none; }
 .venv/bin/python tld_design.py --json out/tld_search.json   # dimensionnement du bassin (modèle linéaire)
 .venv/bin/python slosh_modes.py                 # modes couplés vaisseau + ergols (modèle linéaire)
 tools/chrono-env/bin/python chrono_validation.py --name B --module axial --duration 300
+tools/chrono-env/bin/python chrono_validation.py --name W_brins2_rupture --topology triangle2 --module radial --spread 3.5 \
+    --module-radius 4.5 --module-length 50 --mass-t 610 --design-mass-t 1600 --accel 3.711 --g-ref-x 14 \
+    --slosh free --slosh-zeta 0.03 --tld-mass-t 25 --tld-x 12 --tld-radius 3.6 --tld-zeta 0.15 \
+    --break-cable 0 --break-time 60 --break-at 0.5 --side-strands 2 --release-delay 1 --duration 300   # solution retenue, ~35 min
 .venv/bin/python make_web_data.py               # exporte docs/data/ pour ce carnet</pre>
 </section>
 
@@ -1536,7 +1541,7 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
         <td class="n">${deg(v.tilt_max_numpy)}</td><td class="n">${deg(v.tilt_max_chrono)}</td>
         <td class="n">${fr(v.T_max_numpy_MN, 2)} MN</td><td class="n">${fr(v.T_max_chrono_MN, 2)} MN</td>
         <td class="n">${fr(v.slosh_max_numpy[0], 3)} m</td><td class="n">${fr(v.slosh_max_chrono[0], 3)} m</td>
-        <td class="n">${deg(v.max_abs_diff_deg)}</td><td class="n">${sci(v.dL_chrono)}</td></tr>`);
+        <td class="n">${v.doubling_numpy && v.doubling_chrono ? `chaotique, ${fr(v.doubling_numpy, 2)} / ${fr(v.doubling_chrono, 2)} s` : deg(v.max_abs_diff_deg)}</td><td class="n">${sci(v.dL_chrono)}</td></tr>`);
       const d = document.createElement("div");
       d.className = "chartbox";
       const brk = v.break_cable >= 0;
