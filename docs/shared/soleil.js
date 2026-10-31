@@ -33,6 +33,7 @@
 .so-ship-back { stroke: var(--accent); stroke-width: 6; stroke-linecap: round; opacity: 0.45; }
 .so-panel { stroke: #1f3b63; stroke-width: 3.2; }
 .so-panel-top { stroke: #e0a100; stroke-width: 1.2; }
+.so-wing { fill: #3a6db0; stroke: #8fb0dd; stroke-width: 0.6; } .so-wing-back { fill: #3a6db0; opacity: 0.45; }
 .so-cable { stroke: var(--ink); stroke-width: 1; }
 .so-node { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; }
 .so-puff { stroke: var(--ink); stroke-width: 2; }
@@ -340,11 +341,18 @@
       el("text", { x: 58, y: cy + 82, class: "so-s" }, svg, "l'axe pivote d'un cheveu");
       el("text", { x: 58, y: cy + 94, class: "so-s" }, svg, "à chaque poussée");
     } else {
-      el("path", { d: `M ${cx + rx + 10} ${cy - 40} A ${rx + 10} ${ry + 10} 0 0 1 ${cx + rx + 6} ${cy + 46}`, class: "so-axis-ghost", "marker-end": mk("m") }, svg);
+      el("path", { d: `M ${cx + rx + 6} ${cy + 46} A ${rx + 10} ${ry + 10} 0 0 0 ${cx + rx + 10} ${cy - 40}`, class: "so-axis-ghost", "marker-end": mk("m") }, svg);
       el("text", { x: cx + rx + 16, y: cy + 4, class: "so-s" }, svg, "1 tour/min");
     }
     const g = el("g", {}, svg);
     const P = (phi, f) => [cx + f * rx * Math.cos(phi), cy - f * ry * Math.sin(phi)];
+    // Ailes de panneaux : de part et d'autre du vaisseau, dans un plan parallèle au plan de rotation,
+    // un peu en avant côté Soleil (vues presque par la tranche quand le vaisseau passe en haut ou en bas)
+    const wing = (p, sg) => {
+      const tx = (s) => [-s * rx * Math.sin(p), -s * ry * Math.cos(p)];
+      const [a, b] = [tx(sg * 0.04), tx(sg * 0.15)], [u, v] = [P(p, 0.70), P(p, 0.88)];
+      return [[u, a], [v, a], [v, b], [u, b]].map(([q, d]) => `${(q[0] + d[0] - 5).toFixed(1)},${(q[1] + d[1]).toFixed(1)}`).join(" ");
+    };
     let phi0 = 0.4;
     const frame = (dt) => {
       if (dt) phi0 += dt * 2 * Math.PI / 9;          // un tour en 9 s
@@ -358,8 +366,7 @@
       ph.forEach((p) => {
         const front = Math.cos(p) > 0;
         const [x0, y0] = P(p, 0.62), [x1, y1] = P(p, 1.0);
-        el("line", { x1: x0 - 9, y1: y0, x2: x1 - 9, y2: y1, class: "so-panel" }, g);
-        el("line", { x1: x0 - 10.5, y1: y0, x2: x1 - 10.5, y2: y1, class: "so-panel-top" }, g);
+        for (const sg of [-1, 1]) el("polygon", { points: wing(p, sg), class: front ? "so-wing" : "so-wing-back" }, g);
         el("line", { x1: x0, y1: y0, x2: x1, y2: y1, class: front ? "so-ship" : "so-ship-back" }, g);
         if (opts.pulses) {
           const s = Math.sin(p);
@@ -374,6 +381,10 @@
       el("text", { x: W - 8, y: 40, class: "so-t", "text-anchor": "end" }, svg, "petite poussée en haut");
       el("text", { x: W - 8, y: 52, class: "so-s", "text-anchor": "end" }, svg, "≈ 20 N pendant 5 s");
       el("text", { x: W - 8, y: H - 12, class: "so-s", "text-anchor": "end" }, svg, "poussée opposée en bas");
+    }
+    if (!opts.pulses) {
+      el("rect", { x: 12, y: H - 26, width: 16, height: 9, class: "so-wing" }, svg);
+      el("text", { x: 34, y: H - 18, class: "so-s" }, svg, "panneaux solaires, fixes");
     }
     if (REDUCE) phi0 = Math.PI / 2;
     animate(svg, frame);

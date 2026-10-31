@@ -41,6 +41,7 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 | `tld_design.py` | Damped linear model integrated in time (same sweep program as the simulator): TLD design search |
 | `sun_pointing.py` | Sun pointing: Sun direction on the transfer, axis-pivot impulse, 2D tank heat balance by orientation and coverings → `docs/data/soleil.json` |
 | `lox_search.py` | Same linear model: stronger LOX baffles or a second pool against the coupled LOX mode |
+| `cable_thermal.py` | Cable thermal balance with the axis toward the Sun: sheath equilibrium temperatures, time constant, lit/shaded face gradient across the section and the strain mismatch → `out/cable_thermal.log` |
 | `light_tld.py` | Same linear model generalised to unequal masses (crew ship radius, cable tension and length from the simulator): lightened crew ship modes, pool retune search → `out/light_tld.json` (exported into `docs/data/allege.json`) |
 | `chrono_validation.py` | Cross-validation with Project Chrono (PyChrono 10) |
 | `make_web_data.py` | Export to `docs/data/` (summary, series incl. sweep curves, 3D animations listed in `ANIMATIONS`) |

@@ -23,7 +23,7 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 - **Absorbeurs d'énergie aux attaches** (sangles à déchirement) : plafonner les à-coups ; course nécessaire.
 - **Câble réaliste** : tresse à brins multiples (type Hoytether), gaine ; perte de brins par micrométéorites ; masse 24 t (Dyneema SK99 redondant) à 47 t (Kevlar) d'après le § 2.3 du carnet.
 - **Ancrages sur la coiffe** : capacité des points d'attache du Starship (non publiée) ; en route 1,31 MN par câble et 2,26 MN par vaisseau (9,1 et 15,7 MN à 1 600 t et 1 g).
-- **Thermique des câbles** : gaine blanche (≈ −70 °C au soleil à 1 UA) plutôt que métallisée (+78 °C) ; constante de temps ≈ 6 h, donc pas de cycles dus à la rotation (carnet § 7.5). Reste la dilatation négative du Dyneema et l'ombre des vaisseaux.
+- **Thermique des câbles** (`cable_thermal.py`, carnet § 7.5) : gaine blanche (≈ −70 °C à 1 UA) plutôt que métallisée (+78 °C) ; face au Soleil, éclairement constant, pas de cycles. Reste l'écart face éclairée / face à l'ombre (40 à 105 K, autant d'allongement que la charge en route) : à vérifier sur une vraie tresse (conductivité transverse dans le vide, pas de tresse, glissement des torons) ; feuille d'aluminium sous la peinture en option.
 - **Câbles ANCF continus dans Chrono** : modes de câble rapides, raideur en torsion (rappel de roulis négligé aujourd'hui, ce qui va dans le sens de la sécurité).
 - **Flexibilité de la coque** et modes de ballottement supérieurs (aujourd'hui : structure rigide, premier mode seulement, réservoirs à fond plat).
 - **Ailerons du Starship** dans l'inertie (orientation préférée faible).
