@@ -334,6 +334,12 @@ text.sc-bad { fill: var(--bad); stroke: none; }
   <div class="tbl"><table id="t-chrono"><thead><tr><th>Scénario</th><th>Durée</th><th>Doublement NumPy</th><th>Doublement Chrono</th><th>Écart</th><th>Roulis max NumPy</th><th>Roulis max Chrono</th><th>Écart max de roulis</th><th>Dérive L (Chrono)</th></tr></thead><tbody></tbody>
   <caption>Validation croisée tether_sim / Project Chrono, même état initial. Écart max de roulis : maximum sur toute la durée simulée, tous modules confondus. Les deux moteurs restent superposés même à travers les retournements de 177°.</caption></table></div>
   <div class="grid2" id="chrono-charts"></div>
+  <div class="prose">
+    <p><b>Solution retenue dans Chrono.</b> Les cas ci-dessus sont ceux de l'étude préliminaire (modules génériques, câbles). Ceux-ci reprennent la solution retenue (§ 5) : Starships par éléments, ergols et bassin en pendules (masse ponctuelle reliée à l'articulation par une tige raide amortie, <code>ChLinkTSDA</code>, et amortisseur latéral par rapport à la paroi appliqué à chaque pas), câbles qui ne poussent pas (ressort-amortisseur unilatéral), rupture d'un câble et largage des morceaux par retrait des liens. Les masses internes pilotées (cargaison, équipage, balayages) ne sont pas reprises : ce sont des forces imposées, identiques dans les deux moteurs.</p>
+  </div>
+  <div class="tbl"><table id="t-chrono-ss"><thead><tr><th>Scénario</th><th>Durée</th><th>Plancher max NumPy</th><th>Plancher max Chrono</th><th>Tension max NumPy</th><th>Tension max Chrono</th><th>LOX, écart max NumPy</th><th>LOX, écart max Chrono</th><th>Écart max de roulis</th><th>Dérive L (Chrono)</th></tr></thead><tbody></tbody>
+  <caption>Solution retenue (610 t, chicanes, bassin), même état initial dans les deux moteurs. Plancher : vaisseau 0, inclinaison ressentie ; tension : premier segment de chaque câble ; LOX : écart latéral de la masse ballottante du vaisseau 0. Ruptures à t = 60 s, au milieu du câble entre les vaisseaux 0 et 1.</caption></table></div>
+  <div class="grid2" id="chrono-ss-charts"></div>
   <div class="tbl"><table id="t-conv"><thead><tr><th>Cas B, 120 s</th><th>Segments</th><th>Pas de temps</th><th>Doublement</th><th>Roulis max</th><th>Dérive énergie</th></tr></thead><tbody></tbody></table></div>
 </section>
 
@@ -1523,7 +1529,26 @@ tools/chrono-env/bin/python chrono_validation.py --name B --module axial --durat
   getJSON("data/validation.json").then((V) => {
     const tb = document.querySelector("#t-chrono tbody");
     const box = document.getElementById("chrono-charts");
-    Object.values(V.chrono).forEach((v) => {
+    const tbs = document.querySelector("#t-chrono-ss tbody");
+    const boxs = document.getElementById("chrono-ss-charts");
+    Object.values(V.chrono).filter((v) => v.starship).forEach((v) => {
+      tbs.insertAdjacentHTML("beforeend", `<tr><td>${v.name}</td><td class="n">${fr(v.duration)} s</td>
+        <td class="n">${deg(v.tilt_max_numpy)}</td><td class="n">${deg(v.tilt_max_chrono)}</td>
+        <td class="n">${fr(v.T_max_numpy_MN, 2)} MN</td><td class="n">${fr(v.T_max_chrono_MN, 2)} MN</td>
+        <td class="n">${fr(v.slosh_max_numpy[0], 3)} m</td><td class="n">${fr(v.slosh_max_chrono[0], 3)} m</td>
+        <td class="n">${deg(v.max_abs_diff_deg)}</td><td class="n">${sci(v.dL_chrono)}</td></tr>`);
+      const d = document.createElement("div");
+      d.className = "chartbox";
+      const brk = v.break_cable >= 0;
+      d.innerHTML = `<h4>${v.name} : ${brk ? "tension du câble voisin (1er segment)" : "plancher du vaisseau 0"}</h4><div></div>`;
+      boxs.appendChild(d);
+      lineChart(d.querySelector("div"), brk
+        ? { xLabel: "secondes", xName: "t =", xUnit: " s", yLabel: "tension (MN)", yUnit: " MN",
+            series: [{ name: "tether_sim (NumPy)", x: v.numpy.t, y: v.numpy.T[1] }, { name: "Project Chrono", x: v.chrono.t, y: v.chrono.T[1], dash: true }] }
+        : { xLabel: "secondes", xName: "t =", xUnit: " s", yLabel: "inclinaison du plancher (°)", yUnit: "°",
+            series: [{ name: "tether_sim (NumPy)", x: v.numpy.t, y: v.numpy.tilt }, { name: "Project Chrono", x: v.chrono.t, y: v.chrono.tilt, dash: true }] });
+    });
+    Object.values(V.chrono).filter((v) => !v.starship).forEach((v) => {
       const rel = v.doubling_numpy && v.doubling_chrono ? Math.abs(v.doubling_chrono - v.doubling_numpy) / v.doubling_numpy : null;
       if (v.name === "B_haltere_axial" && rel !== null) document.querySelectorAll('[data-bind="validation.B_haltere_axial.doubling_rel"]').forEach((n) => n.textContent = fmt.pct(rel));
       tb.insertAdjacentHTML("beforeend", `<tr><td>${v.name}</td><td class="n">${fr(v.duration)} s</td>

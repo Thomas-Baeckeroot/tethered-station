@@ -265,6 +265,10 @@ def export_validation(dest):
         kn = max(1, int(round(0.5 / (npy["t"][1] - npy["t"][0]))))
         v["chrono"] = dict(t=r(ch["t"][::k], 1), roll=r(ch["roll"][::k].T, 2))
         v["numpy"] = dict(t=r(npy["t"][::kn], 1), roll=r(npy["roll"][::kn].T, 2))
+        if v.get("starship"):
+            # vaisseau 0 : plancher ; câbles : tension du premier segment (MN)
+            v["chrono"].update(tilt=r(ch["tilt"][::k, 0], 3), T=r(ch["T"][::k].T / 1e6, 3))
+            v["numpy"].update(tilt=r(npy["tilt"][::kn, 0], 3), T=r(npy["T"][::kn].T / 1e6, 3))
         res[name] = v
     conv = {}
     for name in ("B_conv_ref", "B_conv_seg32", "B_conv_cfl015"):

@@ -73,10 +73,10 @@ HUB2 = HUB + ["--hub-spokes", "2"]
 SPIN = ["--spin-from", "0.1", "--dv-radial", "0", "--dv-z", "0", "--droll", "0"]
 # Masses inégales : ergols du vaisseau habité transvasés dans les cargos
 # (220 / 805 / 805 t), attaches sur les points d'ancrage réels (9 m de la
-# pointe), vaisseau habité à 3,711 m/s² : 0,87 tr/min
+# pointe), vaisseau habité à 3,711 m/s² au pont principal : 0,863 tr/min (light_tld.py)
 UNEQ = SV3 + DECK + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", "--slosh-zeta", "0.03",
               "--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "--tld-zeta", "0.15",
-              "--masses-t", "220,805,805", "--attach-x", "9", "--target-ship", "0", "--rpm", "0.87"]
+              "--masses-t", "220,805,805", "--attach-x", "9", "--target-ship", "0", "--rpm", "0.8629"]
 
 
 # Sensibilité de la solution retenue : V3 aux réservoirs pleins (1 820 t au
@@ -274,25 +274,25 @@ CAMPAIGNS = {
     # habité (lest, masse inchangée). Contrôle de convergence : 32 segments
     "allege": [
         (f"{k}_{sc}", base + extra)
-        for k, base in (("K100", UNEQ_K("510,660,660", "0.9614")), ("K195", UNEQ_K("415,708,708", "0.9285")),
-                        ("K300", UNEQ_K("310,760,760", "0.8959")),
-                        ("KL50", UNEQ_K("220,805,805", "0.8705") + ["--ballast-t", "50", "--ballast-x", "44"]))
+        for k, base in (("K100", UNEQ_K("510,660,660", "0.9590")), ("K195", UNEQ_K("415,708,708", "0.9243")),
+                        ("K300", UNEQ_K("310,760,760", "0.8900")),
+                        ("KL50", UNEQ_K("220,805,805", "0.8652") + ["--ballast-t", "50", "--ballast-x", "44"]))
         for sc, extra in (("perturbation", PERT), ("cargaison_laterale", CARGO + LAT + TRAJ), ("equipage", WALK + LAT),
                           ("balayage_z", SWEEP_L + LATZ), ("balayage_t", SWEEP_L + LAT))
-    ] + [("K195_balayage_z_seg32", UNEQ_K("415,708,708", "0.9285") + SWEEP_L + LATZ + ["--segments", "32"])]
+    ] + [("K195_balayage_z_seg32", UNEQ_K("415,708,708", "0.9243") + SWEEP_L + LATZ + ["--segments", "32"])]
     # Bassin réaccordé sur le balancement hors plan du vaisseau habité
     # (light_tld.py : Ø 8,8 m, toute la largeur de la coque, sauf K100) ; forçage
     # au pire rythme du bassin d'origine (K195 : 0,092 Hz) avec l'un ou l'autre
     + [(f"{k}_{sc}_bassin", base + pool + extra)
-       for k, base, pool in (("K100", UNEQ_K("510,660,660", "0.9614"), ["--tld-mass-t", "15", "--tld-radius", "3.4", "--tld-zeta", "0.2"]),
-                             ("K195", UNEQ_K("415,708,708", "0.9285"), ["--tld-mass-t", "35", "--tld-radius", "4.4", "--tld-zeta", "0.2"]),
-                             ("K300", UNEQ_K("310,760,760", "0.8959"), ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]),
-                             ("KL50", UNEQ_K("220,805,805", "0.8705") + ["--ballast-t", "50", "--ballast-x", "44"],
+       for k, base, pool in (("K100", UNEQ_K("510,660,660", "0.9590"), ["--tld-mass-t", "15", "--tld-radius", "3.4", "--tld-zeta", "0.2"]),
+                             ("K195", UNEQ_K("415,708,708", "0.9243"), ["--tld-mass-t", "35", "--tld-radius", "4.4", "--tld-zeta", "0.2"]),
+                             ("K300", UNEQ_K("310,760,760", "0.8900"), ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]),
+                             ("KL50", UNEQ_K("220,805,805", "0.8652") + ["--ballast-t", "50", "--ballast-x", "44"],
                               ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]))
        for sc, extra in (("balayage_z", SWEEP_L + LATZ), ("balayage_t", SWEEP_L + LAT))
        if sc == "balayage_z" or k in ("K195", "KL50")]
-    + [("K195_resonance_z", UNEQ_K("415,708,708", "0.9285") + RESO_K + TRAJ),
-       ("K195_resonance_z_bassin", UNEQ_K("415,708,708", "0.9285") + ["--tld-mass-t", "35", "--tld-radius", "4.4", "--tld-zeta", "0.2"]
+    + [("K195_resonance_z", UNEQ_K("415,708,708", "0.9243") + RESO_K + TRAJ),
+       ("K195_resonance_z_bassin", UNEQ_K("415,708,708", "0.9243") + ["--tld-mass-t", "35", "--tld-radius", "4.4", "--tld-zeta", "0.2"]
         + RESO_K + TRAJ)],
     "sensibilite": [
         ("N_perturbation", V3FULL + PERT),
