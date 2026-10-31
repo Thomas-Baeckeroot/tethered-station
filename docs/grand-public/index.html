@@ -191,13 +191,13 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <div class="viewer" id="hero-viewer" data-anim="R_perturbation" data-autostart data-inertial data-speed="1" data-exag="1">
       <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50,"exag":1}'></div>
     </div>
-    <figcaption>La station simulée, affichée en temps réel : un tour par minute. Tout est à l'échelle : chaque vaisseau mesure 50 m de haut, sur un cercle de 680 m de diamètre ; la règle au centre mesure 200 m. Faites glisser pour tourner autour.</figcaption>
+    <figcaption>La station simulée, affichée en temps réel : un tour par minute. Tout est à l'échelle : chaque vaisseau mesure 50 m de haut, et leurs centres de masse sont sur un cercle de 717 m de diamètre ; la règle au centre mesure 200 m. Faites glisser pour tourner autour.</figcaption>
   </figure>
 </header>
 
 <section class="wide">
   <div class="figures">
-    <div><b class="num">338 m</b><span>rayon de rotation</span></div>
+    <div><b class="num">338 m</b><span>rayon au pont principal</span></div>
     <div><b class="num">1 tr/min</b><span>vitesse de rotation</span></div>
     <div><b class="num">3,711 m/s²</b><span>gravité ressentie (Mars)</span></div>
     <div><b class="num">3 × 610 t</b><span>vaisseaux, une fois en route</span></div>
@@ -247,8 +247,8 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 <section class="col">
   <span class="eyebrow">3 · La structure</span>
   <h2>Des câbles plutôt qu'une poutre</h2>
-  <p>Une poutre rigide de 680 m serait énorme. Un câble ne travaille qu'en traction, et la rotation le tend en permanence. C'est exactement ce qu'il faut. En route, chaque câble tire avec une force d'environ <b>130 tonnes-force</b>.</p>
-  <p>Les câbles sont pourtant dimensionnés pour des vaisseaux chargés tournant à <b>1 g</b>, avec un facteur de sécurité de 3. En Dyneema, une fibre plus résistante que l'acier à poids égal, cela donne un câble de 11 cm de diamètre. Les trois câbles pèsent ensemble 14 tonnes. En route, ils ne travaillent qu'à 5 % de leur résistance et s'allongent de moins d'un mètre.</p>
+  <p>Une poutre rigide de 700 m serait énorme. Un câble ne travaille qu'en traction, et la rotation le tend en permanence. C'est exactement ce qu'il faut. En route, chaque câble tire avec une force d'environ <b>140 tonnes-force</b>.</p>
+  <p>Les câbles sont pourtant dimensionnés pour des vaisseaux chargés tournant à <b>1 g</b>, avec un facteur de sécurité de 3. En Dyneema, une fibre plus résistante que l'acier à poids égal, cela donne un câble de 11 cm de diamètre. Les trois câbles pèsent ensemble 15 tonnes. En route, ils ne travaillent qu'à 5 % de leur résistance et s'allongent de moins d'un mètre. Un vrai câble, tressé, gainé et doublé pour survivre à des fibres coupées, serait plus gros : environ 13 cm de diamètre et 25 tonnes pour les trois. Nous l'avons simulé aussi : il donne le même confort à bord.</p>
 </section>
 
 <section class="col">
@@ -401,7 +401,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <h3>Suivre le Soleil</h3>
     <p>Entre la Terre et Mars, la station fait un demi-tour autour du Soleil. Vue de la station, la direction du Soleil tourne donc de 180° pendant le voyage (un peu moins ou un peu plus sur un vrai trajet), lentement : 0,7° par jour en moyenne, plus vite au départ qu'à l'arrivée. Or une station qui tourne est un gyroscope : son axe garde sa direction tant qu'on ne le pousse pas.</p>
     <p>Pour qu'il suive le Soleil, chaque vaisseau donne une petite poussée chaque fois qu'il passe en haut ou en bas du cercle : environ 20 N, le poids d'une bouteille de 2 litres, pendant 5 secondes, deux fois par minute. Comme pour un gyroscope, pousser en haut et en bas fait pivoter l'axe sur le côté. Nous l'avons simulé, en accéléré : l'axe tourne exactement comme prévu, et le plancher ne bouge que d'un millième de degré.</p>
-    <p class="verdict">Pour tout le voyage, il faut environ 70 t de méthane et d'oxygène pour les trois vaisseaux, brûlés dans de petits propulseurs. Les propulseurs actuels du Starship, qui détendent ces gaz sans les brûler, en consommeraient trois à cinq fois plus.</p>
+    <p class="verdict">Pour tout le voyage, il faut environ 75 t de méthane et d'oxygène pour les trois vaisseaux, brûlés dans de petits propulseurs. Les propulseurs actuels du Starship, qui détendent ces gaz sans les brûler, en consommeraient trois à cinq fois plus.</p>
   </div>
   <figure>
     <div id="gp-soleil-orbite"></div>
@@ -415,14 +415,14 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <div class="col" style="margin:0;max-width:46rem">
     <span class="eyebrow">Le résultat</span>
     <h2>La station en route vers Mars</h2>
-    <p>Trois vaisseaux de 610 t, debout, forment un triangle. Chacun est attaché par son nez, avec un câble vers chaque voisin, sur le côté qui lui fait face. Leurs réservoirs ont des chicanes. Le centre de gravité des vaisseaux tourne à 338 m de l'axe, à un tour par minute, et les câbles mesurent <span class="num" data-bind="R_perturbation.L0" data-fmt="m">—</span> d'un nez à l'autre.</p>
+    <p>Trois vaisseaux de 610 t, debout, forment un triangle. Chacun est attaché par son nez, avec un câble vers chaque voisin, sur le côté qui lui fait face. Leurs réservoirs ont des chicanes. Le pont principal de chaque vaisseau tourne à 338 m de l'axe (son centre de gravité à 358 m), à un tour par minute, et les câbles mesurent <span class="num" data-bind="R_perturbation.L0" data-fmt="m">—</span> d'un nez à l'autre.</p>
   </div>
   <ul class="checks" id="mission-checks">
     <li><b>Pas de pivotement</b><span>Le vaisseau perturbé ne tourne que de <span class="num" data-bind="R_perturbation.roll_max">—</span> autour de son axe.</span></li>
     <li><b>Plancher stable</b><span><span class="num" data-bind="R_cargaison_laterale.tilt_max">—</span> au pire quand 50 t traversent un pont, <span class="num" data-bind="R_equipage.tilt_max">—</span> quand l'équipage marche, rien quand on change de pont, <span class="num" data-bind="T_balayage_z.tilt_max">—</span> au pire rythme grâce au bassin.</span></li>
     <li><b>Gravité stable</b><span>Entre <span class="num" data-bind="R_perturbation.g_min" data-fmt="ms2">—</span> et <span class="num" data-bind="R_perturbation.g_max" data-fmt="ms2">—</span>, pour 3,711 m/s² visés.</span></li>
-    <li><b>Mise en rotation en douceur</b><span>Des propulseurs amènent la station de 0,1 à 1 tour par minute en une demi-heure, avec 20 t d'ergols au total : pendant la manœuvre, le plancher penche de <span class="num" data-bind="S_montee_k005.spin.tilt_max_on">—</span> et les câbles restent tendus.</span></li>
-    <li><b>Face au Soleil</b><span>Panneaux fixes et ergols qui restent froids d'eux-mêmes ; l'axe suit le Soleil grâce à de petites poussées, environ 70 t d'ergols pour tout le voyage.</span></li>
+    <li><b>Mise en rotation en douceur</b><span>Des propulseurs amènent la station de 0,1 à 1 tour par minute en une demi-heure, avec 21 t d'ergols au total : pendant la manœuvre, le plancher penche de <span class="num" data-bind="S_montee_k005.spin.tilt_max_on">—</span> et les câbles restent tendus.</span></li>
+    <li><b>Face au Soleil</b><span>Panneaux fixes et ergols qui restent froids d'eux-mêmes ; l'axe suit le Soleil grâce à de petites poussées, environ 75 t d'ergols pour tout le voyage.</span></li>
     <li><b>Marge de résistance</b><span>Câbles dimensionnés pour des vaisseaux chargés à 1 g avec un facteur de sécurité de 3 : en route, ils ne travaillent qu'à 5 % de leur résistance.</span></li>
   </ul>
   <p class="verdict">Le point sensible était le balancement des vaisseaux, plus légers qu'au départ et alourdis d'ergols qui ne suivent pas la coque : 4 t (une cinquantaine de personnes) se balançant en cadence toutes les 8 secondes faisaient pencher le plancher de 2,7°. Un bassin de 25 t d'eau sous la coiffe de chaque vaisseau ramène ce pire cas à <span class="num" data-bind="T_balayage_z.tilt_max">—</span>, sans moteur ni pièce mobile.</p>
@@ -627,7 +627,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <span class="eyebrow">Autres effets vérifiés</span>
   <h3>Le rebond et la lente valse de l'axe</h3>
   <p><b>Le rebond.</b> Les câbles sont élastiques : la station peut « respirer », les vaisseaux s'éloignant et se rapprochant du centre de quelques centimètres, en quelques secondes. Le poids ressenti varie de moins de 1 %, ce qui est imperceptible.</p>
-  <p><b>La valse de l'axe.</b> En orbite autour de la Terre, la Terre attire un peu plus le module le plus proche que le plus éloigné. Sur un objet de 680 m, cet écart est minuscule, mais il agit en continu : si l'axe de rotation est incliné par rapport à l'orbite, il décrit un cône complet en une douzaine de jours. En route vers Mars, le problème disparaît : loin de la Terre, l'effet de marée du Soleil est environ vingt millions de fois plus faible : laissé libre, l'axe resterait fixe dans l'espace pendant tout le voyage. On le fait pivoter volontairement pour suivre le Soleil (§ 6).</p>
+  <p><b>La valse de l'axe.</b> En orbite autour de la Terre, la Terre attire un peu plus le module le plus proche que le plus éloigné. Sur un objet de 700 m, cet écart est minuscule, mais il agit en continu : si l'axe de rotation est incliné par rapport à l'orbite, il décrit un cône complet en une douzaine de jours. En route vers Mars, le problème disparaît : loin de la Terre, l'effet de marée du Soleil est environ vingt millions de fois plus faible : laissé libre, l'axe resterait fixe dans l'espace pendant tout le voyage. On le fait pivoter volontairement pour suivre le Soleil (§ 6).</p>
 </section>
 
 <section class="col" id="statut">

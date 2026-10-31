@@ -55,7 +55,7 @@ FREE = MISSION + ["--slosh", "free", "--slosh-zeta", "0.001"]
 BAFFLED = MISSION + ["--slosh", "free", "--slosh-zeta", "0.03"]
 SWEEP_L = ["--motion", "sweep", "--motion-mass-t", "4", "--duration", "5460", "--sweep-f1", "0.4"]
 RESO = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "0.38", "--motion-axis", "z",
-        "--motion-period", "4.05", "--motion-stop", "240", "--duration", "600"]
+        "--motion-period", "3.94", "--motion-stop", "240", "--duration", "600"]
 
 TLD = BAFFLED + ["--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "--tld-zeta", "0.15"]
 # 4 t oscillant hors plan au rythme du balancement principal (≈ 8 s) pendant 3 min
