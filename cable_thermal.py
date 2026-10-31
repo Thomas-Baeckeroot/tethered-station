@@ -9,7 +9,9 @@ face à l'ombre (conduction 2D dans la section, rayonnement en surface) et
 l'écart d'allongement qui en résulte (dilatation négative du Dyneema).
 
     .venv/bin/python cable_thermal.py > out/cable_thermal.log
+    .venv/bin/python cable_thermal.py --brins 3 > out/cable_thermal_brins3.log
 """
+import argparse
 import math
 
 import numpy as np
@@ -17,8 +19,8 @@ import numpy as np
 SIGMA = 5.670374e-8
 S1 = 1361.0                 # W/m², 1 UA
 R_MARS = 1.52368            # UA
-D = 0.12                    # m, câble tressé gainé (12 à 13 cm selon la redondance)
-M_L = 24e3 / (3 * 538.6)    # kg/m, Dyneema SK99 redondant, gaine comprise
+D0 = 0.12                   # m, câble tressé gainé (12 à 13 cm selon la redondance)
+M_L0 = 24e3 / (3 * 538.6)   # kg/m, Dyneema SK99 redondant, gaine comprise
 C_P = 1200.0                # J/kg/K, polyéthylène vers 200 K
 CTE = -12e-6                # 1/K, dilatation axiale du Dyneema
 EPS_LOAD = 0.0011           # allongement de la fibre en route (≈ 3,1 % de la rupture, 3,5 % à rupture)
@@ -30,7 +32,7 @@ def t_iso(alpha, eps, S):
     return (alpha * S / (math.pi * eps * SIGMA)) ** 0.25
 
 
-def section(k, alpha=0.20, eps=0.90, S=S1, foil=None, nr=20, nt=72, tol=1e-4):
+def section(k, D, alpha=0.20, eps=0.90, S=S1, foil=None, nr=20, nt=72, tol=1e-4):
     """Section circulaire en volumes finis (r, θ), Soleil en θ = 0. foil = (k, épaisseur) :
     feuille conductrice sous la peinture, qui répartit la chaleur sur le pourtour.
     Renvoie les températures de surface (K) par angle."""
@@ -66,6 +68,10 @@ def section(k, alpha=0.20, eps=0.90, S=S1, foil=None, nr=20, nt=72, tol=1e-4):
 
 
 def main():
+    ap = argparse.ArgumentParser(description="Thermique d'un câble face au Soleil")
+    ap.add_argument("--brins", type=int, default=1, help="brins par côté (même section au total : Ø / √N, masse linéique / N)")
+    n = ap.parse_args().brins
+    D, M_L = D0 / math.sqrt(n), M_L0 / n
     c = lambda t: t - 273.15
     print("Câble isotherme, éclairé de côté :")
     for name, (a, e) in SHEATHS.items():
@@ -73,17 +79,17 @@ def main():
     T0 = t_iso(0.2, 0.9, S1)
     tau = M_L * C_P / (4 * 0.9 * SIGMA * T0 ** 3 * math.pi * D)
     print(f"  constante de temps (gaine blanche, {M_L:.1f} kg/m) : {tau / 3600:.1f} h")
-    print(f"\nSection Ø {D * 100:.0f} cm, gaine blanche, face éclairée / face à l'ombre :")
+    print(f"\nSection Ø {D * 100:.1f} cm, gaine blanche, face éclairée / face à l'ombre :")
     for k in (0.05, 0.1, 0.3):
         for S, where in ((S1, "1 UA"), (S1 / R_MARS ** 2, "Mars")):
-            s = section(k, S=S)
+            s = section(k, D, S=S)
             dT = s.max() - s.min()
             print(f"  k = {k:4.2f} W/m/K, {where} : {c(s.max()):+.0f} / {c(s.min()):+.0f} °C, écart {dT:.0f} K, "
                   f"écart d'allongement {abs(CTE) * dT * 100:.3f} % ({abs(CTE) * dT / EPS_LOAD * 100:.0f} % de l'allongement en route)")
     for t in (0.1e-3, 0.3e-3):
-        s = section(0.1, foil=(200.0, t))
-        m = 2700 * math.pi * D * t * 538.6
-        print(f"  k = 0,1 + feuille d'aluminium {t * 1e3:.1f} mm ({m:.0f} kg par câble) : {c(s.max()):+.0f} / {c(s.min()):+.0f} °C, écart {s.max() - s.min():.0f} K")
+        s = section(0.1, D, foil=(200.0, t))
+        m = 2700 * math.pi * D * t * 538.6   # par brin
+        print(f"  k = 0,1 + feuille d'aluminium {t * 1e3:.1f} mm ({m:.0f} kg par brin) : {c(s.max()):+.0f} / {c(s.min()):+.0f} °C, écart {s.max() - s.min():.0f} K")
 
 
 if __name__ == "__main__":
