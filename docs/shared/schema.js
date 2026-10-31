@@ -399,7 +399,7 @@
     };
     el("text", { x: 8, y: 70, class: "sc-small" }, b, "en service");
     plate(116, false);
-    el("text", { x: 8, y: 184, class: "sc-small" }, b, "brins écartés sur 539 m, un seul point");
+    el("text", { x: 8, y: 184, class: "sc-small" }, b, "brins écartés sur 573 m, un seul point");
     el("text", { x: 8, y: 198, class: "sc-small" }, b, "d'effort : l'axe du palonnier");
     el("text", { x: 8, y: 222, class: "sc-small" }, b, "après rupture d'un brin");
     plate(282, true);
@@ -411,7 +411,87 @@
     container.appendChild(b);
   }
 
+  /* Ferrure à trois brins (§ 7.4) : à gauche, plaque triangulaire sur
+     rotule vue dans l'axe du côté, Soleil selon l'axe de rotation ; à droite,
+     vue de côté, en service puis après la rupture d'un brin : la plaque
+     bascule autour d'un axe parallèle aux deux brins restants, qui restent
+     symétriques et se partagent la charge. */
+  function drawStrandFitting3(container) {
+    const W = 320, H = 330;
+    const mk = (title, sub, aria) => {
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "sc-svg", role: "img", "aria-label": aria });
+      const id = "f" + Math.random().toString(36).slice(2);
+      const defs = el("defs", {}, svg);
+      for (const c of ["ink", "bad"]) {
+        const m = el("marker", { id: `${id}-${c}`, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, markerUnits: "userSpaceOnUse",
+          orient: "auto-start-reverse" }, defs);
+        el("path", { d: "M0,0 L10,5 L0,10 z", class: `sc-head-${c}` }, m);
+      }
+      el("text", { x: 8, y: 17, class: "sc-title" }, svg, title);
+      el("text", { x: 8, y: 32, class: "sc-small" }, svg, sub);
+      return [svg, (c) => `url(#${id}-${c})`];
+    };
+
+    // Vue dans l'axe du côté
+    const [a, A] = mk("Ferrure à rotule", "vue dans l'axe du côté, non à l'échelle", "Plaque triangulaire à trois brins sur une rotule, vue dans l'axe du côté");
+    const cx = 160, cy = 168, s = 130, rc = s / Math.sqrt(3);
+    const P = [[cx, cy - rc], [cx - s / 2, cy + rc / 2], [cx + s / 2, cy + rc / 2]];
+    for (const x of [cx - 90, cx, cx + 90]) el("line", { x1: x, y1: 46, x2: x, y2: 74, class: "sc-force", "marker-end": A("ink") }, a);
+    el("text", { x: cx + 100, y: 62, class: "sc-small" }, a, "Soleil");
+    // colonnes d'ombre : aucune ne tombe sur un autre brin
+    for (const [x, y] of P) el("line", { x1: x, y1: y + 10, x2: x, y2: H - 70, class: "sc-dim", "stroke-dasharray": "3 3" }, a);
+    el("path", { d: `M ${P[0][0]} ${P[0][1]} L ${P[1][0]} ${P[1][1]} L ${P[2][0]} ${P[2][1]} Z`, class: "sc-plate" }, a);
+    for (const [x, y] of P) el("circle", { cx: x, cy: y, r: 8, class: "sc-attach" }, a);
+    el("circle", { cx, cy, r: 5, class: "sc-knot" }, a);
+    el("text", { x: cx + 9, y: cy + 4, class: "sc-small" }, a, "rotule");
+    el("line", { x1: P[1][0], y1: P[1][1] + 20, x2: P[2][0], y2: P[2][1] + 20, class: "sc-dim" }, a);
+    el("text", { x: cx, y: P[1][1] + 34, class: "sc-small", "text-anchor": "middle" }, a, "0,5 à 1 m");
+    el("text", { x: 8, y: H - 52, class: "sc-small" }, a, "↕ axe de rotation   ↔ plan de rotation");
+    el("text", { x: 8, y: H - 34, class: "sc-small" }, a, "ombres en pointillés : aucun brin dans");
+    el("text", { x: 8, y: H - 20, class: "sc-small" }, a, "l'ombre d'un autre, tous à même température");
+
+    // Vue de côté, en service et après rupture
+    const [b, B] = mk("Après la rupture d'un brin", "vue de côté, le côté part vers la droite", "Plaque à rotule vue de côté, en service puis après la rupture d'un brin");
+    const px = 104, up = 44, dn = 22;
+    const nose = (y) => {
+      el("rect", { x: 8, y: y - 40, width: 26, height: 80, rx: 6, class: "sc-module" }, b);
+      el("line", { x1: 34, y1: y, x2: px, y2: y, class: "sc-spreader" }, b);
+    };
+    // en service : plaque perpendiculaire au côté
+    let y = 100;
+    el("text", { x: 8, y: 52, class: "sc-small" }, b, "en service");
+    nose(y);
+    el("rect", { x: px - 3, y: y - up, width: 6, height: up + dn, class: "sc-plate" }, b);
+    el("line", { x1: px, y1: y - up, x2: W - 8, y2: y - up, class: "sc-cable" }, b);
+    el("line", { x1: px, y1: y + dn, x2: W - 8, y2: y + dn, class: "sc-cable" }, b);
+    el("circle", { cx: px, cy: y - up, r: 2.6, class: "sc-attach" }, b);
+    el("circle", { cx: px, cy: y + dn, r: 2.6, class: "sc-attach" }, b);
+    el("circle", { cx: px, cy: y, r: 4, class: "sc-knot" }, b);
+    el("text", { x: W - 8, y: y - up - 6, class: "sc-small", "text-anchor": "end" }, b, "brin du haut");
+    el("text", { x: W - 8, y: y + dn + 14, class: "sc-small", "text-anchor": "end" }, b, "deux brins, l'un derrière l'autre");
+    // après rupture : la plaque bascule de 90° autour de la rotule
+    y = 236;
+    el("text", { x: 8, y: 178, class: "sc-small" }, b, "après rupture du brin du haut");
+    nose(y);
+    el("rect", { x: px - up, y: y - 3, width: up + dn, height: 6, class: "sc-plate" }, b);
+    el("path", { d: `M ${px - up} ${y} q -6 -20 6 -34 l 26 -6`, class: "sc-broken" }, b);
+    el("text", { x: px - up + 38, y: y - 40, class: "sc-small sc-bad" }, b, "× largué");
+    el("line", { x1: px + dn, y1: y, x2: W - 8, y2: y, class: "sc-cable" }, b);
+    el("circle", { cx: px + dn, cy: y, r: 2.6, class: "sc-attach" }, b);
+    el("circle", { cx: px, cy: y, r: 4, class: "sc-knot" }, b);
+    el("path", { d: `M ${px + 30} ${y - 40} A 34 34 0 0 1 ${px + 36} ${y - 12}`, class: "sc-force", fill: "none", "marker-end": B("ink") }, b);
+    el("text", { x: px + 42, y: y - 30, class: "sc-small" }, b, "bascule");
+    el("text", { x: W - 8, y: y + 16, class: "sc-small", "text-anchor": "end" }, b, "deux brins, à parts égales");
+    el("text", { x: 8, y: H - 34, class: "sc-small" }, b, "symétriques par rapport à l'axe de bascule,");
+    el("text", { x: 8, y: H - 20, class: "sc-small" }, b, "les deux brins restants gardent la même longueur");
+
+    container.innerHTML = "";
+    container.appendChild(a);
+    container.appendChild(b);
+  }
+
   window.drawSchema = drawSchema;
   window.drawStrandLayout = drawStrandLayout;
   window.drawStrandRecoil = drawStrandRecoil;
+  window.drawStrandFitting3 = drawStrandFitting3;
 })();
