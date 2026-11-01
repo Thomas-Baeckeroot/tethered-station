@@ -17,6 +17,8 @@
 (function () {
   "use strict";
   const NS = "http://www.w3.org/2000/svg";
+  // Points de capture (§ 2.5) et bassin de la solution retenue, comme tether_sim.ANCHOR_X/ANCHOR_SPREAD/POOL
+  const ATT_X = 13, ATT_S = 4.8, POOL0 = { m: 25, a: 3.9 };
   const REDUCE = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const STYLE = `
 .lg-ghost { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; opacity: 0.7; }
@@ -166,8 +168,8 @@
       + `C ${P(6.5, -4.5)} ${P(0, -2.9)} ${P(0, 0)} Z`, class: "lg-hull" }, g);
     // Soute habitée, bassin
     el("rect", { x: X(-4), y: Y(4), width: 8 * k, height: 16 * k, class: "lg-zone" }, g);
-    const pl = (pk && pk.pool) || { m: 25, a: 3.6 }, pool = pl.m / (Math.PI * pl.a * pl.a);
-    if (pk && pk.pool) el("rect", { x: X(-3.6), y: Y(12 - 25 / (Math.PI * 3.6 * 3.6)), width: 7.2 * k, height: 25 / (Math.PI * 3.6 * 3.6) * k, class: "lg-pool-ghost" }, g);
+    const pl = (pk && pk.pool) || POOL0, pool = pl.m / (Math.PI * pl.a * pl.a), d0 = POOL0.m / (Math.PI * POOL0.a * POOL0.a);
+    if (pk && pk.pool) el("rect", { x: X(-POOL0.a), y: Y(12 - d0), width: 2 * POOL0.a * k, height: d0 * k, class: "lg-pool-ghost" }, g);
     el("rect", { x: X(-pl.a), y: Y(12 - pool), width: 2 * pl.a * k, height: pool * k, class: "lg-pool" }, g);
     // Réservoirs et ergols
     el("rect", { x: X(-4.5), y: Y(22), width: 9 * k, height: 13 * k, class: "lg-tank" }, g);
@@ -179,8 +181,8 @@
     for (const yy of [-2.6, 0, 2.6]) el("path", { d: `M ${P(46, yy - 1)} L ${P(46, yy + 1)} L ${P(50, yy + 1.4)} L ${P(50, yy - 1.4)} Z`, class: "lg-engine" }, g);
     // Attaches et câbles
     for (const s of [-1, 1]) {
-      el("line", { x1: X(3.5 * s), y1: Y(9), x2: X(3.5 * s) + s * 40, y2: Y(9) - 40, class: "lg-cable" }, g);
-      el("circle", { cx: X(3.5 * s), cy: Y(9), r: 2.8, class: "lg-att" }, g);
+      el("line", { x1: X(ATT_S * s), y1: Y(ATT_X), x2: X(ATT_S * s) + s * 40, y2: Y(ATT_X) - 40, class: "lg-cable" }, g);
+      el("circle", { cx: X(ATT_S * s), cy: Y(ATT_X), r: 2.8, class: "lg-att" }, g);
     }
     // Centres de masse : départ (pointillés) et actuel, cote h
     el("circle", { cx: x0, cy: Y(ref.x), r: 5, class: "lg-com-ghost" }, g);
@@ -189,12 +191,12 @@
     el("line", { x1: x0 - 3.5, y1: Y(xc) - 3.5, x2: x0 + 3.5, y2: Y(xc) + 3.5, class: "lg-dim" }, g);
     el("line", { x1: x0 - 3.5, y1: Y(xc) + 3.5, x2: x0 + 3.5, y2: Y(xc) - 3.5, class: "lg-dim" }, g);
     const xd = X(-4.5) - 14;
-    el("line", { x1: xd, y1: Y(9), x2: xd, y2: Y(xc), class: "lg-dim", "marker-start": mk("a"), "marker-end": mk("a") }, g);
-    el("text", { x: xd - 4, y: (Y(9) + Y(xc)) / 2 + 4, class: "lg-acc", "text-anchor": "end" }, g, `h = ${fr(h, 1)} m`);
+    el("line", { x1: xd, y1: Y(ATT_X), x2: xd, y2: Y(xc), class: "lg-dim", "marker-start": mk("a"), "marker-end": mk("a") }, g);
+    el("text", { x: xd - 4, y: (Y(ATT_X) + Y(xc)) / 2 + 4, class: "lg-acc", "text-anchor": "end" }, g, `h = ${fr(h, 1)} m`);
     // Légendes à droite
     const lx = X(4.5) + 14, lab = (y, t, cls = "lg-t") => el("text", { x: lx, y, class: cls }, g, t);
-    lab(Y(9) + 4, "attaches");
-    lab(Y(12) + 4, pk && pk.pool ? `bassin ${fr(pl.m)} t, Ø ${fr(2 * pl.a, 1)} m` : "soute habitée, bassin", "lg-s");
+    lab(Y(ATT_X) + 10, "attaches");
+    lab(Y(12) - 3, pk && pk.pool ? `bassin ${fr(pl.m)} t, Ø ${fr(2 * pl.a, 1)} m` : "soute habitée, bassin", "lg-s");
     lab(Y(xc) + 4, "centre de masse", "lg-t");
     if (dC > 0) lab(Y(35 - dC / 2) + 4, `méthane ${fr(dC, 1)} m`, "lg-s");
     if (dL > 0) lab(Y(46 - dL / 2) + 4, `oxygène ${fr(dL, 1)} m`, "lg-s");

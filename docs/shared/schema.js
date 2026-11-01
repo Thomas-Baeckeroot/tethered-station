@@ -400,7 +400,7 @@
     };
     el("text", { x: 8, y: 70, class: "sc-small" }, b, "en service");
     plate(116, false);
-    el("text", { x: 8, y: 184, class: "sc-small" }, b, "brins écartés sur 573 m, un seul point");
+    el("text", { x: 8, y: 184, class: "sc-small" }, b, "brins écartés sur 579 m, un seul point");
     el("text", { x: 8, y: 198, class: "sc-small" }, b, "d'effort : l'axe du palonnier");
     el("text", { x: 8, y: 222, class: "sc-small" }, b, "après rupture d'un brin");
     plate(282, true);
