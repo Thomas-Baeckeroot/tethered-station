@@ -13,7 +13,7 @@ d/√N et la longueur exposée est N fois plus grande.
 import math
 
 DAYS = 259
-L_SIDE = 573.0      # m, longueur d'un côté
+L_SIDE = 579.0      # m, longueur d'un côté
 SIDES = 3
 
 

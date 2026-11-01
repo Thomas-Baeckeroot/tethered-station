@@ -490,8 +490,105 @@
     container.appendChild(b);
   }
 
+  /* Points de capture du Starship V3 (§ 2.5) : vue de côté du nez dans le
+     plan de rotation (à l'échelle), puis coupe à hauteur des points de capture
+     vue depuis la pointe. Cotes estimées d'après les photos du Ship 39. */
+  function drawCatchPoints(container) {
+    const W = 320, H = 360;
+    const mk = (title, sub, aria) => {
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "sc-svg", role: "img", "aria-label": aria });
+      const id = "c" + Math.random().toString(36).slice(2);
+      const defs = el("defs", {}, svg);
+      const m = el("marker", { id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, markerUnits: "userSpaceOnUse",
+        orient: "auto-start-reverse" }, defs);
+      el("path", { d: "M0,0 L10,5 L0,10 z", class: "sc-head-ink" }, m);
+      el("text", { x: 8, y: 17, class: "sc-title" }, svg, title);
+      el("text", { x: 8, y: 32, class: "sc-small" }, svg, sub);
+      return [svg, `url(#${id})`];
+    };
+    const XA = 13, SA = 4.8, RH = 4.5, LO = 14;            // attache, demi-écart, rayon, hauteur de la coiffe
+    const rho = (RH * RH + LO * LO) / (2 * RH);
+    const rad = (x) => x >= LO ? RH : Math.sqrt(rho * rho - (LO - x) ** 2) + RH - rho;
+
+    // a) vue de côté, pointe vers le centre de la station (en haut)
+    const [a, Aa] = mk("Points de capture", "vue de côté, dans le plan de rotation, à l'échelle", "Nez du Starship vu de côté : points de capture, câbles, bassin");
+    const k = 10.5, cx = 160, y0 = 66, Y = (x) => y0 + x * k, X = (r) => cx + r * k, XM = 22;
+    let d = "";
+    for (let x = 0; x <= XM + 1e-9; x += 0.25) d += `${d ? "L" : "M"} ${X(rad(x)).toFixed(1)} ${Y(x).toFixed(1)} `;
+    for (let x = XM; x >= -1e-9; x -= 0.25) d += `L ${(2 * cx - X(rad(x))).toFixed(1)} ${Y(x).toFixed(1)} `;
+    el("path", { d: d + "Z", class: "sc-module" }, a);
+    // ailerons avant déployés (hors du plan, en pointillés)
+    for (const sg of [1, -1]) {
+      const p = [[rad(4) + 0.1, 4], [rad(10.5), 10.5], [8.2, 10.5], [8.2, 7.5]].map(([r, x]) => `${cx + sg * r * k} ${Y(x)}`);
+      el("path", { d: `M ${p.join(" L ")} Z`, class: "sc-axis", fill: "none" }, a);
+    }
+    el("text", { x: 8, y: Y(15.5), class: "sc-small" }, a, "- - aileron");
+    el("text", { x: 8, y: Y(15.5) + 12, class: "sc-small" }, a, "(replié en vol)");
+    // bassin et pont principal
+    el("rect", { x: cx - 3.9 * k, y: Y(12) - 0.52 * k, width: 7.8 * k, height: 0.52 * k, class: "sc-plate" }, a);
+    el("text", { x: cx, y: Y(12) - 0.52 * k - 3, class: "sc-small", "text-anchor": "middle" }, a, "bassin");
+    el("line", { x1: X(-RH) + 2, y1: Y(14), x2: X(RH) - 2, y2: Y(14), class: "sc-floor" }, a);
+    el("text", { x: cx, y: Y(14) + 13, class: "sc-small", "text-anchor": "middle" }, a, "pont principal (14 m)");
+    // câbles à 30° de l'axe, vers les voisins
+    const t30 = Math.tan(Math.PI / 6);
+    for (const sg of [1, -1]) {
+      const x2 = 2.6, r2 = SA + (XA - x2) * t30;
+      el("line", { x1: cx + sg * SA * k, y1: Y(XA), x2: cx + sg * r2 * k, y2: Y(x2), class: "sc-cable", "marker-end": Aa }, a);
+      el("rect", { x: cx + sg * RH * k - (sg > 0 ? 0 : 0.3 * k), y: Y(XA) - 2.5, width: 0.3 * k + 1, height: 5, class: "sc-attach" }, a);
+      el("circle", { cx: cx + sg * SA * k, cy: Y(XA), r: 3.2, class: "sc-knot" }, a);
+      el("circle", { cx: cx + sg * 3.5 * k, cy: Y(9), r: 3.2, class: "sc-axis", fill: "none" }, a);
+    }
+    el("text", { x: W - 8, y: Y(1.6), class: "sc-small", "text-anchor": "end" }, a, "vers le voisin");
+    el("text", { x: cx, y: 52, class: "sc-small", "text-anchor": "middle" }, a, "↑ centre de la station");
+    // cotes
+    el("line", { x1: cx, y1: Y(0), x2: cx, y2: Y(XA), class: "sc-dim", "stroke-dasharray": "2 3" }, a);
+    const yd = Y(XA) + 40;
+    el("line", { x1: X(-SA), y1: yd, x2: X(SA), y2: yd, class: "sc-dim" }, a);
+    for (const sg of [1, -1]) el("line", { x1: X(sg * SA), y1: Y(XA) + 5, x2: X(sg * SA), y2: yd + 4, class: "sc-dim", "stroke-dasharray": "2 3" }, a);
+    el("text", { x: cx + 4, y: Y(7.2), class: "sc-small" }, a, "13 m");
+    el("text", { x: X(SA) + 6, y: yd + 4, class: "sc-small" }, a, "±4,8 m");
+    el("text", { x: 8, y: H - 34, class: "sc-small" }, a, "○ pointillé : ancrage du modèle précédent");
+    el("text", { x: 8, y: H - 20, class: "sc-small" }, a, "(9 m, ±3,5 m) · centre de masse à 34 m ↓");
+
+    // b) coupe à 13 m de la pointe, vue depuis la pointe
+    const [b] = mk("Coupe au niveau des points", "vue depuis la pointe, à l'échelle", "Coupe du nez : bouclier, points de capture, ailerons");
+    const k2 = 15, bx = 160, by = 190, R2 = RH * k2;
+    const pt = (r, deg) => [bx + r * k2 * Math.sin(deg * Math.PI / 180), by - r * k2 * Math.cos(deg * Math.PI / 180)];
+    el("circle", { cx: bx, cy: by, r: R2, class: "sc-module" }, b);
+    // bouclier : moitié côté vent (en bas), à l'ombre
+    el("path", { d: `M ${bx - R2} ${by} A ${R2} ${R2} 0 0 0 ${bx + R2} ${by}`, fill: "none", stroke: "var(--ink)", "stroke-width": 5 }, b);
+    el("text", { x: bx, y: by + R2 + 18, class: "sc-small", "text-anchor": "middle" }, b, "bouclier (tuiles), à l'ombre");
+    el("text", { x: bx, y: by - R2 - 30, class: "sc-small", "text-anchor": "middle" }, b, "acier, côté Soleil");
+    el("text", { x: 8, y: 52, class: "sc-small" }, b, "↑ axe de rotation, vers le Soleil");
+    // ailerons à ±70° du côté sous le vent : déployés (pointillés), repliés
+    for (const sg of [1, -1]) {
+      const h = pt(RH, sg * 70), e = pt(RH + 3.7, sg * 70);
+      el("line", { x1: h[0], y1: h[1], x2: e[0], y2: e[1], class: "sc-axis", "stroke-width": 3 }, b);
+      const f = pt(RH + 0.35, sg * 22);
+      el("path", { d: `M ${h[0]} ${h[1]} A ${(RH + 0.2) * k2} ${(RH + 0.2) * k2} 0 0 ${sg > 0 ? 0 : 1} ${f[0]} ${f[1]}`, fill: "none", stroke: "var(--muted)",
+        "stroke-width": 4 }, b);
+    }
+    el("text", { x: W - 8, y: by - R2 - 2, class: "sc-small", "text-anchor": "end" }, b, "aileron replié");
+    el("text", { x: W - 8, y: by - 26, class: "sc-small", "text-anchor": "end" }, b, "déployé");
+    // points de capture et départ des câbles dans le plan de rotation
+    for (const sg of [1, -1]) {
+      el("rect", { x: bx + sg * R2 - (sg > 0 ? 0 : 0.3 * k2), y: by - 3, width: 0.3 * k2, height: 6, class: "sc-attach" }, b);
+      el("circle", { cx: bx + sg * SA * k2, cy: by, r: 3.6, class: "sc-knot" }, b);
+      el("line", { x1: bx + sg * (SA * k2 + 4), y1: by, x2: bx + sg * (W / 2 - 10), y2: by, class: "sc-cable" }, b);
+    }
+    el("text", { x: 8, y: by + 16, class: "sc-small" }, b, "câble");
+    el("text", { x: W - 8, y: by + 16, class: "sc-small", "text-anchor": "end" }, b, "câble");
+    el("text", { x: 8, y: H - 34, class: "sc-small" }, b, "ailerons à 20° du plan des câbles ;");
+    el("text", { x: 8, y: H - 20, class: "sc-small" }, b, "repliés, ils restent hors de leur chemin");
+
+    container.innerHTML = "";
+    container.appendChild(a);
+    container.appendChild(b);
+  }
+
   window.drawSchema = drawSchema;
   window.drawStrandLayout = drawStrandLayout;
   window.drawStrandRecoil = drawStrandRecoil;
   window.drawStrandFitting3 = drawStrandFitting3;
+  window.drawCatchPoints = drawCatchPoints;
 })();

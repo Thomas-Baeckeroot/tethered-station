@@ -12,10 +12,11 @@ import os
 
 import numpy as np
 
+import tether_sim as ts
 import tld_design as td
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-T1 = dict(m_t=25, x=12, a=3.6, zeta=0.15)  # bassin de la solution retenue
+T1 = ts.POOL  # bassin de la solution retenue
 
 
 def peak(tld, **kw):
