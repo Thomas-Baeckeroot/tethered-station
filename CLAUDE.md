@@ -28,6 +28,7 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 - The Mac is often in use: run long computations at low priority (`nice -n 19`), few in parallel (`--jobs 2`), in the background. Several hours of compute are acceptable.
 - `tether_sim.py` is the single source of the physics. `run_scenarios.py` holds the scenario catalogues (`CAMPAIGNS`). Keep both self-contained (NumPy + Matplotlib only) so they run in either venv.
 - When changing a motion program or a diagnostic, re-run the affected campaign and `make_web_data.py`; the pages read everything from `docs/data/`.
+- Both page footers end with « Dernière révision : YYYY-MM-DD » : update the date whenever a page's content changes.
 - Page numbers quoted in prose must come from `docs/data/summary.json` (prefer `data-bind` spans) or from a script output; re-check them after any re-run.
 
 ## Files
