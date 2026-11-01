@@ -201,7 +201,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </div>
   <figure class="wide">
     <div class="viewer" id="hero-viewer" data-anim="R_perturbation" data-autostart data-inertial data-speed="1" data-exag="1">
-      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50,"exag":1}'></div>
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":4.8,"bridle":-4,"ship":"starship","radius":4.5,"length":50,"exag":1}'></div>
     </div>
     <figcaption>La station simulée, affichée en temps réel : un tour par minute. Tout est à l'échelle : chaque vaisseau mesure 50 m de haut, et leurs centres de masse sont sur un cercle de 717 m de diamètre ; la règle au centre mesure 200 m. Faites glisser pour tourner autour.</figcaption>
   </figure>
@@ -274,14 +274,14 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <span class="tag">Premier choix</span>
     <h3>Debout, attaché par le nez</h3>
     <p>Chaque vaisseau se tient debout, le nez tourné vers le centre et les moteurs vers l'extérieur : la gravité tire vers les moteurs, comme sur le pas de tir ou sur Mars. L'intérieur reste utilisable tel quel, ponts horizontaux, et l'effort des câbles suit l'axe de la coque. Mais suspendue par le nez, la coque est étirée, alors que sur le pas de tir elle est comprimée. Les réservoirs, sous pression, supportent bien davantage ; la coiffe et la soute, qui ne le sont pas, doivent transmettre l'effort des câbles jusqu'à eux.</p>
-    <p>Les câbles s'attachent au nez, environ 25 m au-dessus du centre de gravité. Le nez du Starship porte des points de levage, qu'utilise la tour de lancement pour soulever le vaisseau, mais leur position et leur capacité ne sont pas publiées. Ils sont faits pour soulever un vaisseau vide sur Terre, alors qu'ici chaque vaisseau tire en permanence environ 2,4 MN, le poids de 245 t sur Terre. Des ancrages renforcés sont une <b>hypothèse</b> de l'étude, et le premier point de structure à vérifier. Suspendu par le haut, le vaisseau se comporte comme un fil à plomb : il revient de lui-même à la verticale.</p>
+    <p>Les câbles s'attachent aux deux points de capture de la coiffe, sur ses flancs, à 13 m de la pointe : environ 21 m au-dessus du centre de gravité. Sur le Starship V3, ce sont eux que la tour de lancement utilise pour soulever le vaisseau, et bientôt pour le rattraper au retour. Leur position exacte et leur capacité ne sont pas publiées : nous l'avons estimée sur les photos. Ils sont faits pour soulever un vaisseau vide sur Terre, alors qu'ici chaque vaisseau tire en permanence environ 2,4 MN, le poids de 245 t sur Terre, et en biais, à 30° de son axe. Des renforts intérieurs, faciles à prévoir sur un vaisseau construit pour la station, sont une <b>hypothèse</b> de l'étude, et le premier point de structure à vérifier. Suspendu par le haut, le vaisseau se comporte comme un fil à plomb : il revient de lui-même à la verticale.</p>
     <p class="verdict">Les grands déplacements se font d'un pont à l'autre, dans l'axe du câble, et ne font rien pencher.</p>
   </div>
   <figure>
     <div class="stack">
       <div id="schema-SV3"></div>
     </div>
-    <figcaption><b>La station vue de face et de côté.</b> Les trois vaisseaux debout, câbles attachés aux points d'ancrage du nez.</figcaption>
+    <figcaption><b>La station vue de face et de côté.</b> Les trois vaisseaux debout, câbles attachés aux points de capture de la coiffe.</figcaption>
   </figure>
 </section>
 
@@ -315,7 +315,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </div>
   <figure>
     <div class="viewer" data-anim="R_cargaison_laterale" data-speed="20" data-follow>
-      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50}'></div>
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":4.8,"bridle":-4,"ship":"starship","radius":4.5,"length":50}'></div>
     </div>
     <div class="ctrl" hidden></div>
     <figcaption><b>Simulation : 50 t de cargaison (sphère jaune) déplacées de part et d'autre d'un pont du vaisseau 0.</b> La caméra suit le vaisseau. La plaque orange est le plancher, la flèche bleue le « haut » ressenti par l'équipage.</figcaption>
@@ -341,7 +341,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <span class="tag">Amortisseur</span>
     <h3>Un bassin d'eau contre le balancement</h3>
     <p>Certains gratte-ciel combattent leurs oscillations avec un bassin d'eau : quand la tour se balance, l'eau clapote à contretemps et absorbe le mouvement. Il suffit de régler la profondeur du bassin pour que l'eau clapote au même rythme que la tour, et de freiner le clapotis par des grilles. Le système est passif : ni capteur ni électronique ne commandent le clapotis, l'eau répond d'elle-même au balancement. Il faut seulement garder le bon niveau d'eau, car c'est la profondeur qui règle le rythme.</p>
-    <p>Nous avons cherché le meilleur bassin pour nos vaisseaux. Il faut le placer en haut, sous la coiffe : le vaisseau se balance autour de son centre de gravité, et un bassin posé près des moteurs ne bougerait presque pas. Il faut 25 t d'eau, dans un bassin rond de 7,2 m de diamètre et 60 cm de profondeur, qui clapote toutes les 8,5 secondes. C'est beaucoup pour un vaisseau spatial, 4 % de sa masse, mais cette eau n'est pas tout à fait du poids mort : c'est une réserve de secours, maintenue à niveau, et quelques dizaines de centimètres d'eau sont l'un des meilleurs abris contre les radiations. Plus d'eau n'apporte rien. Il faut aussi la couvrir : si un câble cédait, le plancher pencherait assez pour vider un bassin ouvert.</p>
+    <p>Nous avons cherché le meilleur bassin pour nos vaisseaux. Il faut le placer en haut, sous la coiffe : le vaisseau se balance autour de son centre de gravité, et un bassin posé près des moteurs ne bougerait presque pas. Il faut 25 t d'eau, dans un bassin rond de 7,8 m de diamètre et 52 cm de profondeur, qui clapote toutes les 9,7 secondes. C'est beaucoup pour un vaisseau spatial, 4 % de sa masse, mais cette eau n'est pas tout à fait du poids mort : c'est une réserve de secours, maintenue à niveau, et quelques dizaines de centimètres d'eau sont l'un des meilleurs abris contre les radiations. Plus d'eau n'apporte rien. Il faut aussi la couvrir : si un câble cédait, le plancher pencherait assez pour vider un bassin ouvert.</p>
     <p class="verdict">Avec le bassin, au pire rythme, le plancher ne penche plus que de <b data-bind="T_balayage_z.tilt_max">—</b> au lieu de 2,7°. Ce qui reste vient surtout du clapotis de l'oxygène : des chicanes plus efficaces, placées juste sous la surface du liquide, dont le niveau ne change pas pendant le voyage, le ramèneraient à <b data-bind="V_chicanes8_balayage_z.tilt_max">—</b>.</p>
   </div>
   <figure>
@@ -360,7 +360,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </div>
   <figure>
     <div class="viewer" data-anim="L_libre_resonance" data-speed="6" data-follow>
-      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50}'></div>
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":4.8,"bridle":-4,"ship":"starship","radius":4.5,"length":50}'></div>
     </div>
     <div class="ctrl" hidden></div>
     <figcaption><b>Simulation sans chicanes : 4 t oscillent pendant 3 minutes au rythme du clapotis, puis s'arrêtent.</b> Les sphères turquoise sont l'oxygène (en bas) et le méthane (au milieu), la jaune la masse qui oscille. Le balancement des liquides est amplifié 15 fois pour être visible : il se poursuit longtemps après l'arrêt. Lecture accélérée 6 fois.</figcaption>
@@ -427,7 +427,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <div class="col" style="margin:0;max-width:46rem">
     <span class="eyebrow">Le résultat</span>
     <h2>La station en route vers Mars</h2>
-    <p>Trois vaisseaux de 610 t, debout, forment un triangle. Chacun est attaché par son nez, avec un câble de trois brins vers chaque voisin, sur le côté qui lui fait face. Leurs réservoirs ont des chicanes. Le pont principal de chaque vaisseau tourne à 338 m de l'axe (son centre de gravité à 358 m), à un tour par minute, et les câbles mesurent <span class="num" data-bind="R_perturbation.L0" data-fmt="m">—</span> d'un nez à l'autre.</p>
+    <p>Trois vaisseaux de 610 t, debout, forment un triangle. Chacun est attaché par les deux points de capture de sa coiffe, avec un câble de trois brins vers chaque voisin, sur le côté qui lui fait face. Leurs réservoirs ont des chicanes. Le pont principal de chaque vaisseau tourne à 338 m de l'axe (son centre de gravité à 358 m), à un tour par minute, et les câbles mesurent <span class="num" data-bind="R_perturbation.L0" data-fmt="m">—</span> d'un vaisseau à l'autre.</p>
   </div>
   <ul class="checks" id="mission-checks">
     <li><b>Pas de pivotement</b><span>Le vaisseau perturbé ne tourne que de <span class="num" data-bind="R_perturbation.roll_max">—</span> autour de son axe.</span></li>
@@ -436,7 +436,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <li><b>Mise en rotation en douceur</b><span>Des propulseurs amènent la station de 0,1 à 1 tour par minute en une demi-heure, avec 21 t d'ergols au total : pendant la manœuvre, le plancher penche de <span class="num" data-bind="S_montee_k005.spin.tilt_max_on">—</span> et les câbles restent tendus.</span></li>
     <li><b>Face au Soleil</b><span>Panneaux fixes et ergols qui restent froids d'eux-mêmes ; l'axe suit le Soleil grâce à de petites poussées, environ 75 t d'ergols pour tout le voyage.</span></li>
     <li><b>Marge de résistance</b><span>Câbles dimensionnés pour des vaisseaux chargés à 1 g avec un facteur de sécurité de 3 : en route, ils ne travaillent qu'à 5 % de leur résistance.</span></li>
-    <li><b>Un brin peut casser</b><span>Chaque câble est fait de trois brins : si l'un casse, il est largué, les deux autres prennent le relais, et le plancher repasse sous 3° en 35 s (chapitre 7).</span></li>
+    <li><b>Un brin peut casser</b><span>Chaque câble est fait de trois brins : si l'un casse, il est largué, les deux autres prennent le relais ; le plancher penche de 10° quelques secondes et repasse sous 5° en 43 s (chapitre 7).</span></li>
   </ul>
   <p class="verdict">Le point sensible était le balancement des vaisseaux, plus légers qu'au départ et alourdis d'ergols qui ne suivent pas la coque : 4 t (une cinquantaine de personnes) se balançant en cadence toutes les 8 secondes faisaient pencher le plancher de 2,7°. Un bassin de 25 t d'eau sous la coiffe de chaque vaisseau ramène ce pire cas à <span class="num" data-bind="T_balayage_z.tilt_max">—</span>, sans moteur ni pièce mobile.</p>
   <p>Une variante permettrait de tourner un peu moins vite, à 0,93 tour par minute, en transvasant la moitié des ergols du vaisseau habité dans les cargos et en réglant son bassin en conséquence (voir « Alléger le vaisseau habité », chapitre 5 ; <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi#masses-inegales" target="_blank" rel="noopener">détails dans le carnet</a>).</p>
@@ -445,7 +445,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 <section class="col" id="rupture">
   <span class="eyebrow">7 · La sécurité</span>
   <h2>Et si un câble cassait&nbsp;?</h2>
-  <p>Dans le triangle, chaque câble retient deux vaisseaux. Un sceptique dira que 573 m de câble, c'est long, et qu'une micrométéorite finit toujours par le couper. Les câbles qui ont volé ont en effet souvent été coupés, mais c'étaient des fils de moins d'un millimètre. Pour couper un câble de 11 cm, il faut une pierre de 2 à 5 cm ; entre la Terre et Mars, la probabilité d'en croiser une pendant le voyage est de l'ordre d'une sur un million.</p>
+  <p>Dans le triangle, chaque câble retient deux vaisseaux. Un sceptique dira que 579 m de câble, c'est long, et qu'une micrométéorite finit toujours par le couper. Les câbles qui ont volé ont en effet souvent été coupés, mais c'étaient des fils de moins d'un millimètre. Pour couper un câble de 11 cm, il faut une pierre de 2 à 5 cm ; entre la Terre et Mars, la probabilité d'en croiser une pendant le voyage est de l'ordre d'une sur un million.</p>
   <p>Les vraies menaces sont plus banales : une attache mal faite, l'usure là où le câble frotte, un défaut de fabrication, un câble abîmé en l'enroulant. Une station sûre doit donc survivre à la perte de n'importe quel câble. Nous en avons coupé un, en route.</p>
 </section>
 
@@ -459,7 +459,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </div>
   <figure>
     <div class="viewer" data-anim="X_rupture_milieu" data-speed="3">
-      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50}'></div>
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":4.8,"bridle":-4,"ship":"starship","radius":4.5,"length":50}'></div>
     </div>
     <div class="ctrl" hidden></div>
     <figcaption><b>Simulation : le câble entre les vaisseaux 0 et 1 cède en son milieu, 10 s après le début.</b> Vue dans le repère qui tourne avec la station : avant la rupture, tout est immobile. Vaisseaux dessinés trois fois plus gros que nature. Lecture accélérée 3 fois.</figcaption>
@@ -477,7 +477,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   </div>
   <figure>
     <div class="viewer" data-anim="Z_moyeu_double_rupture" data-speed="3">
-      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50,"hub":true}'></div>
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":4.8,"bridle":-4,"ship":"starship","radius":4.5,"length":50,"hub":true}'></div>
     </div>
     <div class="ctrl" hidden></div>
     <figcaption><b>Simulation : même rupture, avec un moyeu et deux rayons par vaisseau.</b> Les morceaux du câble cassé sont largués une seconde après la rupture. Vue dans le repère qui tourne avec la station, vaisseaux dessinés trois fois plus gros. Lecture accélérée 3 fois.</figcaption>
@@ -489,13 +489,13 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <span class="tag">Parade</span>
     <h3>Trois brins plutôt qu'un</h3>
     <p>Plus simple et bien plus léger : faire chaque câble de trois brins d'un tiers de section, attachés ensemble au nez de chaque vaisseau sur une petite plaque montée sur rotule. La masse de câble ne change pas et, en temps normal, la station ne voit pas la différence. Si un brin casse, des coupe-câbles larguent ses morceaux dans la seconde, la plaque bascule, et les deux autres brins se partagent la charge à parts égales : au plus fort de l'à-coup, <span data-bind="B3_rupture.break.T_max_MN" data-fmt="mn">—</span> chacun, soit 10 % de ce qu'ils peuvent tenir.</p>
-    <p>Le triangle garde sa forme et la rotation ne change pas. Seul le premier instant secoue : les deux vaisseaux concernés perdent d'un coup un tiers de leur traction, et leur plancher penche de 9,5° pendant quelques secondes. Il repasse sous 3° en 35 s et sous 1° en 1,8 min. Avec deux brins par côté, il penchait de 16° ; avec le moyeu, il fallait sept minutes pour repasser sous 3°.</p>
-    <p>Et si un deuxième brin cassait du même côté ? Le dernier porterait seul la charge, à 15 % de ce qu'il peut tenir en route. Nous l'avons simulé : le plancher penche alors de 22° pendant quelques secondes, mais le triangle tient, la rotation ne change pas, et le plancher repasse sous 3° en un peu plus d'une minute.</p>
+    <p>Le triangle garde sa forme et la rotation ne change pas. Seul le premier instant secoue : les deux vaisseaux concernés perdent d'un coup un tiers de leur traction, et leur plancher penche de 10° pendant quelques secondes. Il repasse sous 5° en 43 s, sous 3° en 82 s et sous 1° en 2,7 min. Avec deux brins par côté, il penchait de 16° ; avec le moyeu, il fallait plus de sept minutes pour repasser sous 3°.</p>
+    <p>Et si un deuxième brin cassait du même côté ? Le dernier porterait seul la charge, à 15 % de ce qu'il peut tenir en route. Nous l'avons simulé : le plancher penche alors de 23° pendant quelques secondes, mais le triangle tient, la rotation ne change pas, et le plancher repasse sous 3° en moins d'une minute.</p>
     <p class="verdict">C'est la solution que nous retenons. Comme le demandent les règles des vols habités, aucune rupture seule ne met l'équipage en danger, et même une deuxième du même côté reste supportable. Elle ne coûte qu'une ou deux tonnes de ferrures et de coupe-câbles, contre près de 40 t pour le moyeu. Reste à soigner l'attache elle-même : si elle lâchait, les trois brins partiraient ensemble.</p>
   </div>
   <figure>
     <div class="viewer" data-anim="B3_rupture" data-speed="3">
-      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":3.5,"ship":"starship","radius":4.5,"length":50}'></div>
+      <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":4.8,"bridle":-4,"ship":"starship","radius":4.5,"length":50}'></div>
     </div>
     <div class="ctrl" hidden></div>
     <figcaption><b>Simulation : l'un des trois brins du côté entre les vaisseaux 0 et 1 cède en son milieu, 10 s après le début.</b> Ses morceaux sont largués une seconde plus tard ; les deux brins intacts, superposés au brin cassé, retiennent les deux vaisseaux. Vue dans le repère qui tourne avec la station, vaisseaux dessinés trois fois plus gros. Lecture accélérée 3 fois.</figcaption>
@@ -517,7 +517,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <li><b>Des entretoises entre les brins</b><span>Des palonniers tous les 150 à 200 m garderaient les brins écartés sur toute leur longueur et retiendraient les morceaux d'un brin cassé, qu'il ne serait plus nécessaire de larguer. Ils ne servent pas à reprendre l'effort : les brins intacts y suffisent.</span></li>
     <li><b>Des tronçons remplaçables</b><span>Des câbles faits de tronçons d'environ 180 m, de 1,6 t chacun : plus faciles à fabriquer, contrôler et remplacer. Avec trois brins, on remplacerait un brin pendant que les deux autres portent la charge, sans arrêter la rotation ; avec le moyeu, on pourrait même détendre tout un côté. Chaque raccord reste un point faible à soigner.</span></li>
     <li><b>Un filet plutôt que trois câbles</b><span>En coupant chaque côté en trois et en reliant les points par des câbles intérieurs, on obtient un filet de neuf triangles dont le centre est le moyeu. N'importe quel câble peut céder. La rotation suffit à tendre un filet, comme la voile solaire japonaise IKAROS.</span></li>
-    <li><b>Des amortisseurs aux attaches</b><span>Des sangles qui se déchirent progressivement, comme dans les harnais antichute, plafonneraient les à-coups d'un câble unique : vers 5 MN au lieu de 8, sur quelques mètres de course.</span></li>
+    <li><b>Des amortisseurs aux attaches</b><span>Des sangles qui se déchirent progressivement, comme dans les harnais antichute, plafonneraient les à-coups d'un câble unique : vers 5 MN au lieu de 9, sur quelques mètres de course.</span></li>
     <li><b>Un câble qui se surveille</b><span>Une fibre optique dans le câble mesure son allongement sur toute sa longueur et signale un brin rompu ou un échauffement. Un robot grimpeur peut l'inspecter, poser un manchon de réparation, ou tirer un câble neuf le long de l'ancien.</span></li>
     <li><b>Ranger les câbles à l'abri</b><span>Hors service, les câbles doivent être enroulés sous une coiffe : en orbite basse, les débris, l'oxygène atomique et les ultraviolets les abîment bien plus que le vide entre les planètes. Les trois tiennent dans 15 à 20 m³. Un câble laissé déployé sans tension se vrille et s'emmêle.</span></li>
     <li><b>Une gaine blanche</b><span>Comme la station fait face au Soleil, les câbles sont éclairés de côté en permanence, sans jamais passer à l'ombre. Une gaine blanche les garde vers −70 °C, là où le Dyneema est le plus solide ; une gaine métallique nue les chaufferait à près de 80 °C, ce qui accélère son fluage. La face éclairée reste plus chaude que la face à l'ombre : de 40 à 100 °C d'écart au départ, moins près de Mars. Le Dyneema raccourcit en chauffant : des fils droits et parallèles n'auraient plus la même longueur, et les fils éclairés porteraient presque toute la charge. Dans une tresse, chaque fil fait le tour du câble et passe autant de temps des deux côtés : tous gardent la même longueur. Les trois câbles, éclairés de la même façon, restent égaux, et les trois brins de chaque câble, disposés en triangle, ne se font pas d'ombre.</span></li>
@@ -606,7 +606,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <span class="tag">Leçon n° 3</span>
     <h3>Le triangle et les deux points d'attache</h3>
     <p>Passer à trois modules en triangle ne suffit pas : si chaque module est tenu par un seul point, il pivote exactement comme dans l'haltère. Ce qui change tout, c'est d'accrocher chaque câble à un point différent du module, du côté du voisin vers lequel il part. Pour pivoter, le module devrait alors tirer sur les câbles, qui le ramènent. Avec des attaches écartées de 20 m de part et d'autre du centre, même un module mal orienté reste à moins de 0,2° de sa position.</p>
-    <p class="verdict">C'est le principe repris par nos vaisseaux, avec des attaches écartées de seulement 3,5 m sur le nez.</p>
+    <p class="verdict">C'est le principe repris par nos vaisseaux, avec des attaches écartées de ±4,8 m sur les flancs de la coiffe.</p>
   </div>
   <figure>
     <div class="stack">
@@ -622,7 +622,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <span class="tag">Leçon n° 4</span>
     <h3>Des attaches hautes pour un plancher plat</h3>
     <p>Déplacer 50 tonnes de matériel de 15 m vers l'avant d'un module générique déplace son centre de gravité de 47 cm. Accroché par un seul point placé à 6 m au-dessus du centre, le plancher penche alors de <b>4,4°</b> : une pente de 8 %, où chaque balle posée par terre se met à rouler. Avec deux attaches aux extrémités, l'inclinaison tombe à <b>1,6°</b>. Surélever les points d'attache de 20 m, sur des mâts, allonge le bras de levier : <b>0,7°</b>.</p>
-    <p class="verdict">Un Starship debout, attaché par le nez 25 m au-dessus de son centre de gravité, a ses « mâts » intégrés.</p>
+    <p class="verdict">Un Starship debout, attaché 21 m au-dessus de son centre de gravité, a ses « mâts » intégrés.</p>
   </div>
   <figure>
     <div class="chartbox"><div id="chart-cargo"></div></div>
@@ -659,7 +659,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <ul class="checks">
     <li><b>Simulé</b><span>Le comportement de la station : rotation, balancements, clapotis des ergols et du bassin, mouvements de l'équipage et des cargaisons, rupture d'un câble, mise en rotation, pivotement vers le Soleil. Le simulateur est vérifié avec Project Chrono, sur des cas de référence et sur la station (ballottement, ruptures de câble).</span></li>
     <li><b>Estimé</b><span>Par des calculs plus simples, sans simulation : la masse après l'injection, la résistance, la masse et la température des câbles, les ergols pour faire tourner et pivoter la station, la chaleur reçue par les réservoirs, le risque de météorites.</span></li>
-    <li><b>Supposé</b><span>Ce que les sources publiques ne disent pas : la capacité des ancrages du nez et de la coiffe, la masse à vide du Starship V3 et la répartition de ses masses, la place disponible sous la coiffe pour le bassin. Ce sont les premiers points à confirmer.</span></li>
+    <li><b>Supposé</b><span>Ce que les sources publiques ne disent pas : la position exacte et la capacité des points de capture de la coiffe, la masse à vide du Starship V3 et la répartition de ses masses, la place disponible sous la coiffe pour le bassin. Ce sont les premiers points à confirmer.</span></li>
   </ul>
 </section>
 
@@ -670,7 +670,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <li>Le déploiement après l'injection vers Mars : rapprocher les trois vaisseaux et dérouler les câbles avant la mise en rotation, quand ils ne portent presque rien.</li>
     <li>L'arrivée à Mars : arrêter la rotation, rentrer les câbles, séparer les vaisseaux, et retirer ou larguer ce qui ne supporterait pas l'entrée dans l'atmosphère (isolant côté Soleil, panneaux, ferrures).</li>
     <li>Les corrections de trajectoire en route : les trois vaisseaux doivent pousser ensemble, ou la station doit cesser de tourner.</li>
-    <li>Les ancrages du nez et le chemin de l'effort jusqu'aux réservoirs, à travers la coiffe et la soute ; le passage des câbles près des ailerons avant.</li>
+    <li>Les points de capture de la coiffe et le chemin de l'effort jusqu'aux réservoirs, à travers la coiffe et la soute ; le passage des câbles près des ailerons avant.</li>
     <li>La place du bassin dans l'ogive, qui se rétrécit vers la pointe.</li>
     <li>Le plein en orbite basse : plusieurs dizaines de vols de ravitailleurs, et un transfert d'ergols pas encore démontré à cette échelle.</li>
     <li>Les antennes : le Soleil reste dans l'axe, mais la Terre s'en écarte pendant le voyage ; il faut des antennes orientables, qui suivent la rotation.</li>
@@ -747,7 +747,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   drawSchema(document.getElementById("schema-F"), { topology: "triangle", module: "axial", caption: "Triangle, attache unique, modules parallèles à l'axe." });
   drawSchema(document.getElementById("schema-Z"), { topology: "triangle2", module: "tangential", bridle: 20, caption: "Deux attaches par module, surélevées de 20 m." });
   const SS = { ship: "starship", radius: 4.5, length: 50 };
-  drawSchema(document.getElementById("schema-SV3"), Object.assign({ topology: "triangle2", module: "radial", spread: 3.5, caption: "Nez vers le centre, câbles aux points d'ancrage du nez." }, SS));
+  drawSchema(document.getElementById("schema-SV3"), Object.assign({ topology: "triangle2", module: "radial", spread: 4.8, bridle: -4, caption: "Nez vers le centre, câbles aux points de capture de la coiffe." }, SS));
   drawSchema(document.getElementById("schema-SH3"), Object.assign({ topology: "triangle2", module: "tangential", bridle: 20, caption: "Couchés : attaches aux deux extrémités, sur des mâts." }, SS));
 
   /* Données */

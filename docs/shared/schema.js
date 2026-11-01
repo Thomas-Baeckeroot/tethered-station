@@ -191,14 +191,15 @@
      Chaque brin tire sa ferrure vers son voisin ; dans l'axe, on ne voit que
      cette traction tangentielle (une flèche par brin). Un brin croisé amarré
      au croisement tire vers le nœud, sur l'axe : aucun couple. */
+  const FX = 4.8;   // points de capture à ±4,8 m de l'axe (§ 2.5)
   const STRAND_LAYOUTS = {
     // fit : ferrures [e_t, e_z] (m) ; strands : [ferrure, côté (−1 : M1, +1 : M2)] ;
     // le brin 0 rompt ; phiBreak : vue après rupture roulée (stabilité) ou non (choc)
-    ferrure: { fit: [[-3.5, 0], [3.5, 0]], strands: [[0, -1], [0, -1], [1, 1], [1, 1]], phiBreak: 0 },
-    plan: { fit: [[-4.5, 0], [-2.5, 0], [2.5, 0], [4.5, 0]], strands: [[0, -1], [1, -1], [2, 1], [3, 1]], phiBreak: 0 },
-    axe: { fit: [[-3.5, 1], [-3.5, -1], [3.5, 1], [3.5, -1]], strands: [[0, -1], [1, -1], [2, 1], [3, 1]], phiBreak: 0 },
-    croise: { fit: [[-3.5, 0], [3.5, 0]], strands: [[0, -1], [1, -1], [1, 1], [0, 1]], phiBreak: 18 },
-    lie: { fit: [[-3.5, 0], [3.5, 0]], strands: [[0, -1], [1, -1], [1, 1], [0, 1]], phiBreak: 18, knot: true },
+    ferrure: { fit: [[-FX, 0], [FX, 0]], strands: [[0, -1], [0, -1], [1, 1], [1, 1]], phiBreak: 0 },
+    plan: { fit: [[-FX - 1, 0], [-FX + 1, 0], [FX - 1, 0], [FX + 1, 0]], strands: [[0, -1], [1, -1], [2, 1], [3, 1]], phiBreak: 0 },
+    axe: { fit: [[-FX, 1], [-FX, -1], [FX, 1], [FX, -1]], strands: [[0, -1], [1, -1], [2, 1], [3, 1]], phiBreak: 0 },
+    croise: { fit: [[-FX, 0], [FX, 0]], strands: [[0, -1], [1, -1], [1, 1], [0, 1]], phiBreak: 18 },
+    lie: { fit: [[-FX, 0], [FX, 0]], strands: [[0, -1], [1, -1], [1, 1], [0, 1]], phiBreak: 18, knot: true },
   };
 
   function drawStrandLayout(container, layout, labels) {
@@ -233,7 +234,7 @@
       el("line", { x1: x0, y1: y0, x2: x0 + dx * len, y2: y0 + dy * len, class: "sc-cable" }, svg);
     });
     L.fit.forEach(([t]) => el("circle", { cx: cx + t * k, cy: yb, r: 2.4, class: "sc-attach" }, svg));
-    if (L.knot) el("circle", { cx, cy: yb + 3.5 / 0.577 * k, r: 3.6, class: "sc-knot" }, svg);
+    if (L.knot) el("circle", { cx, cy: yb + FX / 0.577 * k, r: 3.6, class: "sc-knot" }, svg);
     el("text", { x: 4, y: 13, class: "sc-small" }, svg, "dessus");
     el("text", { x: W - 4, y: 13, class: "sc-small", "text-anchor": "end" }, svg, "nez de M0");
     el("text", { x: 4, y: 50, class: "sc-small" }, svg, "M1 ↙");
