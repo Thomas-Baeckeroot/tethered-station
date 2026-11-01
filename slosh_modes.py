@@ -21,16 +21,16 @@ OMEGA = 2 * math.pi / 60
 X_REF = 14.0                 # pont principal (m de la pointe) : 3,711 m/s² y est atteint
 R_REF = 3.711 / OMEGA ** 2   # rayon de ce pont
 R_TOT = R_REF + ts.starship_mass_model(610, slosh=True)["x_tot"] - X_REF   # centre de masse des vaisseaux
-H = 25.0                     # attache → centre de masse total
-T_CABLE, L_CABLE = 1.39e6, 573.9
+X_ATT = ts.ANCHOR_X          # attaches : points de capture (m de la pointe)
+T_CABLE, L_CABLE = 1.387e6, 579.6
 
 
 def modes(free, mass_t=610):
     sm = ts.starship_mass_model(mass_t, slosh=free)
-    x_att = sm["x_tot"] - H
+    x_att = X_ATT
     hr = sm["x_c"] - x_att
     Mr, Ir = sm["M_rigid"], sm["I_tr"]
-    ra = R_TOT - H
+    ra = R_TOT - (sm["x_tot"] - x_att)
     pend = [(t["ms"], t["x_hinge"] - x_att, t["L"]) for t in sm["pendulums"]]
     n = 2 + len(pend)
     M = np.zeros((n, n))

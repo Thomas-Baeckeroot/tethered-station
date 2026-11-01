@@ -18,6 +18,8 @@ import subprocess
 import sys
 import time
 
+import tether_sim as ts
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 A = ["--topology", "dumbbell", "--module", "tangential"]
@@ -46,7 +48,13 @@ LATZ = ["--motion-amp", "3.5", "--motion-axis", "z"]
 # (mission_mass.py : 610 t), câbles dimensionnés pour le vaisseau chargé
 # (1 600 t à 1 g), gravité de Mars au pont principal (14 m de la pointe)
 DECK = ["--g-ref-x", "14"]
-MISSION = SV3 + ["--mass-t", "610", "--design-mass-t", "1600", "--accel", "3.711"] + DECK
+# Câbles sur les points de capture du Starship V3 (13 m de la pointe, ±4,8 m) ;
+# --bridle -4 place l'attache du cylindre homogène (campagne mission) à 21 m
+# au-dessus de son centre de masse, comme sur le vrai vaisseau (34 − 13 m)
+ANCHOR = ["--spread", f"{ts.ANCHOR_SPREAD:g}", "--attach-x", f"{ts.ANCHOR_X:g}", "--bridle", "-4"]
+POOL = ["--tld-mass-t", f"{ts.POOL['m_t']:g}", "--tld-x", f"{ts.POOL['x']:g}", "--tld-radius", f"{ts.POOL['a']:g}",
+        "--tld-zeta", f"{ts.POOL['zeta']:g}"]
+MISSION = SV3 + ["--mass-t", "610", "--design-mass-t", "1600", "--accel", "3.711"] + DECK + ANCHOR
 # Ballottement des ergols : modèle de masse du Starship, ergols figés ou libres
 # (pendules d'Abramson), parois raidies (ζ = 0,1 %) ou chicanes (ζ = 3 %) ;
 # balayage prolongé jusqu'à 0,4 Hz pour couvrir le mode de ballottement
@@ -55,12 +63,12 @@ FREE = MISSION + ["--slosh", "free", "--slosh-zeta", "0.001"]
 BAFFLED = MISSION + ["--slosh", "free", "--slosh-zeta", "0.03"]
 SWEEP_L = ["--motion", "sweep", "--motion-mass-t", "4", "--duration", "5460", "--sweep-f1", "0.4"]
 RESO = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "0.38", "--motion-axis", "z",
-        "--motion-period", "3.89", "--motion-stop", "240", "--duration", "600"]
+        "--motion-period", "3.90", "--motion-stop", "240", "--duration", "600"]
 
-TLD = BAFFLED + ["--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "--tld-zeta", "0.15"]
-# 4 t oscillant hors plan au rythme du balancement principal (≈ 8 s) pendant 3 min
+TLD = BAFFLED + POOL
+# 4 t oscillant hors plan au rythme du balancement principal (≈ 9 s) pendant 3 min
 RESO8 = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "3.5", "--motion-axis", "z",
-         "--motion-period", "8.0", "--motion-stop", "240", "--duration", "900"]
+         "--motion-period", "9.0", "--motion-stop", "240", "--duration", "900"]
 
 # Rupture d'un câble (côté 0, entre les vaisseaux 0 et 1) à t = 60 s ; parade :
 # moyeu central de 20 t relié au nez de chaque vaisseau par un rayon prétendu
@@ -72,11 +80,9 @@ HUB2 = HUB + ["--hub-spokes", "2"]
 # sur chaque vaisseau (propulseurs d'attitude, Isp 300 s), sans perturbation
 SPIN = ["--spin-from", "0.1", "--dv-radial", "0", "--dv-z", "0", "--droll", "0"]
 # Masses inégales : ergols du vaisseau habité transvasés dans les cargos
-# (220 / 805 / 805 t), attaches sur les points d'ancrage réels (9 m de la
-# pointe), vaisseau habité à 3,711 m/s² au pont principal : 0,863 tr/min (light_tld.py)
-UNEQ = SV3 + DECK + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", "--slosh-zeta", "0.03",
-              "--tld-mass-t", "25", "--tld-x", "12", "--tld-radius", "3.6", "--tld-zeta", "0.15",
-              "--masses-t", "220,805,805", "--attach-x", "9", "--target-ship", "0", "--rpm", "0.8629"]
+# (220 / 805 / 805 t), attaches sur les points de capture, vaisseau habité à 3,711 m/s² au pont principal : 0,862 tr/min (light_tld.py)
+UNEQ = SV3 + DECK + ANCHOR + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", "--slosh-zeta", "0.03"] + POOL + [
+    "--masses-t", "220,805,805", "--target-ship", "0", "--rpm", "0.8621"]
 
 
 # Sensibilité de la solution retenue : V3 aux réservoirs pleins (1 820 t au
@@ -89,9 +95,9 @@ SK99 = TLD + ["--material", "sk99"]
 TLD3 = TLD + ["--side-strands", "3", "--release-delay", "1"]
 
 # 4 t oscillant hors plan pendant 4 min au pire rythme du vaisseau habité
-# allégé de 195 t avec le bassin d'origine (0,092 Hz, période 10,9 s)
+# allégé de 195 t avec le bassin d'origine (0,082 Hz, période 12,2 s)
 RESO_K = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "3.5", "--motion-axis", "z",
-          "--motion-period", "10.9", "--motion-stop", "240", "--duration", "900"]
+          "--motion-period", "12.2", "--motion-stop", "240", "--duration", "900"]
 
 
 def UNEQ_K(masses, rpm):
@@ -189,7 +195,7 @@ CAMPAIGNS = {
         ("L_libre_balayage_z", FREE + SWEEP_L + LATZ),
         ("L_chicanes_balayage_t", BAFFLED + SWEEP_L + LAT),
         ("L_chicanes_balayage_z", BAFFLED + SWEEP_L + LATZ),
-        # Animations : 4 t oscillant hors plan au rythme du ballottement couplé (3,89 s) pendant 3 min
+        # Animations : 4 t oscillant hors plan au rythme du ballottement couplé (3,90 s) pendant 3 min
         ("L_libre_resonance", FREE + RESO + ["--traj-dt", "0.25"]),
         ("L_chicanes_resonance", BAFFLED + RESO + ["--traj-dt", "0.25"]),
     ],
@@ -201,11 +207,11 @@ CAMPAIGNS = {
         ("R_equipage", BAFFLED + WALK + LAT),
     ],
     # Amortisseur à liquide accordé (tld_design.py) : 25 t d'eau sous la
-    # coiffe, bassin Ø 7,2 m × 0,61 m accordé sur le balancement hors plan
+    # coiffe, bassin Ø 7,8 m × 0,52 m accordé sur le balancement hors plan
     "amortisseur": [
         ("T_balayage_z", TLD + SWEEP_L + LATZ),
         ("T_balayage_t", TLD + SWEEP_L + LAT),
-        ("T50_balayage_z", BAFFLED + ["--tld-mass-t", "50", "--tld-x", "12", "--tld-radius", "4.2", "--tld-zeta", "0.15"] + SWEEP_L + LATZ),
+        ("T50_balayage_z", BAFFLED + ["--tld-mass-t", "50", "--tld-x", "12", "--tld-radius", "4.4", "--tld-zeta", "0.1"] + SWEEP_L + LATZ),
         ("T560_balayage_z", [a if a != "610" else "560" for a in TLD] + SWEEP_L + LATZ),
         ("T_perturbation", TLD + PERT + TRAJ),
         ("T_cargaison_laterale", TLD + CARGO + LAT),
@@ -267,8 +273,8 @@ CAMPAIGNS = {
         ("U_equipage", UNEQ + WALK + LAT),
         ("U_balayage_z", UNEQ + SWEEP_L + LATZ),
         # Bassin réaccordé sur le balancement hors plan du vaisseau habité
-        # allégé (≈ 0,072 Hz au lieu de 0,117 Hz) : 19 t, Ø 8,8 m, 0,31 m
-        ("U_balayage_z_bassin", UNEQ + ["--tld-mass-t", "19", "--tld-radius", "4.4"] + SWEEP_L + LATZ),
+        # allégé (≈ 0,059 Hz au lieu de 0,106 Hz) : 15 t, Ø 8,8 m, 0,25 m
+        ("U_balayage_z_bassin", UNEQ + ["--tld-mass-t", "15", "--tld-radius", "4.4", "--tld-zeta", "0.3"] + SWEEP_L + LATZ),
     ],
     # Vaisseau habité allégé : transfert partiel de ses ergols vers les
     # cargos (100, 195, 300 t, rapport de mélange conservé), vitesse de
@@ -277,25 +283,25 @@ CAMPAIGNS = {
     # habité (lest, masse inchangée). Contrôle de convergence : 32 segments
     "allege": [
         (f"{k}_{sc}", base + extra)
-        for k, base in (("K100", UNEQ_K("510,660,660", "0.9590")), ("K195", UNEQ_K("415,708,708", "0.9243")),
-                        ("K300", UNEQ_K("310,760,760", "0.8900")),
-                        ("KL50", UNEQ_K("220,805,805", "0.8652") + ["--ballast-t", "50", "--ballast-x", "44"]))
+        for k, base in (("K100", UNEQ_K("510,660,660", "0.9588")), ("K195", UNEQ_K("415,708,708", "0.9239")),
+                        ("K300", UNEQ_K("310,760,760", "0.8894")),
+                        ("KL50", UNEQ_K("220,805,805", "0.8644") + ["--ballast-t", "50", "--ballast-x", "44"]))
         for sc, extra in (("perturbation", PERT), ("cargaison_laterale", CARGO + LAT + TRAJ), ("equipage", WALK + LAT),
                           ("balayage_z", SWEEP_L + LATZ), ("balayage_t", SWEEP_L + LAT))
-    ] + [("K195_balayage_z_seg32", UNEQ_K("415,708,708", "0.9243") + SWEEP_L + LATZ + ["--segments", "32"])]
+    ] + [("K195_balayage_z_seg32", UNEQ_K("415,708,708", "0.9239") + SWEEP_L + LATZ + ["--segments", "32"])]
     # Bassin réaccordé sur le balancement hors plan du vaisseau habité
     # (light_tld.py : Ø 8,8 m, toute la largeur de la coque, sauf K100) ; forçage
-    # au pire rythme du bassin d'origine (K195 : 0,092 Hz) avec l'un ou l'autre
+    # au pire rythme du bassin d'origine (K195 : 0,082 Hz) avec l'un ou l'autre
     + [(f"{k}_{sc}_bassin", base + pool + extra)
-       for k, base, pool in (("K100", UNEQ_K("510,660,660", "0.9590"), ["--tld-mass-t", "15", "--tld-radius", "3.4", "--tld-zeta", "0.2"]),
-                             ("K195", UNEQ_K("415,708,708", "0.9243"), ["--tld-mass-t", "35", "--tld-radius", "4.4", "--tld-zeta", "0.2"]),
-                             ("K300", UNEQ_K("310,760,760", "0.8900"), ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]),
-                             ("KL50", UNEQ_K("220,805,805", "0.8652") + ["--ballast-t", "50", "--ballast-x", "44"],
+       for k, base, pool in (("K100", UNEQ_K("510,660,660", "0.9588"), ["--tld-mass-t", "25", "--tld-radius", "4.2", "--tld-zeta", "0.2"]),
+                             ("K195", UNEQ_K("415,708,708", "0.9239"), ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]),
+                             ("K300", UNEQ_K("310,760,760", "0.8894"), ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]),
+                             ("KL50", UNEQ_K("220,805,805", "0.8644") + ["--ballast-t", "50", "--ballast-x", "44"],
                               ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]))
        for sc, extra in (("balayage_z", SWEEP_L + LATZ), ("balayage_t", SWEEP_L + LAT))
        if sc == "balayage_z" or k in ("K195", "KL50")]
-    + [("K195_resonance_z", UNEQ_K("415,708,708", "0.9243") + RESO_K + TRAJ),
-       ("K195_resonance_z_bassin", UNEQ_K("415,708,708", "0.9243") + ["--tld-mass-t", "35", "--tld-radius", "4.4", "--tld-zeta", "0.2"]
+    + [("K195_resonance_z", UNEQ_K("415,708,708", "0.9239") + RESO_K + TRAJ),
+       ("K195_resonance_z_bassin", UNEQ_K("415,708,708", "0.9239") + ["--tld-mass-t", "25", "--tld-radius", "4.4", "--tld-zeta", "0.3"]
         + RESO_K + TRAJ)],
     "sensibilite": [
         ("N_perturbation", V3FULL + PERT),

@@ -223,8 +223,8 @@ def export_allege(dest):
     principal du vaisseau habité (14 m de la pointe) ; avec ou sans 50 t de
     charge utile descendues à 44 m.
     Inclinaison statique pour 50 t déplacées de 3,5 m sur un pont : formule
-    du palonnier (static_tilt_prediction), s = 3,5 m."""
-    tld = [dict(m_t=25.0, x=12.0, a=3.6, zeta=0.15)]
+    du palonnier (static_tilt_prediction), s = ts.ANCHOR_SPREAD."""
+    tld = [ts.POOL]
     rows = []
     x_ref, R_ref = 14.0, 3.711 / (2 * math.pi / 60) ** 2   # pont principal, à 338,4 m à 1 tr/min
     a = R_ref + ts.starship_mass_model(610.0, slosh=True, tld=tld)["x_tot"] - x_ref   # sommets du triangle (masses égales)
@@ -240,11 +240,11 @@ def export_allege(dest):
         row = dict(tr=tr, mh=mh, mc=mc, R=R, Rc=Rc, cy=cy, rpm=w * 60 / (2 * math.pi), gc=w * w * Rcd)
         for key, bal in (("", None), ("_lest", dict(m_t=50.0, x=44.0))):
             sm = ts.starship_mass_model(mh, slosh=True, tld=tld, ballast=bal)
-            h = sm["x_tot"] - 9.0
+            h, s = sm["x_tot"] - ts.ANCHOR_X, ts.ANCHOR_SPREAD
             delta = 50.0 * 3.5 / mh
             row["h" + key] = h
             row["x" + key] = sm["x_tot"]
-            row["tilt" + key] = math.degrees(math.sqrt(3) * delta / (3.5 + math.sqrt(3) * h))
+            row["tilt" + key] = math.degrees(math.sqrt(3) * delta / (s + math.sqrt(3) * h))
         row["depth"] = {tk["name"]: tk["depth"] for tk in sm["tanks"] if tk["name"] in ("LOX", "CH4")}
         rows.append(row)
     # Modèle linéaire (light_tld.py) : modes hors plan, pics du balayage sans

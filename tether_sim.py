@@ -79,6 +79,11 @@ SHIP_PARTS = (("coiffe", 25.0, 0.0, 14.0, 3.0, True), ("fût", 55.0, 14.0, 50.0,
 SHIP_TANKS = (("LOX", 1141.0, 46.0, 11.0, 3.6 / 4.6), ("CH4", 422.0, 35.0, 13.0, 1.0 / 4.6))
 SHIP_TANK_RADIUS = 4.5
 SLOSH_XI = 1.841  # premier zéro de J1' (premier mode latéral)
+# Solution retenue : câbles sur les points de capture du Starship V3 (§ 2.4),
+# sur les flancs à 13 m de la pointe, à ±4,8 m de l'axe (broches comprises) ;
+# bassin amortisseur sous la coiffe, accordé sur le balancement hors plan (§ 5.5)
+ANCHOR_X, ANCHOR_SPREAD = 13.0, 4.8
+POOL = dict(m_t=25.0, x=12.0, a=3.9, zeta=0.15)
 
 
 def slosh_tank(m, depth, a=SHIP_TANK_RADIUS):

@@ -25,10 +25,10 @@ import tld_design as td
 from run_scenarios import UNEQ
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-POOL = dict(m_t=25.0, x=12.0, a=3.6, zeta=0.15)
+POOL = ts.POOL
 # Bassins réaccordés simulés (campagnes allege et masses, scénarios *_bassin)
-SIM_POOL = {"K100": dict(m_t=15.0, x=12.0, a=3.4, zeta=0.2), "K195": dict(m_t=35.0, x=12.0, a=4.4, zeta=0.2),
-            "K300": dict(m_t=25.0, x=12.0, a=4.4, zeta=0.3), "U390": dict(m_t=19.0, x=12.0, a=4.4, zeta=0.15),
+SIM_POOL = {"K100": dict(m_t=25.0, x=12.0, a=4.2, zeta=0.2), "K195": dict(m_t=25.0, x=12.0, a=4.4, zeta=0.3),
+            "K300": dict(m_t=25.0, x=12.0, a=4.4, zeta=0.3), "U390": dict(m_t=15.0, x=12.0, a=4.4, zeta=0.3),
             "KL50": dict(m_t=25.0, x=12.0, a=4.4, zeta=0.3)}
 # (nom, masses t, lest du vaisseau habité)
 LIGHT = (("610", "610,610,610", None), ("K100", "510,660,660", None), ("K195", "415,708,708", None),
@@ -71,7 +71,7 @@ def light_cases():
     return cases
 
 
-def kw(case, x_att=9.0):
+def kw(case, x_att=ts.ANCHOR_X):
     _, m, bal, rpm, R, T, L = case
     return dict(mass_t=m, ballast=bal, omega=rpm * 2 * math.pi / 60, R_tot=R, x_att=x_att, T_cable=T * 1e6, L_cable=L)
 
@@ -94,7 +94,7 @@ def main():
     out["cases"] = {c[0]: dict(rpm=c[3], R=c[4], T_MN=c[5], L=c[6]) for c in cases}
     for case in cases:
         name = case[0]
-        x_att = None if name == "610" else 9.0
+        x_att = None if name == "610" else ts.ANCHOR_X
         k = kw(case, x_att)
         f0 = modes(case, None) if name != "610" else None
         sw0 = td.sweep(None, **k)

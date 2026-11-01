@@ -34,7 +34,7 @@ import os
 
 import numpy as np
 
-from tether_sim import G0, starship_mass_model
+from tether_sim import ANCHOR_X, G0, POOL, starship_mass_model
 
 AU = 149.598e9
 R_EARTH_ORBIT = 1.0             # UA
@@ -50,9 +50,9 @@ RPM = 1.0
 # rayon des centres de masse des vaisseaux : 3,711 m/s² au pont principal, 14 m
 # de la pointe (bassin compris, comme dans le simulateur)
 R_SHIP = 3.711 / (RPM * 2 * math.pi / 60) ** 2 + starship_mass_model(
-    610.0, slosh=True, tld=[dict(m_t=25.0, x=12.0, a=3.6, zeta=0.15)])["x_tot"] - 14.0
+    610.0, slosh=True, tld=[POOL])["x_tot"] - 14.0
 CABLE_T = 15.1                  # t, trois câbles (tether_sim, équilibre de la solution retenue)
-H_ATT = 25.0                    # m, attaches au-dessus du centre de masse
+H_ATT = starship_mass_model(610.0, slosh=True, tld=[POOL])["x_tot"] - ANCHOR_X   # m, attaches au-dessus du centre de masse
 
 # Coque : réservoirs de 9 m de diamètre, CH4 de 22 à 35 m de la pointe, LOX
 # de 35 à 46 m (tether_sim.SHIP_TANKS)
