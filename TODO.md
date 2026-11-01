@@ -21,6 +21,9 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 - **Propulseurs à gaz chauds** pour le pivotement de l'axe (66 à 94 t de méthane-oxygène sur le voyage, impulsions de 20 N au passage de la ligne des nœuds) : le Starship n'a aujourd'hui que des propulseurs à gaz froid (180 à 430 t).
 - **Fluage des câbles sur 259 jours** : chiffrer avec les données fabricant (Dyneema DM20 / SK99, Vectran) à la température réelle du câble ; allongement inégal → compensation par treuils.
 
+- **Relecture de sûreté** (1ᵉʳ novembre 2026, carnet § 16) — à simuler : **mode sûr** (tous les câbles largués, vaisseaux à 37,5 m/s, pas de recontact avec les morceaux) ; **propulseur bloqué en poussée** pendant la montée ou le pivotement de l'axe (20 N par vaisseau) ; **fatigue** des terminaisons (spectre « rainflow » de la tension du premier segment, ≈ 3 millions de cycles par voyage). À écrire : règle de vol après une rupture (réparer avant de continuer, ou ralentir) ; réserve de 21 t pour arrêter la rotation à tout moment ; capteurs d'effort dans les plaques ; AMDEC (fuite du bassin, chicane arrachée, treuil, perte du pilotage d'un vaisseau) ; procédures d'équipage (arrimage, alarme).
+- **Qualification et démonstrateur** : fluage et rupture différée à −70 °C, vieillissement de la gaine, essais au sol de retour élastique avec plaque, déflecteur et coupe-câbles ; démonstrateur en orbite à échelle réduite (déploiement, mise en rotation, coupe volontaire).
+
 ## Priorité moyenne
 
 - **Avitaillement en orbite basse** : 3 × 1 380 t d'ergols (V3 pleins : 4 800 t), plusieurs dizaines de vols de ravitailleurs ; hypothèse de programme.
@@ -35,6 +38,9 @@ Liste de travail, par priorité pour le scénario Terre–Mars. Les limites du m
 - **Câbles ANCF continus dans Chrono** : modes de câble rapides, raideur en torsion (rappel de roulis négligé aujourd'hui, ce qui va dans le sens de la sécurité).
 - **Flexibilité de la coque** et modes de ballottement supérieurs (aujourd'hui : structure rigide, premier mode seulement, réservoirs à fond plat).
 - **Ailerons du Starship** dans l'inertie (orientation préférée faible).
+
+- **Masses à double usage** : l'eau du bassin comme abri partiel contre les éruptions solaires (≈ 60 g/cm² au-dessus du pont) et réserve d'eau, avec un niveau réglable qui ne désaccorde pas le bassin.
+- **Propulsion électrique pour le pivotement de l'axe** : ≈ 15 t au lieu de 66–94 t de méthane-oxygène, mais 200–300 kW électriques en continu.
 
 ## Priorité basse
 
