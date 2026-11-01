@@ -196,7 +196,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <div class="hero-text">
     <span class="eyebrow">Étude de faisabilité · simulation numérique</span>
     <h1>Gravité au bout du fil</h1>
-    <p class="lede">Trois vaisseaux en route vers Mars, reliés par des câbles d'un demi-kilomètre, font un tour par minute. Sur le pont principal, l'équipage pèse ce qu'il pèsera sur Mars, pendant les huit mois et demi du voyage, sans poutre géante, avec des câbles de 11 cm de diamètre.</p>
+    <p class="lede">Trois vaisseaux en route vers Mars, reliés par des câbles d'un demi-kilomètre, font un tour par minute. Sur le pont principal, l'équipage pèse ce qu'il pèsera sur Mars, pendant les huit mois et demi du voyage, sans poutre géante : entre deux vaisseaux, trois câbles de 6 cm de diamètre côte à côte, pour qu'un câble cassé ne compromette rien, soit neuf câbles en tout.</p>
     <p class="tech-note">Pour qui veut les équations, les hypothèses et tous les résultats : le <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi" target="_blank" rel="noopener">carnet de calcul technique</a>.</p>
   </div>
   <figure class="wide">
@@ -213,7 +213,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <div><b class="num">1 tr/min</b><span>vitesse de rotation</span></div>
     <div><b class="num">3,711 m/s²</b><span>gravité ressentie (Mars)</span></div>
     <div><b class="num">3 × 610 t</b><span>vaisseaux, une fois en route</span></div>
-    <div><b class="num">Ø 11 cm</b><span>câbles en Dyneema</span></div>
+    <div><b class="num">9 × Ø 6 cm</b><span>câbles en Dyneema, trois par côté</span></div>
     <div><b class="num">259 jours</b><span>de la Terre à Mars</span></div>
   </div>
 </section>
@@ -260,7 +260,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <span class="eyebrow">3 · La structure</span>
   <h2>Des câbles plutôt qu'une poutre</h2>
   <p>Une poutre rigide de 700 m serait énorme. Un câble ne travaille qu'en traction, et la rotation le tend en permanence. C'est exactement ce qu'il faut. En route, chaque câble tire avec une force d'environ <b>140 tonnes-force</b>.</p>
-  <p>Les câbles sont pourtant dimensionnés pour des vaisseaux chargés tournant à <b>1 g</b>, avec un facteur de sécurité de 3. En Dyneema, une fibre plus résistante que l'acier à poids égal, cela donne un câble de 11 cm de diamètre, ou plutôt trois brins de 6 cm côte à côte, pour qu'un brin cassé ne compromette rien (chapitre 7). Les trois câbles pèsent ensemble 15 tonnes. En route, ils ne travaillent qu'à 5 % de leur résistance et s'allongent de moins d'un mètre. Un vrai câble, tressé, gainé et doublé pour survivre à des fibres coupées, serait plus gros : environ 13 cm de diamètre et 25 tonnes pour les trois. Nous l'avons simulé aussi : il donne le même confort à bord.</p>
+  <p>Les câbles sont pourtant dimensionnés pour des vaisseaux chargés tournant à <b>1 g</b>, avec un facteur de sécurité de 3. En Dyneema, une fibre plus résistante que l'acier à poids égal, cela donne, entre deux vaisseaux, l'équivalent d'un câble de 11 cm de diamètre. Nous le partageons en trois brins de 6 cm côte à côte, pour qu'un brin cassé ne compromette rien (chapitre 7) : neuf brins en tout, qui pèsent ensemble 15 tonnes. En route, ils ne travaillent qu'à 5 % de leur résistance et s'allongent de moins d'un mètre. Un vrai câble, tressé, gainé et doublé pour survivre à des fibres coupées, serait plus gros : environ 13 cm de diamètre par côté (trois brins de 7,6 cm) et 25 tonnes en tout. Nous l'avons simulé aussi : il donne le même confort à bord.</p>
 </section>
 
 <section class="col">
@@ -694,6 +694,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <p>Simulations : modèle multicorps écrit pour l'étude (Python, NumPy), vérifié sur des cas de référence avec <a href="https://projectchrono.org/" target="_blank" rel="noopener">Project Chrono</a>. Les vaisseaux sont des corps rigides et les câbles des chaînes de ressorts élastiques. Chaque Starship est modélisé par éléments (coiffe, fût, moteurs, charge utile) ; ses ergols, posés au fond des réservoirs, ballottent selon le modèle à pendules de la NASA. Dimensions et masses d'après les sources publiques sur le Starship V2 et V3.</p>
   <p id="tech-link">Le détail des calculs, des hypothèses et de tous les résultats est dans le <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi" target="_blank" rel="noopener">carnet de calcul technique</a>.</p>
   <p>Textes, figures et données : <a href="https://creativecommons.org/licenses/by/4.0/deed.fr" target="_blank" rel="noopener">CC BY 4.0</a> · code : licence MIT · © 2026 Thomas Baeckeroot · code source : <a href="https://github.com/Thomas-Baeckeroot/tethered-station" target="_blank" rel="noopener">GitHub</a>.</p>
+  <p>Dernière révision : 2026-11-01.</p>
 </footer>
 
 </main>
