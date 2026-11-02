@@ -18,13 +18,14 @@ Site statique : `docs/build_site.sh <dossier>` construit `index.html`, `grand-pu
 | Fichier | Rôle |
 |---|---|
 | `tether_sim.py` | Simulateur multicorps (NumPy) : vaisseaux rigides (modèle de masse par éléments, pendules de ballottement, bassin d'eau accordé), câbles unilatéraux discrétisés, masses internes mobiles, amortisseur interne |
-| `run_scenarios.py` | Campagnes de scénarios en parallèle : `rotation`, `internes`, `final` (étude préliminaire), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses`, `soleil`, `allege` |
+| `run_scenarios.py` | Campagnes de scénarios en parallèle : `rotation`, `internes`, `final` (étude préliminaire), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses`, `soleil`, `allege`, `sensibilite`, `brins3`, `retour` |
 | `mission_mass.py` | Masse d'un Starship après l'injection vers Mars |
 | `slosh_modes.py` | Modèle linéaire hors plan (vaisseau + ergols) : modes couplés |
 | `tld_design.py` | Dimensionnement du bassin d'eau accordé (modèle linéaire amorti, balayage en temps) |
 | `lox_search.py` | Mode couplé du LOX : chicanes plus efficaces ou second bassin (même modèle linéaire) |
 | `light_tld.py` | Vaisseau habité allégé : modes hors plan et pic du balayage, bassin d'origine ou réaccordé (modèle linéaire généralisé aux masses inégales) |
 | `sun_pointing.py` | Orientation face au Soleil : direction du Soleil sur le transfert, impulsion pour faire pivoter l'axe, bilan thermique des réservoirs (modèle 2D) selon l'orientation et les revêtements ; écrit `docs/data/soleil.json` |
+| `creep.py` | Fluage des câbles sur l'aller-retour (loi d'Eyring calée sur les données publiées DSM, température le long du transfert, retour en rampe jusqu'à 1 g) ; écrit `out/creep.log` et `docs/data/creep.json` |
 | `chrono_validation.py` | Validation croisée avec Project Chrono (PyChrono 10) |
 | `make_web_data.py` | Export des résultats vers `docs/data/` (séries, trajectoires 3D, validation) |
 | `docs/shared/` | Visualiseur 3D (three.js), graphiques SVG, schémas des configurations |
@@ -58,6 +59,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python lox_search.py                 # mode du LOX (modèle linéaire)
 .venv/bin/python run_scenarios.py soleil       # pivotement de l'axe vers le Soleil, 1 000 fois accéléré (~40 min)
 .venv/bin/python sun_pointing.py               # orientation face au Soleil : impulsion, bilan thermique
+.venv/bin/python run_scenarios.py retour       # retour à 1 g, vaisseaux de 250 t : tensions et ruptures de brins (~2 h)
+.venv/bin/python creep.py                      # fluage des câbles sur l'aller-retour
 .venv/bin/python tld_design.py                 # dimensionnement du bassin (modèle linéaire)
 .venv/bin/python slosh_modes.py                # modes couplés vaisseau + ergols (modèle linéaire)
 .venv/bin/python make_web_data.py              # met à jour docs/data/
@@ -99,6 +102,7 @@ Historique de l'étude :
 - Mode couplé du LOX (campagne `lox`, `lox_search.py`) : chicanes à ζ = 8 % → pire cas hors plan 0,43° → 0,30° (balancement à 0,13 Hz et étirement des câbles à 0,36 Hz) ; un second bassin de 8 t fait moins bien.
 - Transfert d'ergols (`--masses-t 220,805,805 --target-ship 0 --rpm 0.8621`) : vaisseau habité à 462 m (pont à 455 m), cargos à 308 m et pivotés de 8,7°, câbles 0,48 / 1,76 MN ; le vaisseau habité devient sept fois plus sensible (cargaison 4,9°), M·h passant de 12 800 à 1 600 t·m ; la marche (aller-retour de 16 s) tombe sur son balancement à 0,06 Hz : 5,2°. Balancement hors plan à 0,059 Hz, loin de l'accord du bassin : 5,9° au pire rythme, 1,5° avec un bassin réaccordé (15 t, Ø 8,8 m, 0,25 m), où l'eau se déplace de 1,2 m.
 - Transferts partiels et lest (campagne `allege`, `--ballast-t`) : le balancement hors plan ralentit (0,106 → 0,086 Hz après 195 t) et décroche du bassin : pire rythme 0,69° (100 t), 1,49° (195 t), 3,00° (300 t). Bassin réaccordé (25 t, Ø 8,4 puis 8,8 m) : 0,51°, 0,60°, 1,02°. Tout transvasé avec 50 t de réserves descendues à 44 m (h 7,4 → 14,7 m) : 1,96°, 0,67° avec bassin réaccordé. Cargaison 50 t : 0,89°, 1,23°, 2,17°, 2,66° lesté (0,70° au départ, formule du palonnier à 2–12 %) ; marche 0,17°, 0,34°, 0,84°, 0,63° lesté. Le modèle linéaire (`light_tld.py`) suit le simulateur à 1–8 % ; 32 segments au lieu de 16 : même pic (1,49°).
+- Cas de charge réels et fluage (`creep.py`, campagne `retour`, carnet § 2.6) : le critère « 1 600 t à 1 g » n'arrive jamais. Retour en rampe jusqu'à 1 g avec des vaisseaux de 250 t (1,626 tr/min, mêmes câbles) : 1,46 MN par côté, comme à l'aller ; un brin rompu : 0,94 MN sur les deux autres, plancher 8,7° ; deux brins : 2,3 MN, 19°. Fluage sur l'aller-retour (loi d'Eyring calée sur les données DSM, contrôlée sur l'article offshore) : SK99 tressé 0,31 % à 20 °C (10⁻⁴ % à la température réelle du câble), facteur ≈ 5 contre la rupture par fluage sans compter le froid ; DM20 0,003 % ; Vectran négligeable.
 - Validation : énergie et moment cinétique conservés à 10⁻⁸ ou mieux ; Project Chrono reproduit les mêmes trajectoires (écart de temps de doublement 0,03 à 0,13 %) et, sur la solution retenue, les pics de rupture à 10 % près (un brin sur trois : plancher 10,0° contre 10,2°, brins restants 0,88 contre 0,89 MN ; deux brins du même côté : 24° contre 23°, 2,06 contre 2,10 MN).
 
 - Face au Soleil (`sun_pointing.py`, campagne `soleil`, carnet § 5.6) : l'axe suit le Soleil (180° en 259 jours, 1,08 à 0,47 °/jour). Impulsion 2,8·10⁸ N·s en poussée continue, 2,2·10⁸ par impulsions à ±15° de la ligne des nœuds (20 N, 5 s, deux fois par tour) : 66 à 94 t de méthane-oxygène brûlés. Le simulateur (1 000 fois accéléré) retrouve l'angle et l'impulsion à 10⁻³ près. Thermique : avec l'axe fixe, les tuiles éclairées conduisent 5 à 26 kW vers les ergols (réservoirs vides en quelques semaines ; 11 à 70 t par vaisseau avec une housse) ; face au Soleil, les tuiles à l'ombre refroidissent les ergols de 0,6 à 1 kW nets (≈ 1 kW de chauffage pour que le CH4 ne gèle pas).
