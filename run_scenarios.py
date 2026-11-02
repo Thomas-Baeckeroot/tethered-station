@@ -94,6 +94,11 @@ SK99 = TLD + ["--material", "sk99"]
 # masse de câble), sur une ferrure commune, coupe-câbles à 1 s
 TLD3 = TLD + ["--side-strands", "3", "--release-delay", "1"]
 
+# Retour vers la Terre en fin de rampe : vaisseaux légers (250 t : structure,
+# charge réduite, ergols d'atterrissage), 1 g au pont principal avec les mêmes
+# câbles (R = 338,4 m au pont : 1,626 tr/min), trois brins par côté
+RET = [{"610": "250", "3.711": "9.81"}.get(a, a) for a in TLD3] + ["--rpm", "1.626"]
+
 # 4 t oscillant hors plan pendant 4 min au pire rythme du vaisseau habité
 # allégé de 195 t avec le bassin d'origine (0,082 Hz, période 12,2 s)
 RESO_K = ["--motion", "periodic", "--motion-mass-t", "4", "--motion-amp", "3.5", "--motion-axis", "z",
@@ -330,6 +335,13 @@ CAMPAIGNS = {
         ("B3_sk99_rupture", TLD3 + BRK + ["--material", "sk99", "--break-at", "0.5", "--duration", "900"]),
         ("B3_double_rupture", TLD3 + BRK + ["--break-cable2", "3", "--break-at", "0.5", "--duration", "900"] + TRAJ),
         ("B3_double_rupture_10s", TLD3 + BRK + ["--break-cable2", "3", "--break-time2", "70", "--break-at", "0.5", "--duration", "900"]),
+    ],
+    # Retour en fin de rampe (250 t, 1 g) : tensions en service et après la
+    # rupture d'un ou deux brins, pour les cas de charge du fluage (creep.py)
+    "retour": [
+        ("RT_perturbation", RET + PERT),
+        ("RT_rupture", RET + BRK + ["--break-at", "0.5", "--duration", "900"]),
+        ("RT_double_rupture", RET + BRK + ["--break-cable2", "3", "--break-at", "0.5", "--duration", "900"]),
     ],
     # Câbles multiples (même masse de câble) : un brin sur deux ou trois
     # rompt au milieu, les autres reprennent la charge ; brins sur la même

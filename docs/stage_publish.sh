@@ -22,5 +22,5 @@ done
 # Technique : tout
 cp "$SRC"/data/series/*.json "$DEST/technique/data/series/"
 cp "$SRC"/data/anim/*.json "$DEST/technique/data/anim/"
-cp "$SRC/data/validation.json" "$SRC/data/mission.json" "$DEST/technique/data/"
+cp "$SRC/data/validation.json" "$SRC/data/mission.json" "$SRC/data/creep.json" "$DEST/technique/data/"
 du -sh "$DEST"/*
