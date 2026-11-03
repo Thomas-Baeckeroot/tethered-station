@@ -65,7 +65,7 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 
 - `out/<campaign>/`: per-scenario `.log`, `.json` (inputs + results), `.npz` (time series), optional `_traj.npz` (3D trajectories), plus `summary.md`. Git-ignored; reproducible. `out/tld_search.{log,json}`: TLD search.
 - `docs/data/`: exported JSON consumed by the pages (committed).
-- Local preview: `docs/_preview/build.sh`, then `python3 -m http.server 8765` in `docs/_preview/`; headless Chrome `--dump-dom` to check that charts render and bound values fill in.
+- Local preview: `docs/_preview/build.sh`, then `python3 -m http.server 8765 --bind 127.0.0.1` in `docs/_preview/` (localhost only, never all interfaces); headless Chrome `--dump-dom` to check that charts render and bound values fill in.
 - Public static site: http://t.baeckeroot.free.fr/tethered-station/ — built by `docs/build_site.sh <dir>` (adds the HTML skeleton, rewrites the Artifact links to relative ones); the user copies it to free.fr. The repo is public on GitHub: no secrets, no work identifiers. Code is MIT (`LICENSE`), page content CC BY 4.0 (`docs/LICENSE`).
 - Also published as private claude.ai Artifacts, used as previews (same URLs on every update):
   - grand public: https://claude.ai/artifact/AhFHVxf86G4P5S4H4s9cXx
