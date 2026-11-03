@@ -352,6 +352,10 @@ CAMPAIGNS = {
     # milieu, près de la ferrure ou à l'attache ; double rupture ; retour à 1 g
     "entretoises": [
         ("E_reference", TLD3 + BRK + ["--segments", "48", "--break-at", "0.5", "--duration", "900"]),
+        # parades écartées : bras de déport de 11 m (attaches à ±16 m de
+        # l'axe), longe qui retient le morceau côté vaisseau
+        ("E_bras_16m", TLD3 + BRK + ["--segments", "48", "--spread", "16", "--break-at", "0.5", "--duration", "900"]),
+        ("E_longe", TLD3 + BRK + ["--segments", "48", "--release-keep", "0", "--break-at", "0.5", "--duration", "900"]),
         ("E_perturbation", TLD3 + TIES + PERT),
         ("E_rupture", TLD3 + TIES + BRK + ["--break-at", "0.5", "--duration", "900"] + TRAJ),
         ("E_rupture_24m", TLD3 + TIES + ["--strand-ties", "2"] + BRK + ["--break-at", "0.5", "--duration", "900"]),
