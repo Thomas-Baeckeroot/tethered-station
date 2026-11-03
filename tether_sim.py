@@ -539,6 +539,7 @@ class Station:
         self.n = n
         self.n_cables = len(topo["cables"])
         self.ds0 = np.array(ds0)
+        self.ds0_rate = np.zeros(len(ds0))  # déroulement : vitesse d'allongement à vide de chaque segment (deploy_sim.py)
         self._update_stiffness()
         # Segments qui portent (rupture : un segment cesse de porter)
         self.alive = np.ones(len(segs), dtype=bool)
@@ -816,7 +817,7 @@ class Station:
             l = np.linalg.norm(d, axis=1)
             e = d / l[:, None]
             mu = self.mn[i] * self.mn[j] / (self.mn[i] + self.mn[j])
-            vrel = np.einsum("ij,ij->i", self.vn[j] - self.vn[i], e)
+            vrel = np.einsum("ij,ij->i", self.vn[j] - self.vn[i], e) - self.ds0_rate[grp]
             J = np.where((l > self.ds0[grp]) & self.alive[grp], mu * vrel * (1 - np.exp(-self.c[grp] * dt / mu)), 0.0)
             imp = J[:, None] * e
             np.add.at(self.vn, i, imp / self.mn[i][:, None])
@@ -831,7 +832,7 @@ class Station:
         u = np.einsum("aji,aj->ai", self.R[b], np.cross(rw, e))
         m_eff = 1 / (1 / self.Mb[b] + np.sum(u ** 2 / self.Ib[b], axis=1))
         va = self.vb[b] + np.cross(self.omega_world()[b], rw)
-        vrel = np.einsum("ij,ij->i", self.vn[nd] - va, e)
+        vrel = np.einsum("ij,ij->i", self.vn[nd] - va, e) - self.ds0_rate[self.as_idx]
         mu = 1 / (1 / self.mn[nd] + 1 / m_eff)
         cs = self.c[self.as_idx]
         J = np.where((l > self.ds0[self.as_idx]) & self.alive[self.as_idx], mu * vrel * (1 - np.exp(-cs * dt / mu)), 0.0)
