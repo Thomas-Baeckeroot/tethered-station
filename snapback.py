@@ -69,7 +69,11 @@ def scenario(name):
         frames.append(dict(dt=float(dt), broken=polys,
                            intact=[[round(float(q[0]), 2), round(float(q[1]), 2)] for q in Q[: ns // 2 + 1]]))
     res = info["results"]["break"]
-    return dict(contact_t=res["contact_t"], clear_min=res["clear_min"], tilt_max=info["results"]["tilt_max"],
+    # part du temps après la rupture où le brin rompu est dans la coque du vaisseau 0
+    ts = np.load(base + ".npz")
+    tt, cl = ts["t"], ts["clear"][:, 0]
+    after = tt > brk["t"]
+    return dict(contact_frac=round(float(np.mean(cl[after] < 0)), 3), contact_t=res["contact_t"], clear_min=res["clear_min"], tilt_max=info["results"]["tilt_max"],
                 T_max_MN=res["T_max_MN"], spread=info["args"]["spread"], x_attach=info["args"]["attach_x"],
                 frames=frames)
 
@@ -83,7 +87,7 @@ def main():
         sc = scenario(name)
         sc["label"] = label
         out["scenarios"][name] = sc
-        print(f"{name:12s} contact {sc['contact_t']} s, distance min {sc['clear_min']:.1f} m, plancher {sc['tilt_max']:.1f}°")
+        print(f"{name:12s} contact {sc['contact_t']} s ({sc['contact_frac']:.0%} du temps), distance min {sc['clear_min']:.1f} m, plancher {sc['tilt_max']:.1f}°")
     del out["hull"]["x_c"]
     path = os.path.join(HERE, "docs", "data", "snapback.json")
     with open(path, "w") as f:
