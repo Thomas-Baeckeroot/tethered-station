@@ -98,6 +98,10 @@ TLD3 = TLD + ["--side-strands", "3", "--release-delay", "1"]
 # charge réduite, ergols d'atterrissage), 1 g au pont principal avec les mêmes
 # câbles (R = 338,4 m au pont : 1,626 tr/min), trois brins par côté
 RET = [{"610": "250", "3.711": "9.81"}.get(a, a) for a in TLD3] + ["--rpm", "1.626"]
+# Protection contre le retour du brin rompu (§ 7.4) : entretoises entre les
+# trois brins d'un côté tous les 48 m (élingues à 0,1 m de jeu), sans
+# coupe-câbles (les morceaux restent tenus) ; câble découpé en 48 segments
+TIES = ["--segments", "48", "--strand-ties", "4", "--tie-slack", "0.1", "--release-delay", "-1"]
 
 # 4 t oscillant hors plan pendant 4 min au pire rythme du vaisseau habité
 # allégé de 195 t avec le bassin d'origine (0,082 Hz, période 12,2 s)
@@ -342,6 +346,21 @@ CAMPAIGNS = {
         ("RT_perturbation", RET + PERT),
         ("RT_rupture", RET + BRK + ["--break-at", "0.5", "--duration", "900"]),
         ("RT_double_rupture", RET + BRK + ["--break-cable2", "3", "--break-at", "0.5", "--duration", "900"]),
+    ],
+    # Retour du brin rompu : référence au même découpage (coupe-câbles, sans
+    # entretoises), puis entretoises tous les 24, 48 ou 97 m ; rupture au
+    # milieu, près de la ferrure ou à l'attache ; double rupture ; retour à 1 g
+    "entretoises": [
+        ("E_reference", TLD3 + BRK + ["--segments", "48", "--break-at", "0.5", "--duration", "900"]),
+        ("E_perturbation", TLD3 + TIES + PERT),
+        ("E_rupture", TLD3 + TIES + BRK + ["--break-at", "0.5", "--duration", "900"] + TRAJ),
+        ("E_rupture_24m", TLD3 + TIES + ["--strand-ties", "2"] + BRK + ["--break-at", "0.5", "--duration", "900"]),
+        ("E_rupture_97m", TLD3 + TIES + ["--strand-ties", "8"] + BRK + ["--break-at", "0.5", "--duration", "900"]),
+        ("E_rupture_ferrure", TLD3 + TIES + BRK + ["--break-at", "0.05", "--duration", "900"]),
+        ("E_rupture_ferrure_24m", TLD3 + TIES + ["--strand-ties", "2"] + BRK + ["--break-at", "0.05", "--duration", "900"]),
+        ("E_rupture_attache", TLD3 + TIES + BRK + ["--break-at", "0", "--duration", "900"]),
+        ("E_double_rupture", TLD3 + TIES + BRK + ["--break-cable2", "3", "--break-at", "0.5", "--duration", "900"]),
+        ("E_retour_rupture", RET + TIES + BRK + ["--break-at", "0.5", "--duration", "900"]),
     ],
     # Câbles multiples (même masse de câble) : un brin sur deux ou trois
     # rompt au milieu, les autres reprennent la charge ; brins sur la même

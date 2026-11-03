@@ -597,6 +597,36 @@ class Station:
         # Pas de temps : stabilité de Verlet dt < 2/ω_max, ω_max ≈ 2·sqrt(k/m_min)
         self.dt = args.cfl * 2 / (2 * math.sqrt(self.k.max() / self.mn.min()))
 
+        # Entretoises entre brins d'un même côté (principe des câbles maillés,
+        # « Hoytether ») : tous les N segments, chaque nœud d'un brin est relié
+        # au nœud de même rang des autres brins par une liaison qui ne porte
+        # qu'en traction (jeu ℓ_t, raideur d'une élingue de 2 m qui tient la
+        # tension d'un brin avec un facteur 3 : Dyneema 4,4 cm², 2,6e7 N/m). Un brin rompu
+        # reste tenu par ses voisins : au-delà de la première entretoise, il
+        # reprend sa part de la charge, et seuls les bouts libres entre la
+        # rupture et les entretoises voisines flottent
+        self.ties = None
+        every = getattr(args, "strand_ties", 0)
+        if every > 0 and getattr(args, "side_strands", 1) > 1:
+            n_sides = 3
+            ia, ib = [], []
+            for c in range(n_sides):
+                strands = [q * n_sides + c for q in range(args.side_strands)]
+                for q1 in range(len(strands)):
+                    for q2 in range(q1 + 1, len(strands)):
+                        for s_ in range(every, n, every):
+                            a_ = self.seg[self.cable_first_seg[strands[q1]] + s_ - 1, 1]
+                            b_ = self.seg[self.cable_first_seg[strands[q2]] + s_ - 1, 1]
+                            if a_ < nf and b_ < nf:
+                                ia.append(a_)
+                                ib.append(b_)
+            self.ties = (np.array(ia, dtype=int), np.array(ib, dtype=int))
+            self.tie_len = args.tie_slack
+            self.tie_k = args.tie_k if args.tie_k > 0 else float(self.k.max())
+            mu_t = self.mn.min() / 2
+            self.tie_c = 2 * args.tie_zeta * math.sqrt(self.tie_k * mu_t)
+            self.tie_tmax = 0.0
+
     def _orient_radial(self):
         """Oriente chaque module radialement par rapport à l'origine (centre
         de masse), sans changer ses coordonnées propres (attaches, ergols)."""
@@ -647,6 +677,17 @@ class Station:
         F = np.zeros_like(P)
         np.add.at(F, i, f)
         np.add.at(F, j, -f)
+        if getattr(self, "ties", None) is not None:
+            ia, ib = self.ties
+            dt_ = P[ib] - P[ia]
+            lt = np.linalg.norm(dt_, axis=1)
+            et = dt_ / np.maximum(lt, 1e-9)[:, None]
+            st_ = lt - self.tie_len
+            vr = np.einsum("ij,ij->i", self.vn[ib] - self.vn[ia], et)
+            ft = np.where(st_ > 0, np.maximum(self.tie_k * st_ + self.tie_c * vr, 0.0), 0.0)
+            self.tie_tmax = max(self.tie_tmax, float(ft.max()) if len(ft) else 0.0)
+            np.add.at(F, ia, ft[:, None] * et)
+            np.add.at(F, ib, -ft[:, None] * et)
         return F, t, stretch, taut, e
 
     def wrench(self, F_att, rw):
@@ -1360,7 +1401,8 @@ def run(args):
                 # Coupe-câbles : les deux segments d'attache du câble rompu sont
                 # coupés, les morceaux sont largués
                 f0 = st.cable_first_seg[cb]
-                cut = [k for k in (f0, f0 + ns - 1) if st.alive[k]]
+                keep = getattr(args, "release_keep", -1)
+                cut = [k for e, k in enumerate((f0, f0 + ns - 1)) if st.alive[k] and e != keep]
                 _, _, stretch, taut, _ = st.spring_forces(P)
                 w_diss += float(np.sum(np.where(taut[cut], 0.5 * st.k[cut] * stretch[cut] ** 2, 0.0)))
                 st.alive[cut] = False
@@ -1453,6 +1495,8 @@ def run(args):
                 hub_mass_t=st.hub_m / 1e3, spokes=st.topo.get("spokes", []), args=vars(args))
     if brk_meta:
         info["break"] = brk_meta
+    if st.ties is not None:
+        info["ties"] = dict(n=int(len(st.ties[0])), every=args.strand_ties, slack_m=args.tie_slack, k_N_m=st.tie_k, T_max_MN=st.tie_tmax / 1e6)
     if brk2_meta:
         info["break2"] = brk2_meta
     info["masses_t"] = st.masses_t
@@ -1530,7 +1574,8 @@ def break_results(rec, info, args):
                 g_final=[float(v) for v in rec["g"][tail].mean(axis=0) * G0],
                 tilt_max=[float(v) for v in rec["tilt"][after].max(axis=0)], wrel_max=[float(v) for v in rec["wrel"][after].max(axis=0)],
                 rpm_before=float(w[~after].mean() * 60 / (2 * math.pi)), rpm_final=float(w[tail].mean() * 60 / (2 * math.pi)),
-                r_final=[float(v) for v in rec["rship"][tail].mean(axis=0)], r_max=[float(v) for v in rec["rship"][after].max(axis=0)])
+                r_final=[float(v) for v in rec["rship"][tail].mean(axis=0)], r_max=[float(v) for v in rec["rship"][after].max(axis=0)],
+                tie_T_max_MN=info["ties"]["T_max_MN"] if "ties" in info else None)
 
 
 def report(st, rec, E0, L0v, args, info, p):
@@ -1621,6 +1666,8 @@ def report(st, rec, E0, L0v, args, info, p):
           f"coques à {b['gap_min']:.1f} m au plus près (t = {b['gap_t']:.0f} s)")
         p(f"  câbles restants : tension max {b['T_max_MN']:.2f} MN (câble {b['T_max_cable']}, t = {b['T_max_t']:.1f} s), "
           f"détendus {b['slack_s']:.1f} s au total")
+        if b.get("tie_T_max_MN") is not None:
+            p(f"  entretoises   : {info['ties']['n']} liaisons (tous les {info['ties']['every']} segments), effort max {b['tie_T_max_MN']:.3f} MN")
         p(f"  après         : " + " ; ".join(f"module {k} : g {lo:.2f}–{hi:.2f} m/s², final {fin:.2f}, plancher max {tl:.0f}°, rotation parasite max {wr:.1f} °/s"
                                              for k, (lo, hi, fin, tl, wr) in enumerate(zip(b["g_min"], b["g_max"], b["g_final"], b["tilt_max"], b["wrel_max"]))))
         p(f"  rotation      : {b['rpm_before']:.3f} → {b['rpm_final']:.3f} tr/min ; distance au centre finale "
@@ -1750,6 +1797,12 @@ def make_parser():
     p.add_argument("--break-cable2", type=int, default=-1, help="seconde rupture : câble (indice ; −1 = aucune), au même endroit le long du câble")
     p.add_argument("--break-time2", type=float, default=None, help="seconde rupture : instant (s ; défaut : celui de la première)")
     p.add_argument("--release-delay", type=float, default=-1.0, help="coupe-câbles : largage des morceaux du câble rompu après ce délai (s ; −1 = jamais)")
+    p.add_argument("--strand-ties", type=int, default=0, help="entretoises entre brins d'un même côté tous les N segments (0 = aucune)")
+    p.add_argument("--tie-slack", type=float, default=0.5, help="entretoises : jeu (m) avant qu'elles ne portent")
+    p.add_argument("--tie-k", type=float, default=2.6e7, help="entretoises : raideur (N/m ; 0 = celle d'un segment de brin)")
+    p.add_argument("--tie-zeta", type=float, default=0.1, help="entretoises : amortissement réduit")
+    p.add_argument("--release-keep", type=int, default=-1, choices=(-1, 0, 1),
+                   help="coupe-câbles : extrémité du brin rompu dont le morceau reste attaché (longe de retenue ; 0 = première attache, 1 = seconde, −1 = aucune)")
     p.add_argument("--hub-spokes", type=int, choices=[1, 2], default=1, help="rayons par vaisseau (2 : depuis chacun des deux points d'attache du nez)")
     p.add_argument("--side-strands", type=int, choices=[1, 2, 3], default=1, help="brins par côté du triangle (chacun pour 1/N de la charge)")
     p.add_argument("--strand-gap", type=float, default=0.0, help="câbles multiples : écart entre brins extrêmes aux attaches (m ; 0 = même ferrure), "
