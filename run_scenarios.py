@@ -101,6 +101,7 @@ RET = [{"610": "250", "3.711": "9.81"}.get(a, a) for a in TLD3] + ["--rpm", "1.6
 # Protection contre le retour du brin rompu (§ 7.4) : entretoises entre les
 # trois brins d'un côté tous les 48 m (élingues à 0,1 m de jeu), sans
 # coupe-câbles (les morceaux restent tenus) ; câble découpé en 48 segments
+TRAJF = ["--traj-dt", "0.25"]  # trajectoires assez fines pour suivre le brin rompu (figure du § 7.4)
 TIES = ["--segments", "48", "--strand-ties", "4", "--tie-slack", "0.1", "--release-delay", "-1"]
 
 # 4 t oscillant hors plan pendant 4 min au pire rythme du vaisseau habité
@@ -351,13 +352,13 @@ CAMPAIGNS = {
     # entretoises), puis entretoises tous les 24, 48 ou 97 m ; rupture au
     # milieu, près de la ferrure ou à l'attache ; double rupture ; retour à 1 g
     "entretoises": [
-        ("E_reference", TLD3 + BRK + ["--segments", "48", "--break-at", "0.5", "--duration", "900"]),
+        ("E_reference", TLD3 + BRK + ["--segments", "48", "--break-at", "0.5", "--duration", "900"] + TRAJF),
         # parades écartées : bras de déport de 11 m (attaches à ±16 m de
         # l'axe), longe qui retient le morceau côté vaisseau
-        ("E_bras_16m", TLD3 + BRK + ["--segments", "48", "--spread", "16", "--break-at", "0.5", "--duration", "900"]),
-        ("E_longe", TLD3 + BRK + ["--segments", "48", "--release-keep", "0", "--break-at", "0.5", "--duration", "900"]),
+        ("E_bras_16m", TLD3 + BRK + ["--segments", "48", "--spread", "16", "--break-at", "0.5", "--duration", "900"] + TRAJF),
+        ("E_longe", TLD3 + BRK + ["--segments", "48", "--release-keep", "0", "--break-at", "0.5", "--duration", "900"] + TRAJF),
         ("E_perturbation", TLD3 + TIES + PERT),
-        ("E_rupture", TLD3 + TIES + BRK + ["--break-at", "0.5", "--duration", "900"] + TRAJ),
+        ("E_rupture", TLD3 + TIES + BRK + ["--break-at", "0.5", "--duration", "900"] + TRAJF),
         ("E_rupture_24m", TLD3 + TIES + ["--strand-ties", "2"] + BRK + ["--break-at", "0.5", "--duration", "900"]),
         ("E_rupture_97m", TLD3 + TIES + ["--strand-ties", "8"] + BRK + ["--break-at", "0.5", "--duration", "900"]),
         ("E_rupture_ferrure", TLD3 + TIES + BRK + ["--break-at", "0.05", "--duration", "900"]),
