@@ -50,6 +50,7 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 | `light_tld.py` | Same linear model generalised to unequal masses (crew ship radius, cable tension and length from the simulator): lightened crew ship modes, pool retune search → `out/light_tld.json` (exported into `docs/data/allege.json`) |
 | `creep.py` | Cable creep over the round trip (Eyring law calibrated on published DSM data for SK75/SK78/DM20, cable temperature along the transfer, return ramped up to 1 g with 250 t ships from campaign `retour`) → `out/creep.log`, `docs/data/creep.json` (notebook § 2.6) |
 | `snapback.py` | Broken-strand path in ship 0's frame (campaign `entretoises`) → `docs/data/snapback.json` (notebook § 7.4) |
+| `deploy_sim.py` | Cable payout on top of `tether_sim.Station`: variable rest length and node mass; modes free, thrust law ω ∝ r^(−p), launch and brake (tension servo) → `out/deploiement/` (not yet exported; keep lateral thrust well below the axial acceleration, the slosh pendulums leave their domain otherwise) |
 | `chrono_validation.py` | Cross-validation with Project Chrono (PyChrono 10): generic modules, and the retained Starship solution (slosh bobs on stiff damped rods, lateral wall damping, unilateral cables, cable break and release); outputs in `out/validation/` |
 | `make_web_data.py` | Export to `docs/data/` (summary, series incl. sweep curves, 3D animations listed in `ANIMATIONS`) |
 | `docs/grand-public/`, `docs/technique/` | The two pages; `docs/shared/` = three.js viewer, SVG charts, schemas |

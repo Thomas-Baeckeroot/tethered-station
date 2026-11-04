@@ -88,9 +88,16 @@ def run(o):
     if o.dr0:
         u = st.xb * np.array([1.0, 1.0, 0.0])
         rr = np.linalg.norm(u, axis=1)[:, None]
-        st.vb += o.dr0 * u / rr
-        un = st.xn * np.array([1.0, 1.0, 0.0])
-        st.vn += o.dr0 * un / o.r0
+        dv = o.dr0 * u / rr
+        st.vb += dv
+        if len(st.sm):
+            st.vs += dv[st.sb]  # les ergols partent avec leur vaisseau
+        for c in range(nc):
+            # nœuds : vitesse interpolée entre celles des deux vaisseaux
+            f0 = st.cable_first_seg[c]
+            bA, bB = lead[side[c]], tail[side[c]]
+            for s in range(n - 1):
+                st.vn[st.seg[f0 + s, 1]] += dv[bA] + (dv[bB] - dv[bA]) * (s + 1) / n
 
     def geom():
         c = st.Mb @ st.xb / st.Mb.sum()
@@ -105,7 +112,7 @@ def run(o):
     traj = {k: [] for k in ("t", "xb", "R", "xn", "pa")}
     F, *_ = st.spring_forces(P)
     P, rw = st.points()
-    F, t_spr, *_ = st.spring_forces(P)
+    F, t_spr, stretch_, *_ = st.spring_forces(P)
     Fth = np.zeros((3, 3))
     zero3 = np.zeros((3, 3))
     Fs, Fbs, Tbs = st.slosh_forces()
@@ -136,7 +143,13 @@ def run(o):
                 # frein : tension de consigne pour s'arrêter pile en bout de câble
                 a_stop = dr_m ** 2 / (2 * d_ / math.sqrt(3)) if dr_m > 0 else 0.0
                 Tset = max(M_ship * (w_now ** 2 * rn_m + a_stop) / math.sqrt(3), o.Tmin) * (o.brake_err if s_ == 0 else 1.0)
-                sdot[s_] = max(0.0, (Ts[s_] - Tset) / (o.brake_c + dt * K[s_]))
+                # asservissement de tension : anticipation sur la vitesse de
+                # séparation des deux vaisseaux, correction sur l'allongement
+                u_ = st.xb[tail[s_]] - st.xb[lead[s_]]
+                u_ /= np.linalg.norm(u_)
+                vsep = float((st.vb[tail[s_]] - st.vb[lead[s_]]) @ u_)
+                e_ = float(stretch_[st.cable_first_seg[s_]:st.cable_first_seg[s_] + n].sum())
+                sdot[s_] = max(0.0, vsep + (e_ - Tset / K[s_]) / o.brake_tau)
             else:
                 v = o.rate * min(1.0, t / o.ramp, math.sqrt(d_ / o.ramp_end) + 1e-3)
                 sdot[s_] = v if Ts[s_] > o.Tmin else 0.0
@@ -215,7 +228,7 @@ def run(o):
         st.kick(dt / 2, F, rw, Fi, Fbi + Fbs + Fth, Tbi + Tbs, Td, Fs)
         st.drift(dt)
         P, rw = st.points()
-        F, t_spr, *_ = st.spring_forces(P)
+        F, t_spr, stretch_, *_ = st.spring_forces(P)
         Tpk = max(Tpk, float(t_spr.max()))
         Fs, Fbs, Tbs = st.slosh_forces()
         st.kick(dt / 2, F, rw, Fi, Fbi + Fbs + Fth, Tbi + Tbs, Td, Fs)
@@ -259,7 +272,7 @@ def parser():
     p.add_argument("--ramp", type=float, default=120.0, help="montée en vitesse des treuils (s)")
     p.add_argument("--ramp-end", type=float, default=20.0, help="freinage final des treuils : sur ces derniers mètres")
     p.add_argument("--brake", action="store_true", help="treuils en frein : tension de consigne pour s'arrêter en bout de câble")
-    p.add_argument("--brake-c", type=float, default=2e3, help="frein : pente visqueuse (N par m/s)")
+    p.add_argument("--brake-tau", type=float, default=1.0, help="frein : constante de temps de l'asservissement de tension (s)")
     p.add_argument("--brake-err", type=float, default=1.0, help="frein du côté 0 : facteur d'erreur sur la consigne")
     p.add_argument("--dr0", type=float, default=0.0, help="vitesse radiale de départ (m/s)")
     p.add_argument("--Tmin", type=float, default=200.0, help="tension minimale d'un côté : en dessous, les treuils s'arrêtent (N)")
