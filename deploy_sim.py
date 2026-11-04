@@ -69,7 +69,11 @@ def run(o):
     L0 = float(L[0])
     side = np.array([c % 3 for c in range(nc)])
     seg_side = np.repeat(side, n)
-    st.ds0[:] = L[seg_side] / n
+    # Écart de longueur d'un brin (côté 0, brin 0) : mètres de câble en trop, atteints en fin de déroulement
+    seg_cable = np.repeat(np.arange(nc), n)
+    long_frac = np.zeros(nc)
+    long_frac[0] = o.strand_long / o.L_end
+    st.ds0[:] = L[seg_side] * (1 + long_frac[seg_cable]) / n
     st.mn[:] = st.lam * L0 / n
     st._update_stiffness()
     # Réserve de câble : portée par le vaisseau de tête de chaque côté
@@ -108,7 +112,7 @@ def run(o):
         return rn, er, np.sum((st.vb - v) * er, axis=1)
 
     ez = np.array([0.0, 0.0, 1.0])
-    rec = {k: [] for k in ("t", "r", "w", "L", "T", "Tmin", "Tmax", "slack", "tilt", "wrel", "lat", "z", "gap", "F", "sdot")}
+    rec = {k: [] for k in ("t", "r", "w", "L", "T", "Tmin", "Tmax", "slack", "tilt", "wrel", "lat", "z", "gap", "F", "sdot", "ratio", "Tcab")}
     traj = {k: [] for k in ("t", "xb", "R", "xn", "pa")}
     F, *_ = st.spring_forces(P)
     P, rw = st.points()
@@ -151,12 +155,16 @@ def run(o):
                 e_ = float(stretch_[st.cable_first_seg[s_]:st.cable_first_seg[s_] + n].sum())
                 sdot[s_] = max(0.0, vsep + (e_ - Tset / K[s_]) / o.brake_tau)
             else:
-                v = o.rate * min(1.0, t / o.ramp, math.sqrt(d_ / o.ramp_end) + 1e-3)
+                v = o.rate
+                if o.eps > 0:
+                    # poussée latérale = ε × accélération centrifuge : ṙ = ε·ω·r/(2 − p)
+                    v = min(v, math.sqrt(3) * o.eps * max(w_now, 1e-9) * rn_m / (2 - o.p))
+                v *= min(1.0, t / o.ramp, math.sqrt(d_ / o.ramp_end) + 1e-3)
                 sdot[s_] = v if Ts[s_] > o.Tmin else 0.0
         L += sdot * dt
         L = np.minimum(L, o.L_end)
         st.ds0_rate[:] = sdot[seg_side] / n
-        st.ds0[:] = L[seg_side] / n
+        st.ds0[:] = L[seg_side] * (1 + long_frac[seg_cable]) / n
         st.k = st.EA / st.ds0
         # Masse sortie du tambour : passe du vaisseau de tête aux nœuds (et, pour
         # les demi-segments d'extrémité, à chaque vaisseau)
@@ -185,6 +193,8 @@ def run(o):
                 ff = (2 - o.p) * dr_m * w_now
                 f = (M_ship * (ff + rn_m * o.gain * (wt - w_now))) * np.ones(3)
                 f[0] *= o.thrust_err
+                if o.thrust_out and o.thrust_out[0] <= t < o.thrust_out[0] + o.thrust_out[1]:
+                    f[0] = 0.0
                 Fth = f[:, None] * et
             if done and o.spin_after > 0:
                 wt = min(W_END, w0 + (W_END - w0) * (t - t_stop) / o.spin_after)
@@ -196,8 +206,8 @@ def run(o):
             _, ts_, _, taut, e = st.spring_forces(P_)
             axis = st.R[:, :, 0]
             rn, er, drn = geom()
-            mid = st.xn[[st.cable_mid_node[c] for c in range(3)]]
-            ends = [(P_[st.seg[st.cable_first_seg[c], 0]], P_[st.seg[st.cable_first_seg[c] + n - 1, 1]]) for c in range(3)]
+            mid = st.xn[[st.cable_mid_node[c] for c in range(nc)]]
+            ends = [(P_[st.seg[st.cable_first_seg[c], 0]], P_[st.seg[st.cable_first_seg[c] + n - 1, 1]]) for c in range(nc)]
             lat = [float(ts.point_segment_dist(mid[c:c + 1], a[None], b[None]).min()) for c, (a, b) in enumerate(ends)]
             hA, hB = st.hull_axes()
             rec["t"].append(t)
@@ -214,9 +224,11 @@ def run(o):
             rec["z"].append(float(np.abs(st.xb[:, 2] - st.xb[:, 2].mean()).max()))
             rec["gap"].append(min(ts.segment_segment_dist(hA[a], hB[a], hA[b], hB[b]) for a, b in ((0, 1), (0, 2), (1, 2))) - 2 * st.args.module_radius)
             rec["F"].append(float(np.linalg.norm(Fth, axis=1).sum()))
+            rec["ratio"].append(float(np.linalg.norm(Fth, axis=1).max()) / M_ship / max(st.spin_rate() ** 2 * rn.mean(), 1e-12))
+            rec["Tcab"].append(ts_[st.cable_first_seg].copy())
             rec["sdot"].append(sdot.copy())
             next_rec += o.record_dt
-            if int(t) % 300 == 0 and len(rec["t"]) % max(1, int(1 / o.record_dt)) == 0:
+            if len(rec["t"]) % max(1, int(1800 / o.record_dt)) == 1:
                 print(f"  t = {t:6.0f} s  r {rn.mean():6.1f} m  L {L.mean():6.1f} m  ω {st.spin_rate() / RPM:.3f} tr/min  T {Ts.mean() / 1e3:7.2f} kN  détendu {np.mean(~taut):.0%}  bascule {rec['tilt'][-1].max():5.1f}°  ṡ {sdot.mean():.3f}", flush=True)
         if o.traj_dt and t >= next_traj:
             traj["t"].append(t)
@@ -255,7 +267,9 @@ def run(o):
                slack_max=float(rec["slack"].max()), tilt_max=float(rec["tilt"].max()), wrel_max=float(rec["wrel"].max()),
                lat_max=float(rec["lat"].max()), z_max=float(rec["z"].max()), gap_min=float(rec["gap"].min()),
                impulse_per_ship=impulse / 3, propellant_t_per_ship=impulse / 3 / (o.isp * ts.G0) / 1e3, E_brake_MJ=E_brake / 1e6,
-               sdot_max=float(rec["sdot"].max()), M_ship_t=M_ship / 1e3, L0=L0)
+               sdot_max=float(rec["sdot"].max()), M_ship_t=M_ship / 1e3, L0=L0, ratio_max=float(rec["ratio"].max()),
+               dv_start=w0 * o.r0, propellant_start_t=M_ship * w0 * o.r0 / (o.isp * ts.G0) / 1e3,
+               tie_T_max_kN=(st.tie_tmax / 1e3 if st.ties is not None else None))
     json.dump(dict(name=o.name, args=vars(o), results=res), open(base + ".json", "w"), indent=1)
     print("  " + json.dumps({k: round(v, 3) if isinstance(v, float) else v for k, v in res.items()}, ensure_ascii=False), flush=True)
 
@@ -278,6 +292,9 @@ def parser():
     p.add_argument("--Tmin", type=float, default=200.0, help="tension minimale d'un côté : en dessous, les treuils s'arrêtent (N)")
     p.add_argument("--spin-after", type=float, default=0.0, help="après le déroulement : montée vers 0,1 tr/min sur cette durée (s)")
     p.add_argument("--thrust-err", type=float, default=1.0, help="poussée du vaisseau 0 : facteur d'erreur")
+    p.add_argument("--eps", type=float, default=0.0, help="treuils : vitesse telle que poussée latérale = ε × accélération centrifuge (plafonnée par --rate)")
+    p.add_argument("--strand-long", type=float, default=0.0, help="brin 0 du côté 0 : mètres en trop en fin de déroulement")
+    p.add_argument("--thrust-out", type=float, nargs=2, help="panne de poussée du vaisseau 0 : instant, durée")
     p.add_argument("--stall", type=float, nargs=3, help="treuil bloqué : côté, instant, durée")
     p.add_argument("--hold", type=float, default=300.0, help="durée simulée après la fin (s)")
     p.add_argument("--L-end", type=float, default=L_END)

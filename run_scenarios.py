@@ -260,6 +260,12 @@ CAMPAIGNS = {
         ("S_montee_arriere", TLD + SPIN + ["--spin-k", "0.05", "--spin-thrust-x", "45", "--duration", "2100"]),
         ("S_montee_moyeu", TLD + HUB2 + SPIN + ["--spin-k", "0.05", "--duration", "2100"]),
     ],
+    # Montée lente de 0,1 à 1 tr/min : même impulsion, poussée et inclinaison
+    # bien plus faibles ; passage lent sur les résonances (2 h 25 et 6 h)
+    "montee_lente": [
+        ("S_lente_k01", TLD + SPIN + ["--spin-k", "0.01", "--duration", "9000"]),
+        ("S_lente_k004", TLD + SPIN + ["--spin-k", "0.004", "--duration", "22200"]),
+    ],
     # Mode couplé du LOX (pic restant avec le bassin) : chicanes plus
     # efficaces (ζ = 8 %), ou second bassin de 8 t près des moteurs accordé
     # sur ce mode (tld_design.py, recherche out/lox_search.log)
