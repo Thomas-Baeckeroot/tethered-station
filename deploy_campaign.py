@@ -9,6 +9,7 @@ La montée de 0,1 à 1 tr/min vient de la campagne montee_lente de run_scenarios
 """
 import argparse
 import json
+import math
 import os
 import subprocess
 import sys
@@ -48,7 +49,12 @@ RUNS = {
     "D4_mi_ent": f"--mode lent {MI} --rate 0.05 --strands 3 --segments 12 --strand-long 1 --ties 1 --duration 16000",
 }
 
-CHAMPS = ("t_stop t_end r_end rpm_end T_start_kN T_max_kN T_seg_peak_kN slack_max tilt_max wrel_max lat_max "
+M_SHIP = 610.7   # t, vaisseau et câbles
+VE = 300 * 9.80665   # m/s, impulsion spécifique 300 s
+V_FINALE = 37.53     # m/s, ωR à 1 tr/min
+ergols = lambda dv: M_SHIP * (1 - math.exp(-dv / VE))
+
+CHAMPS = ("t_stop t_end r_end rpm_end T_start_kN T_max_kN T_seg_peak_kN tilt_max wrel_max lat_max "
           "impulse_per_ship propellant_t_per_ship propellant_start_t dv_start E_brake_MJ sdot_max ratio_max "
           "tie_T_max_kN").split()
 
@@ -80,7 +86,7 @@ def echantillon(z, n=400):
         "t_h": [round(float(t[j - 1]) / 3600, 4) for j in b],
         "r": [round(float(r[j - 1]), 2) for j in b],
         "rpm": [round(float(w[j - 1]) * 30 / np.pi, 5) for j in b],
-        "T_kN": pic(z["Tmax"] / 1e3),
+        "T_kN": pic(z["T"].max(axis=1) / 1e3),
         "tilt": pic(tilt),
     }
 
@@ -95,10 +101,18 @@ def exporte():
         d = json.load(open(p))
         r = d["results"]
         S[n] = {k: r.get(k) for k in CHAMPS}
-        S[n]["args"] = {k: d["args"].get(k) for k in ("r0", "rpm0", "p", "rate", "strands", "segments", "strand_long", "ties")}
+        a = d["args"]
+        S[n]["args"] = {k: a.get(k) for k in ("r0", "rpm0", "p", "rate", "strands", "segments", "strand_long", "ties")}
+        # Lancement : rotation de départ à r0, plus la vitesse radiale du lancer
+        depart = ergols(a["rpm0"] * math.pi / 30 * a["r0"] + a.get("dr0", 0.0))
+        S[n]["ergols_t"] = round(r["propellant_t_per_ship"] + depart, 3)
         with np.load(os.path.join(OUT, n + ".npz")) as z:
             if n in ("D2_lin", "D2_lin_bloque", "D2_cst_bloque", "D_vitesse", "D4_mi", "D4_mi_bloque"):
                 S[n]["serie"] = echantillon(z)
+            # Durée sous 5 N à la ferrure. Le champ slack des .npz d'avant le correctif de
+            # deploy_sim.py surestime la détente : il voit ≈ 100 N de moins que la tension réelle.
+            dt = np.diff(z["t"], prepend=0.0)
+            S[n]["t_detente_s"] = round(float(dt[z["T"].min(axis=1) < 5].sum()), 0)
             lat = z["lat"]
             S[n]["lat_end"] = round(float(lat[-1].max() if lat.ndim > 1 else lat[-1]), 3)
     M = {}
@@ -110,8 +124,14 @@ def exporte():
         M[n] = {"t_reach": s["t_reach"], "propellant_t": s["propellant_t"], "impulse_Ns": s["impulse_Ns"],
                 "tilt_max_on": s["tilt_max_on"], "tilt_max_after": s["tilt_max_after"],
                 "tilt_max": d["results"]["tilt_max"], "F_max_kN_total": F / 1e3, "k": d["args"]["spin_k"]}
+    montee = M["S_lente_k004"]["propellant_t"] / 3   # par vaisseau, 0,1 → 1 tr/min
+    bilan = {"ideal_t": round(ergols(V_FINALE), 2), "montee_t": round(montee, 2), "depart_t": S["D4_mi"]["propellant_start_t"]}
+    for n in ("D_vitesse", "D2_lin", "D4_mi"):
+        bilan[n] = {"deroulement_t": S[n]["ergols_t"], "total_t": round(S[n]["ergols_t"] + montee, 2),
+                    "total_3_t": round(3 * (S[n]["ergols_t"] + montee), 1)}
     dest = os.path.join(HERE, "docs", "data", "deploiement.json")
-    json.dump({"deroulement": S, "montee": M}, open(dest, "w"), ensure_ascii=False, separators=(",", ":"))
+    json.dump({"deroulement": S, "montee": M, "bilan": bilan}, open(dest, "w"), ensure_ascii=False, separators=(",", ":"))
+    print(json.dumps(bilan, ensure_ascii=False))
     print(dest, os.path.getsize(dest), "octets")
 
 

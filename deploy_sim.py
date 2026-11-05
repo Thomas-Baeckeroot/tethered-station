@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Déploiement des câbles (carnet § 5.3) : les trois vaisseaux partent proches,
+"""Déploiement des câbles (carnet § 5.4) : les trois vaisseaux partent proches,
 câbles courts, et s'écartent jusqu'au triangle final pendant que les treuils
 déroulent. Réutilise tether_sim.Station (vaisseaux rigides, ergols, bassin,
 câbles unilatéraux) ; seule change la longueur à vide des câbles, commune aux
@@ -203,7 +203,9 @@ def run(o):
         if t >= next_rec:
             P_, rw_ = st.points()
             Pv = st.point_velocities(rw_)
-            _, ts_, _, taut, e = st.spring_forces(P_)
+            # t_spr et stretch_ : avant l'avance de ds0 de ce pas (sinon la tension paraît
+            # plus faible de ṡ·dt·EA/L, ≈ 100 N à 0,03 m/s, et le câble faussement détendu)
+            ts_, taut = t_spr, (stretch_ > 0) & st.alive
             axis = st.R[:, :, 0]
             rn, er, drn = geom()
             mid = st.xn[[st.cable_mid_node[c] for c in range(nc)]]
