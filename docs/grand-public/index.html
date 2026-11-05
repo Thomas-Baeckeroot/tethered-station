@@ -442,6 +442,21 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <p>Une variante permettrait de tourner un peu moins vite, à 0,92 tour par minute, en transvasant la moitié des ergols du vaisseau habité dans les cargos et en réglant son bassin en conséquence (voir « Alléger le vaisseau habité », chapitre 5 ; <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi#masses-inegales" target="_blank" rel="noopener">détails dans le carnet</a>).</p>
 </section>
 
+<section class="trap wide" id="deploiement">
+  <div class="txt">
+    <span class="tag">Déploiement</span>
+    <h3>Dérouler les câbles sans rien emmêler</h3>
+    <p>Au départ, les câbles sont enroulés et les vaisseaux sont proches. C'est sans doute le moment le plus risqué : les câbles qui ont échoué en orbite ont lâché au déploiement ou à cause d'un défaut. Et ici, aucune gravité ne tire le câble hors de son tambour : seule la rotation le tend.</p>
+    <p>Nous avons simulé plusieurs méthodes. Lancer les vaisseaux vers l'extérieur sans les faire tourner paraît la plus simple, mais rien ne plaque alors les ergols au fond des réservoirs, et la mise en rotation qui suit fait pivoter les vaisseaux de <span class="num" data-dep="deroulement.D_lancer.tilt_max" data-d="0">—</span>°. La méthode retenue est la plus patiente : un tour toutes les 20 minutes, quelques heures pour laisser les ergols se caler, puis 5 heures à dérouler à 3 cm/s, avant de monter doucement à un tour par minute.</p>
+    <p>Aller lentement n'économise pas d'ergols : il faut amener chaque vaisseau à 37,5 m/s, en une demi-heure comme en trois jours. En revanche, tout incident devient bénin. Si un treuil se bloque 10 minutes, la tension monte à <span class="num" data-dep="deroulement.D4_mi_bloque.T_max_kN" data-d="0">—</span> kN, environ 2,7 t sur Terre, pour des câbles conçus pour environ mille fois plus, puis le déroulement reprend. Si un brin sort 1 m trop long, il s'écarte de <span class="num" data-dep="deroulement.D3_libre.lat_end" data-d="0">—</span> m ; les entretoises entre brins le ramènent à 60 cm.</p>
+    <p class="verdict">De l'arrêt à un tour par minute : une quinzaine d'heures et <span class="num" data-dep="bilan.D4_mi.total_3_t" data-d="0">—</span> t d'ergols pour les trois vaisseaux. Deux questions restent ouvertes : comment raccorder les câbles au départ, et si un câble tressé sort proprement de son tambour sous si peu de tension.</p>
+  </div>
+  <figure>
+    <div id="gp-deploiement"></div>
+    <figcaption><b>Le déploiement, en cinq étapes.</b> Les distances sont à l'échelle. Fond bleuté : étapes simulées. La barre orange montre les ergols consommés, par vaisseau.</figcaption>
+  </figure>
+</section>
+
 <section class="col" id="rupture">
   <span class="eyebrow">7 · La sécurité</span>
   <h2>Et si un câble cassait&nbsp;?</h2>
@@ -658,7 +673,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <span class="eyebrow">Ce que valent ces résultats</span>
   <h3>Simulé, estimé ou supposé</h3>
   <ul class="checks">
-    <li><b>Simulé</b><span>Le comportement de la station : rotation, balancements, clapotis des ergols et du bassin, mouvements de l'équipage et des cargaisons, rupture d'un câble, mise en rotation, pivotement vers le Soleil. Le simulateur est vérifié avec Project Chrono, sur des cas de référence et sur la station (ballottement, ruptures de câble).</span></li>
+    <li><b>Simulé</b><span>Le comportement de la station : rotation, balancements, clapotis des ergols et du bassin, mouvements de l'équipage et des cargaisons, rupture d'un câble, déroulement des câbles, mise en rotation, pivotement vers le Soleil. Le simulateur est vérifié avec Project Chrono, sur des cas de référence et sur la station (ballottement, ruptures de câble).</span></li>
     <li><b>Estimé</b><span>Par des calculs plus simples, sans simulation : la masse après l'injection, la résistance, la masse et la température des câbles, les ergols pour faire tourner et pivoter la station, la chaleur reçue par les réservoirs, le risque de météorites.</span></li>
     <li><b>Supposé</b><span>Ce que les sources publiques ne disent pas : la position exacte et la capacité des points de capture de la coiffe, la masse à vide du Starship V3 et la répartition de ses masses, la place disponible sous la coiffe pour le bassin. Ce sont les premiers points à confirmer.</span></li>
   </ul>
@@ -668,7 +683,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <span class="eyebrow">9 · La suite</span>
   <h2>Ce qu'il reste à étudier</h2>
   <ul class="todo">
-    <li>Le déploiement après l'injection vers Mars : rapprocher les trois vaisseaux et dérouler les câbles avant la mise en rotation, quand ils ne portent presque rien.</li>
+    <li>Le début du déploiement : rapprocher les trois vaisseaux, raccorder les câbles, et vérifier qu'une tresse sort proprement de son tambour sous une tension de quelques centaines de newtons.</li>
     <li>L'arrivée à Mars : arrêter la rotation, rentrer les câbles, séparer les vaisseaux, et retirer ou larguer ce qui ne supporterait pas l'entrée dans l'atmosphère (isolant côté Soleil, panneaux, ferrures).</li>
     <li>Les corrections de trajectoire en route : les trois vaisseaux doivent pousser ensemble, ou la station doit cesser de tourner.</li>
     <li>Les points de capture de la coiffe et le chemin de l'effort jusqu'aux réservoirs, à travers la coiffe et la soute ; le passage des câbles près des ailerons avant.</li>
@@ -695,7 +710,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <p>Simulations : modèle multicorps écrit pour l'étude (Python, NumPy), vérifié sur des cas de référence avec <a href="https://projectchrono.org/" target="_blank" rel="noopener">Project Chrono</a>. Les vaisseaux sont des corps rigides et les câbles des chaînes de ressorts élastiques. Chaque Starship est modélisé par éléments (coiffe, fût, moteurs, charge utile) ; ses ergols, posés au fond des réservoirs, ballottent selon le modèle à pendules de la NASA. Dimensions et masses d'après les sources publiques sur le Starship V2 et V3.</p>
   <p id="tech-link">Le détail des calculs, des hypothèses et de tous les résultats est dans le <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi" target="_blank" rel="noopener">carnet de calcul technique</a>.</p>
   <p>Textes, figures et données : <a href="https://creativecommons.org/licenses/by/4.0/deed.fr" target="_blank" rel="noopener">CC BY 4.0</a> · code : licence MIT · © 2026 Thomas Baeckeroot · code source : <a href="https://github.com/Thomas-Baeckeroot/tethered-station" target="_blank" rel="noopener">GitHub</a>.</p>
-  <p>Dernière révision : 2026-11-03.</p>
+  <p>Dernière révision : 2026-11-05.</p>
 </footer>
 
 </main>
@@ -707,6 +722,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 <script src="shared/schema.js"></script>
 <script src="shared/soleil.js"></script>
 <script src="shared/allege.js"></script>
+<script src="shared/deploiement.js"></script>
 <script>
 (function () {
   "use strict";
@@ -853,6 +869,13 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
                  { name: "Deux attaches surélevées", y: zp.tilt[0], x: zp.t.map((t) => t / 60) }],
       });
     }).catch(() => {});
+  getJSON("data/deploiement.json").then((J) => {
+    document.querySelectorAll("[data-dep]").forEach((e) => {
+      const v = e.dataset.dep.split(".").reduce((o, k) => (o ? o[k] : undefined), J);
+      if (v !== undefined && v !== null) e.textContent = fr(v, +e.dataset.d);
+    });
+    drawDeployment(document.getElementById("gp-deploiement"), J.bilan, {});
+  }).catch(() => {});
   getJSON("data/summary.json").then((s) => {
     const all = Object.assign({}, s.rotation || {}, s.internes || {}, s.final || {}, s.starship || {}, s.mission || {}, s.ballottement || {}, s.retenue || {}, s.amortisseur || {}, s.rupture || {},
                                s.moyeu || {}, s.montee || {}, s.lox || {}, s.masses || {}, s.brins || {}, s.allege || {}, s.brins3 || {});

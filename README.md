@@ -18,7 +18,7 @@ Site statique : `docs/build_site.sh <dossier>` construit `index.html`, `grand-pu
 | Fichier | Rôle |
 |---|---|
 | `tether_sim.py` | Simulateur multicorps (NumPy) : vaisseaux rigides (modèle de masse par éléments, pendules de ballottement, bassin d'eau accordé), câbles unilatéraux discrétisés, masses internes mobiles, amortisseur interne |
-| `run_scenarios.py` | Campagnes de scénarios en parallèle : `rotation`, `internes`, `final` (étude préliminaire), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `lox`, `masses`, `soleil`, `allege`, `sensibilite`, `brins3`, `retour` |
+| `run_scenarios.py` | Campagnes de scénarios en parallèle : `rotation`, `internes`, `final` (étude préliminaire), `starship`, `mission`, `ballottement`, `retenue`, `amortisseur`, `rupture`, `brins`, `moyeu`, `montee`, `montee_lente`, `lox`, `masses`, `soleil`, `allege`, `sensibilite`, `brins3`, `retour` |
 | `mission_mass.py` | Masse d'un Starship après l'injection vers Mars |
 | `slosh_modes.py` | Modèle linéaire hors plan (vaisseau + ergols) : modes couplés |
 | `tld_design.py` | Dimensionnement du bassin d'eau accordé (modèle linéaire amorti, balayage en temps) |
@@ -53,6 +53,9 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python run_scenarios.py brins        # câbles doublés ou triplés, rupture d'un brin (~45 min)
 .venv/bin/python run_scenarios.py moyeu        # confort avec moyeu et rayons doublés (~2 h 30)
 .venv/bin/python run_scenarios.py montee       # mise en rotation de 0,1 à 1 tr/min (~1 h 30)
+.venv/bin/python run_scenarios.py montee_lente # montée de 0,1 à 1 tr/min en 2 h 30 et 6 h (~3 h)
+.venv/bin/python deploy_campaign.py run --jobs 2 # déroulement des câbles (17 scénarios, ~20 h)
+.venv/bin/python deploy_campaign.py export     # → docs/data/deploiement.json
 .venv/bin/python run_scenarios.py lox          # chicanes du LOX à 8 % ou second bassin (~1 h 30)
 .venv/bin/python run_scenarios.py masses       # transfert d'ergols : 220 / 805 / 805 t à 0,862 tr/min (~1 h)
 .venv/bin/python run_scenarios.py allege       # transferts partiels, lest bas, bassins réaccordés (~10 h)
@@ -83,7 +86,7 @@ Prévisualisation locale des pages : `docs/_preview/build.sh`, puis `python3 -m 
 
 ## Résultats principaux
 
-Solution retenue (610 t, ergols libres, chicanes, bassin ; gravité de Mars au pont principal, à 14 m de la pointe) : roulis 0,09° après une perturbation ; 50 t déplacées de 3,5 m sur un pont : 0,60° ; marche de l'équipage : 0,17° ; pire balancement entretenu par 4 t : 2,6° sans bassin, 0,43° avec le bassin de 25 t, 0,31° si les chicanes du LOX amortissent 8 % au lieu de 3 %. Mise en rotation de 0,1 à 1 tr/min en 30 min, 21 t d'ergols, plancher penché de 2,6°. Câbles : 5,1 % de leur résistance en route, chaque côté fait de trois brins de tiers de section (même masse, 15 t) avec des coupe-câbles : la rupture d'un brin ne déforme pas la station, le plancher repasse sous 3° en 35 s, et une seconde rupture du même côté reste supportable. Un câble réaliste (tressé, gainé, brins redondants) pèse 25 t pour les trois en Dyneema SK99, jusqu'à 51 t en Kevlar.
+Solution retenue (610 t, ergols libres, chicanes, bassin ; gravité de Mars au pont principal, à 14 m de la pointe) : roulis 0,09° après une perturbation ; 50 t déplacées de 3,5 m sur un pont : 0,60° ; marche de l'équipage : 0,17° ; pire balancement entretenu par 4 t : 2,6° sans bassin, 0,43° avec le bassin de 25 t, 0,31° si les chicanes du LOX amortissent 8 % au lieu de 3 %. Déroulement des câbles à 3 cm/s sous 0,05 tr/min (5 h, jamais détendus ; treuil bloqué 10 min : 26 kN), puis mise en rotation de 0,1 à 1 tr/min : 21 t d'ergols quelle que soit la durée, plancher penché de 2,6° en 30 min, 0,21° en 6 h, sans résonance. De l'arrêt à 1 tr/min : 24,7 t. Câbles : 5,1 % de leur résistance en route, chaque côté fait de trois brins de tiers de section (même masse, 15 t) avec des coupe-câbles : la rupture d'un brin ne déforme pas la station, le plancher repasse sous 3° en 35 s, et une seconde rupture du même côté reste supportable. Un câble réaliste (tressé, gainé, brins redondants) pèse 25 t pour les trois en Dyneema SK99, jusqu'à 51 t en Kevlar.
 
 Historique de l'étude :
 

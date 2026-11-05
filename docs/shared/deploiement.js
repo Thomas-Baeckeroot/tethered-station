@@ -44,10 +44,10 @@
 
     const d = b.D4_mi.deroulement_t;
     const ET = [
-      { h: "1 · Raccorder", r: 60, rpm: "0", t: "non simulé", e: "—", ep: 0, sim: false, tag: "câbles courts, 63 m" },
+      { h: "1 · Raccorder", r: 60, rpm: "sans rotation", t: "non simulé", e: "—", ep: 0, sim: false, tag: "câbles courts, 63 m" },
       { h: "2 · Caler les ergols", r: 60, rpm: "0,05 tr/min", t: "≈ 3 h", e: fr(b.depart_t, 2) + " t", ep: b.depart_t, sim: false, liq: true, spin: 1, tag: "estimé" },
-      { h: "3 · Dérouler", r: 200, rpm: "0,05 tr/min", t: "5 h", e: "", ep: 0, sim: true, out: true, spin: 1, tag: o.tech ? "treuils 0,03 m/s" : "3 cm/s" },
-      { h: "4 · Plein rayon", r: 355, rpm: "0,05 → 0,1", t: "1 h", e: fr(d - b.depart_t, 2) + " t (3 et 4)", ep: d, sim: true, spin: 2, tag: o.tech ? "≈ 330 N par vaisseau" : "" },
+      { h: "3 · Dérouler", r: 200, rpm: "0,05 tr/min", t: "5 h", e: "compté à l'étape 4", ep: d, sim: true, out: true, spin: 1, tag: o.tech ? "treuils 0,03 m/s" : "3 cm/s" },
+      { h: "4 · Plein rayon", r: 355, rpm: "0,05 → 0,1 tr/min", t: "1 h", e: fr(d - b.depart_t, 2) + " t (3 et 4)", ep: d, sim: true, spin: 2, tag: o.tech ? "≈ 330 N par vaisseau" : "" },
       { h: "5 · Monter", r: 355, rpm: "0,1 → 1 tr/min", t: "6 h ou plus", e: fr(b.montee_t, 1) + " t", ep: b.montee_t + d, sim: true, spin: 3, tag: o.tech ? "α = 0,004·ω²" : "" },
     ];
     ET.forEach((s, i) => {
@@ -55,17 +55,23 @@
       g.appendChild(el("rect", { x, y: 2, width: col - 6, height: H - 4, rx: 5, class: "dp-col" + (s.sim ? " dp-sim" : "") }));
       g.appendChild(el("text", { x: x + 10, y: 22, class: "dp-h" }, s.h));
       // Triangle à l'échelle ; vaisseaux de 50 m, pointe vers le centre
-      const R = s.r * sc, P = [90, 210, 330].map((a) => { const t = a * Math.PI / 180; return [Math.cos(t), Math.sin(t)]; });
-      g.appendChild(el("polygon", { points: P.map(([c, n]) => `${cx + c * R},${cy + n * R}`).join(" "), class: "dp-cable" }));
+      const P = [90, 210, 330].map((a) => { const t = a * Math.PI / 180; return [Math.cos(t), Math.sin(t)]; });
+      const at = (rho, c, n) => [cx + c * rho * sc, cy + n * rho * sc];
+      // Câbles aux points d'attache (21 m au-dessus du centre de masse), coque de −34 à +16 m
+      g.appendChild(el("polygon", { points: P.map(([c, n]) => at(s.r - 21, c, n).join(",")).join(" "), class: "dp-cable" }));
       P.forEach(([c, n]) => {
-        g.appendChild(el("line", { x1: cx + c * R, y1: cy + n * R, x2: cx + c * (R + 50 * sc * 1.4), y2: cy + n * (R + 50 * sc * 1.4), class: "dp-ship" }));
-        if (s.liq) g.appendChild(el("circle", { cx: cx + c * (R + 50 * sc * 2), cy: cy + n * (R + 50 * sc * 2), r: 2.6, class: "dp-liq" }));
-        if (s.out) g.appendChild(el("line", { x1: cx + c * (R + 20), y1: cy + n * (R + 20), x2: cx + c * (R + 34), y2: cy + n * (R + 34), class: "dp-arrow", "marker-end": "url(#dp-m)" }));
+        const [x1, y1] = at(s.r - 34, c, n), [x2, y2] = at(s.r + 16, c, n);
+        g.appendChild(el("line", { x1, y1, x2, y2, class: "dp-ship" }));
+        if (s.liq) { const [lx, ly] = at(s.r + 16, c, n); g.appendChild(el("circle", { cx: lx, cy: ly, r: 3, class: "dp-liq" })); }
+        if (s.out) {
+          const [ax, ay] = at(s.r + 36, c, n), [bx, by] = at(s.r + 110, c, n);
+          g.appendChild(el("line", { x1: ax, y1: ay, x2: bx, y2: by, class: "dp-arrow", "marker-end": "url(#dp-m)" }));
+        }
       });
       g.appendChild(el("circle", { cx, cy, r: 1.8, class: "dp-ctr" }));
       if (s.spin) {
-        const a = 16 + s.spin * 4, r0 = Math.max(R * 0.55, 12);
-        g.appendChild(el("path", { d: `M${cx + r0} ${cy}A${r0} ${r0} 0 0 0 ${cx + r0 * Math.cos(a * Math.PI / 60)} ${cy - r0 * Math.sin(a * Math.PI / 60)}`, class: "dp-arrow", "marker-end": "url(#dp-m)" }));
+        const a = (25 + s.spin * 20) * Math.PI / 180, r0 = 30;
+        g.appendChild(el("path", { d: `M${cx + r0} ${cy}A${r0} ${r0} 0 0 0 ${cx + r0 * Math.cos(a)} ${cy - r0 * Math.sin(a)}`, class: "dp-arrow", "marker-end": "url(#dp-m)" }));
       }
       const L = (y, c, t) => g.appendChild(el("text", { x: x + 10, y, class: c }, t));
       L(218, "dp-b", s.rpm);
