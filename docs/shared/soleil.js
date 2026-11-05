@@ -300,7 +300,7 @@
         el("line", { x1: x0, y1: y0, x2: x1, y2: y1, class: "so-hot", "marker-end": mk("a") }, svg);
       }
       lab(cx, H - 30, "les tuiles chauffées conduisent la chaleur", "middle");
-      lab(cx, H - 16, "jusqu'aux ergols : 5 à 25 kW par vaisseau", "middle", "so-s");
+      lab(cx, H - 16, "jusqu'aux ergols : 5 à 26 kW par vaisseau", "middle", "so-s");
     }
     return svg;
   }

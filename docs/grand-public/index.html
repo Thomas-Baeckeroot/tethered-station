@@ -243,7 +243,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <div class="calc-out">
       <div><b id="o-r" class="num">338 m</b><span>rayon nécessaire</span></div>
       <div><b id="o-l" class="num">586 m</b><span>entre deux vaisseaux</span></div>
-      <div><b id="o-v" class="num">35 m/s</b><span>vitesse du vaisseau</span></div>
+      <div><b id="o-v" class="num">35 m/s</b><span>vitesse du pont principal</span></div>
       <div><b id="o-c" class="num">±5,6 %</b><span>poids en marchant à 1 m/s</span></div>
     </div>
     <p class="comfort" id="comfort" data-level="ok"><i>Confortable.</i> En dessous de 2 tr/min, la plupart des gens s'adaptent sans symptômes.</p>
@@ -292,7 +292,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <span class="tag">Second choix</span>
     <h3>Deux câbles par vaisseau, vers deux voisins</h3>
     <p>Un câble ne transmet aucun couple : on peut faire tourner un objet suspendu à une corde sans que la corde résiste. Un vaisseau accroché par un seul point pourrait donc pivoter librement autour de son câble, et une fois lancé, rien ne l'arrêterait. Le plancher resterait horizontal, mais les hublots, les radiateurs et les panneaux solaires tourneraient lentement.</p>
-    <p>Dans le triangle, chaque vaisseau est tenu par deux câbles qui partent de deux côtés opposés de son nez, écartés de 7 m, vers ses deux voisins. S'il pivote, l'un tire d'un côté, l'autre de l'autre, et ils le ramènent : il oscille autour de sa position sans jamais s'en écarter. Autre avantage&nbsp;: si un câble casse, les trois vaisseaux restent reliés par les deux autres.</p>
+    <p>Dans le triangle, chaque vaisseau est tenu par deux câbles qui partent de deux côtés opposés de son nez, écartés de 9,6 m, vers ses deux voisins. S'il pivote, l'un tire d'un côté, l'autre de l'autre, et ils le ramènent : il oscille autour de sa position sans jamais s'en écarter. Autre avantage&nbsp;: si un câble casse, les trois vaisseaux restent reliés par les deux autres.</p>
     <p class="verdict">Après une petite poussée, le vaisseau ne pivote que de <span data-bind="R_perturbation.roll_max">—</span>.</p>
   </div>
   <figure>
@@ -357,7 +357,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <span class="tag">Ergols</span>
     <h3>Le clapotis des ergols</h3>
     <p>En route, chaque vaisseau transporte encore près de 400 t d'oxygène et de méthane liquides, posés au fond des réservoirs par la gravité artificielle. Un liquide ne suit pas la coque : il clapote. Nous l'avons modélisé comme le font les ingénieurs des lanceurs, par des pendules : 139 t d'oxygène et 47 t de méthane se balancent au bout de pendules de moins de 3 m, à leur propre rythme, une oscillation toutes les 4 à 5 secondes.</p>
-    <p>Dans des réservoirs aux parois lisses, presque rien ne freine ce clapotis. Si l'équipage bouge en cadence à ce rythme pendant trois minutes, l'oxygène se balance de 40 cm et le plancher penche de 3,0° ; six minutes après l'arrêt, il penche encore de 1,4°. Au pire rythme, nous avons relevé jusqu'à 4,2°.</p>
+    <p>Dans des réservoirs aux parois lisses, presque rien ne freine ce clapotis. Si l'équipage bouge en cadence à ce rythme pendant trois minutes, l'oxygène se balance de 40 cm et le plancher penche de 3,0° ; six minutes après l'arrêt, il penche encore de 1,4°. Au pire rythme, nous avons relevé jusqu'à 4,6°.</p>
     <p class="verdict">D'où les chicanes, ces anneaux fixés à l'intérieur des réservoirs que les lanceurs utilisent déjà : avec elles, le clapotis s'éteint en une vingtaine de secondes.</p>
   </div>
   <figure>
@@ -434,8 +434,8 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <ul class="checks" id="mission-checks">
     <li><b>Pas de pivotement</b><span>Le vaisseau perturbé ne tourne que de <span class="num" data-bind="R_perturbation.roll_max">—</span> autour de son axe.</span></li>
     <li><b>Plancher stable</b><span><span class="num" data-bind="R_cargaison_laterale.tilt_max">—</span> au pire quand 50 t traversent un pont, <span class="num" data-bind="R_equipage.tilt_max">—</span> quand l'équipage marche, rien quand on change de pont, <span class="num" data-bind="T_balayage_z.tilt_max">—</span> au pire rythme grâce au bassin.</span></li>
-    <li><b>Gravité stable</b><span>Entre <span class="num" data-bind="R_perturbation.g_min" data-fmt="ms2">—</span> et <span class="num" data-bind="R_perturbation.g_max" data-fmt="ms2">—</span>, pour 3,711 m/s² visés.</span></li>
-    <li><b>Mise en rotation en douceur</b><span>Des propulseurs amènent la station de 0,1 à 1 tour par minute en une demi-heure, avec 21 t d'ergols au total : pendant la manœuvre, le plancher penche de <span class="num" data-bind="S_montee_k005.spin.tilt_max_on">—</span> et les câbles restent tendus.</span></li>
+    <li><b>Gravité stable</b><span>Entre 3,69 et 3,74 m/s² au pont principal, pour 3,711 m/s² visés.</span></li>
+    <li><b>Mise en rotation en douceur</b><span>Des propulseurs amènent la station de 0,1 à 1 tour par minute en 6 heures, avec 21 t d'ergols au total, comme en une demi-heure : pendant la manœuvre, le plancher penche de <span class="num" data-dep="montee.S_lente_k004.tilt_max_on" data-d="1">—</span>° et les câbles restent tendus.</span></li>
     <li><b>Face au Soleil</b><span>Panneaux fixes et ergols qui restent froids d'eux-mêmes ; l'axe suit le Soleil grâce à de petites poussées, environ 75 t d'ergols pour tout le voyage.</span></li>
     <li><b>Marge de résistance</b><span>Câbles dimensionnés pour des vaisseaux chargés à 1 g avec un facteur de sécurité de 3 : en route, ils ne travaillent qu'à 5 % de leur résistance.</span></li>
     <li><b>Un brin peut casser</b><span>Chaque câble est fait de trois brins : si l'un casse, il est largué, les deux autres prennent le relais ; le plancher penche de 10° quelques secondes et repasse sous 5° en 43 s (chapitre 7).</span></li>
@@ -470,9 +470,9 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <div class="txt">
     <span class="tag">Rupture</span>
     <h3>Le triangle se défait</h3>
-    <p>Le câble cède en son milieu. Ses deux moitiés se rétractent à 15 m/s, comme un élastique lâché, et reviennent frapper les nez des vaisseaux, le premier 8 secondes plus tard. Privés d'un câble, les deux vaisseaux concernés partent vers l'extérieur : en 20 secondes, ils s'éloignent à plus de 560 m du centre, et la station ralentit à un demi-tour par minute, comme une patineuse qui ouvre les bras.</p>
+    <p>Le câble cède en son milieu. Ses deux moitiés se rétractent à 15 m/s, comme un élastique lâché, et reviennent frapper les nez des vaisseaux, le premier 11 secondes plus tard. Privés d'un câble, les deux vaisseaux concernés partent vers l'extérieur : en 20 secondes, ils s'éloignent à plus de 560 m du centre, et la station ralentit à un demi-tour par minute, comme une patineuse qui ouvre les bras.</p>
     <p>Puis la station se met à « respirer » : les deux câbles restants s'ouvrent et se referment toutes les 45 secondes, en se retendant d'un coup à chaque fois, jusqu'à <span data-bind="X_rupture_milieu.break.T_max_MN" data-fmt="mn">—</span>, six fois leur tension normale.</p>
-    <p class="verdict">Les câbles restants tiennent, avec une marge de 3,2. Mais à bord, c'est la tempête : des à-coups jusqu'à 2 g et des vaisseaux qui tournoient sur eux-mêmes, pendant des dizaines de minutes. Il faut une parade.</p>
+    <p class="verdict">Les câbles restants tiennent, avec une marge de 3,1. Mais à bord, c'est la tempête : des à-coups jusqu'à 2 g et des vaisseaux qui tournoient sur eux-mêmes, pendant des dizaines de minutes. Il faut une parade.</p>
   </div>
   <figure>
     <div class="viewer" data-anim="X_rupture_milieu" data-speed="3">
@@ -533,12 +533,12 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <h3>D'autres idées pour des câbles plus sûrs</h3>
   <ul class="checks">
     <li><b>Des cadres entre les brins</b><span>Plutôt que de simples liens, des cadres triangulaires tous les 24 à 48 m garderaient les trois brins écartés comme sur la plaque de l'attache : ils ne frotteraient plus l'un contre l'autre, ne se feraient pas d'ombre, et retiendraient un brin cassé (voir plus haut). Il reste à concevoir leur serrage sur une tresse qui s'allonge, et l'enroulage des câbles avec leurs cadres.</span></li>
-    <li><b>Des tronçons remplaçables</b><span>Des câbles faits de tronçons d'environ 180 m, de 1,6 t chacun : plus faciles à fabriquer, contrôler et remplacer. Avec trois brins, on remplacerait un brin pendant que les deux autres portent la charge, sans arrêter la rotation ; avec le moyeu, on pourrait même détendre tout un côté. Chaque raccord reste un point faible à soigner.</span></li>
+    <li><b>Des tronçons remplaçables</b><span>Des câbles faits de tronçons d'environ 190 m, de 0,6 t par brin : plus faciles à fabriquer, contrôler et remplacer. Avec trois brins, on remplacerait un brin pendant que les deux autres portent la charge, sans arrêter la rotation ; avec le moyeu, on pourrait même détendre tout un côté. Chaque raccord reste un point faible à soigner.</span></li>
     <li><b>Un filet plutôt que trois câbles</b><span>En coupant chaque côté en trois et en reliant les points par des câbles intérieurs, on obtient un filet de neuf triangles dont le centre est le moyeu. N'importe quel câble peut céder. La rotation suffit à tendre un filet, comme la voile solaire japonaise IKAROS.</span></li>
     <li><b>Des amortisseurs aux attaches</b><span>Des sangles qui se déchirent progressivement, comme dans les harnais antichute, plafonneraient les à-coups d'un câble unique : vers 5 MN au lieu de 9, sur quelques mètres de course.</span></li>
     <li><b>Un câble qui se surveille</b><span>Une fibre optique dans le câble mesure son allongement sur toute sa longueur et signale un brin rompu ou un échauffement. Un robot grimpeur peut l'inspecter, poser un manchon de réparation, ou tirer un câble neuf le long de l'ancien.</span></li>
-    <li><b>Ranger les câbles à l'abri</b><span>Hors service, les câbles doivent être enroulés sous une coiffe : en orbite basse, les débris, l'oxygène atomique et les ultraviolets les abîment bien plus que le vide entre les planètes. Les trois tiennent dans 15 à 20 m³. Un câble laissé déployé sans tension se vrille et s'emmêle.</span></li>
-    <li><b>Une gaine blanche</b><span>Comme la station fait face au Soleil, les câbles sont éclairés de côté en permanence, sans jamais passer à l'ombre. Une gaine blanche les garde vers −70 °C, là où le Dyneema est le plus solide ; une gaine métallique nue les chaufferait à près de 80 °C, ce qui accélère son fluage. La face éclairée reste plus chaude que la face à l'ombre : de 40 à 100 °C d'écart au départ, moins près de Mars. Le Dyneema raccourcit en chauffant : des fils droits et parallèles n'auraient plus la même longueur, et les fils éclairés porteraient presque toute la charge. Dans une tresse, chaque fil fait le tour du câble et passe autant de temps des deux côtés : tous gardent la même longueur. Les trois câbles, éclairés de la même façon, restent égaux, et les trois brins de chaque câble, disposés en triangle, ne se font pas d'ombre.</span></li>
+    <li><b>Ranger les câbles à l'abri</b><span>Hors service, les câbles doivent être enroulés sous une coiffe : en orbite basse, les débris, l'oxygène atomique et les ultraviolets les abîment bien plus que le vide entre les planètes. Les trois occupent environ 40 m³, 60 m³ pour un câble réaliste. Un câble laissé déployé sans tension se vrille et s'emmêle.</span></li>
+    <li><b>Une gaine blanche</b><span>Comme la station fait face au Soleil, les câbles sont éclairés de côté en permanence, sans jamais passer à l'ombre. Une gaine blanche les garde vers −70 °C, là où le Dyneema est le plus solide ; une gaine métallique nue les chaufferait à près de 80 °C, ce qui accélère son fluage. La face éclairée reste plus chaude que la face à l'ombre : de 25 à 85 °C d'écart au départ, moins près de Mars. Le Dyneema raccourcit en chauffant : des fils droits et parallèles n'auraient plus la même longueur, et les fils éclairés porteraient presque toute la charge. Dans une tresse, chaque fil fait le tour du câble et passe autant de temps des deux côtés : tous gardent la même longueur. Les trois câbles, éclairés de la même façon, restent égaux, et les trois brins de chaque câble, disposés en triangle, ne se font pas d'ombre.</span></li>
   </ul>
 </section>
 
@@ -676,7 +676,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   <h3>Simulé, estimé ou supposé</h3>
   <ul class="checks">
     <li><b>Simulé</b><span>Le comportement de la station : rotation, balancements, clapotis des ergols et du bassin, mouvements de l'équipage et des cargaisons, rupture d'un câble, déroulement des câbles, mise en rotation, pivotement vers le Soleil. Le simulateur est vérifié avec Project Chrono, sur des cas de référence et sur la station (ballottement, ruptures de câble).</span></li>
-    <li><b>Estimé</b><span>Par des calculs plus simples, sans simulation : la masse après l'injection, la résistance, la masse et la température des câbles, les ergols pour faire tourner et pivoter la station, la chaleur reçue par les réservoirs, le risque de météorites.</span></li>
+    <li><b>Estimé</b><span>Par des calculs plus simples, sans simulation : la masse après l'injection, la résistance, la masse et la température des câbles, les ergols pour faire tourner et pivoter la station, la chaleur reçue par les réservoirs, le temps de calage des ergols avant le déroulement, le risque de météorites.</span></li>
     <li><b>Supposé</b><span>Ce que les sources publiques ne disent pas : la position exacte et la capacité des points de capture de la coiffe, la masse à vide du Starship V3 et la répartition de ses masses, la place disponible sous la coiffe pour le bassin. Ce sont les premiers points à confirmer.</span></li>
   </ul>
 </section>

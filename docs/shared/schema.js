@@ -345,7 +345,7 @@
     row(y, "t = 0 : un brin cède au milieu");
     red(`M ${x0} ${y + 4} L ${x1} ${y + 4}`);
     el("text", { x: xm, y: y + 8, class: "sc-small sc-bad", "text-anchor": "middle" }, a, "×");
-    el("text", { x: xm, y: y + 24, class: "sc-small", "text-anchor": "middle" }, a, "255 kJ libérés");
+    el("text", { x: xm, y: y + 24, class: "sc-small", "text-anchor": "middle" }, a, "308 kJ libérés");
     // t + 1 s : forces sur chaque moitié, centrifuge (vers le bas) et Coriolis
     y = 206;
     row(y, "t + 1 s : recul à 15 m/s, coupe-câbles");
