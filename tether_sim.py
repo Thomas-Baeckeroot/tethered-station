@@ -407,6 +407,12 @@ class Station:
         self.R = np.array(R0)
         self.R_init = self.R.copy()
         self.up_body = np.array(up)
+        # Point d'observation du plancher : le pont visé, pas le centre de masse
+        # rigide, car un vaisseau qui se balance tourne autour de ce dernier
+        self.obs_r = None
+        if self.g_ref_x is not None:
+            xc = [shp["x_c"] for shp in self.ships] if self.ships else [ell / 2] * self.nb
+            self.obs_r = np.array([u * (x - self.g_ref_x) for u, x in zip(up, xc)])
         self.att_body = np.array(att_body)
         self.att_r = np.array(att_r)
         self.Mb = np.array([M_rigid[b] - (m_int if b in self.motion_modules else 0.0) for b in range(nb)])
@@ -461,6 +467,7 @@ class Station:
         self.s_w = np.sqrt(self.omega ** 2 * r_bob / self.sL) if len(sm) else np.zeros(0)
         self.s_zeta = np.array(sz)
         self.s_c = 2 * self.s_zeta * self.sm * self.s_w
+        self._s_w_ref = self.omega
         w_rod = 2 * math.pi * 3.0
         self.s_k = self.sm * w_rod ** 2
         self.s_cr = 2 * 0.7 * self.sm * w_rod * (self.s_zeta > 0)
@@ -716,6 +723,14 @@ class Station:
         np.add.at(Fb, b, -F)
         np.add.at(Tb, b, np.cross(ra, -F))
         return F, Fb, Tb
+
+    def set_slosh_rate(self, w):
+        """Amortisseurs de ballottement pour la vitesse de rotation w : ζ reste
+        constant quand la fréquence des pendules suit la rotation."""
+        if len(self.sm):
+            self.s_w = self.s_w * abs(w) / self._s_w_ref
+            self._s_w_ref = abs(w)
+            self.s_c = 2 * self.s_zeta * self.sm * self.s_w
 
     def slosh_forces(self):
         """Pendules de ballottement : tige (ressort raide, amorti si ζ > 0)
@@ -1343,7 +1358,7 @@ def run(args):
     E0 = st.energy()
     L0v = st.angular_momentum()
     eL = L0v / np.linalg.norm(L0v)
-    rec = {k: [] for k in ("t", "g", "T", "tilt", "roll", "wrel", "z", "plane", "E", "L", "s", "slosh",
+    rec = {k: [] for k in ("t", "g", "T", "tilt", "tilt_cm", "roll", "wrel", "z", "plane", "E", "L", "s", "slosh",
                            "Tc", "rship", "wsys", "gap", "clear", "vwhip", "thrust")}
     Fth, Tth, _ = st.spin_thrust(0.0)
     impulse = 0.0
@@ -1383,6 +1398,8 @@ def run(args):
     i_s, j_s = st.seg[:, 0], st.seg[:, 1]
     nb = st.nb
     for step in range(n_steps + 1):
+        if spin and step % rec_every == 0:
+            st.set_slosh_rate(st.spin_rate())
         t = step * dt
         for kb, cb, tb, key in ((k_brk, brk, args.break_time, 0), (k_brk2, brk2, t_brk2, 1)):
             if kb is not None and (brk_meta, brk2_meta)[key] is None and t >= tb:
@@ -1419,11 +1436,19 @@ def run(args):
             Fd = np.zeros_like(P)
             np.add.at(Fd, i_s, f)
             np.add.at(Fd, j_s, -f)
-            Fb, _ = st.wrench(Fd[st.nf:], rw)
+            Fb, Tb = st.wrench(Fd[st.nf:], rw)
             Fb = Fb + Fbi + Fbs + Fth + Fp  # force spécifique de la structure : câbles, poussée, réactions des masses internes et des ergols
-            Fn = np.linalg.norm(Fb, axis=1)
             up = np.einsum("bij,bj->bi", st.R, st.up_body)
-            tilt = np.degrees(np.arccos(np.clip(np.sum(up * Fb, axis=1) / Fn, -1, 1)))
+            acc = Fb / st.Mb[:, None]
+            tilt_cm = np.degrees(np.arccos(np.clip(np.sum(up * acc, axis=1) / np.linalg.norm(acc, axis=1), -1, 1)))
+            if st.obs_r is not None:
+                # Accélération absolue du point du pont : a_c + α × r + ω × (ω × r), repère du corps
+                wb = st.pi / st.Ib
+                Tw = Tb + Tbi + Tbs + Tth - Td
+                ab = (np.einsum("bji,bj->bi", st.R, Tw) - np.cross(wb, st.pi)) / st.Ib
+                acc = acc + np.einsum("bij,bj->bi", st.R, np.cross(ab, st.obs_r) + np.cross(wb, np.cross(wb, st.obs_r)))
+            Fn = np.linalg.norm(acc, axis=1)
+            tilt = np.degrees(np.arccos(np.clip(np.sum(up * acc, axis=1) / Fn, -1, 1)))
             com = (st.mn[hub] @ st.xn[hub] + st.Mb @ st.xb + st.mi @ st.xi + st.sm @ st.xs) / M_com
             roll, zc = roll_angles(st.xb, st.R, com, eL, args.module)
             wrel = np.degrees(np.linalg.norm(st.omega_world() - (st.spin_rate() if spin else st.omega) * eL, axis=1))
@@ -1434,7 +1459,8 @@ def run(args):
                 nrm = np.cross(st.xb[1] - st.xb[0], st.xb[2] - st.xb[0])
                 plane = math.degrees(math.acos(min(1.0, abs(nrm @ eL) / np.linalg.norm(nrm))))
             rec["t"].append(t)
-            rec["g"].append(Fn / st.Mb / G0)
+            rec["g"].append(Fn / G0)
+            rec["tilt_cm"].append(tilt_cm)
             rec["T"].append(t_tot[st.cable_first_seg])
             rec["tilt"].append(tilt)
             rec["roll"].append(roll)
@@ -1592,7 +1618,7 @@ def report(st, rec, E0, L0v, args, info, p):
     growth = doubling_time(t1, t10, t45, args.duration)
     res = dict(g_min=float(rec["g"].min()), g_max=float(rec["g"].max()), g_mean=float(rec["g"].mean()),
                T_max_MN=float(rec["T"].max() / 1e6), T_min_MN=float(rec["T"].min() / 1e6),
-               tilt_max=float(rec["tilt"].max()), roll_max=float(roll_abs.max()),
+               tilt_max=float(rec["tilt"].max()), tilt_cm_max=float(rec["tilt_cm"].max()), roll_max=float(roll_abs.max()),
                roll_final=float(np.abs(rec["roll"][-200:]).mean()) if len(t) > 200 else None,
                roll_turns=float(np.abs(rec["roll"][-1]).max() / 360), wrel_max=float(rec["wrel"].max()),
                plane_max=float(rec["plane"].max()), z_max=float(np.abs(rec["z"]).max()),
@@ -1717,7 +1743,7 @@ def report(st, rec, E0, L0v, args, info, p):
     base = os.path.join(args.out, info["name"])
     fig.savefig(base + ".png", dpi=100)
     plt.close(fig)
-    np.savez_compressed(base + ".npz", t=t, roll=rec["roll"], tilt=rec["tilt"], wrel=rec["wrel"], g=rec["g"], slosh=rec["slosh"],
+    np.savez_compressed(base + ".npz", t=t, roll=rec["roll"], tilt=rec["tilt"], tilt_cm=rec["tilt_cm"], wrel=rec["wrel"], g=rec["g"], slosh=rec["slosh"],
                         s=rec["s"], T=rec["T"], z=rec["z"], Tc=rec["Tc"], rship=rec["rship"], wsys=rec["wsys"], gap=rec["gap"],
                         clear=rec["clear"], vwhip=rec["vwhip"], thrust=rec["thrust"])
     with open(base + ".json", "w") as fh:

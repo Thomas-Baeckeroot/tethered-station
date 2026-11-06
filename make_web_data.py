@@ -148,7 +148,7 @@ def sweep_response(d, info, f0=0.004, f1=0.25, t0=60.0):
     out = []
     # fenêtres contiguës : chaque fréquence prend le maximum entre les
     # milieux de ses voisines (au moins ±0,75 période), pour ne manquer aucun pic
-    fs = np.geomspace(f0 * 1.05, f1 * 0.98, 60)
+    fs = np.geomspace(f0 * 1.05, f1, 60)
     tc = t0 + (fs - f0) / (f1 - f0) * (t1 - t0)
     edges = np.concatenate([[tc[0]], (tc[1:] + tc[:-1]) / 2, [tc[-1]]])
     for k, f in enumerate(fs):

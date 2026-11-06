@@ -7,9 +7,9 @@ pont (4 t oscillantes, accélération limitée à 1 m/s², comme les balayages d
 simulateur).
 
 Comme dans le simulateur, la masse oscillante est ancrée au centre de masse
-de la partie rigide, et l'inclinaison ressentie est l'angle entre le
-plancher et la force spécifique sur la structure : inclinaison du vaisseau +
-accélération latérale de son centre de masse / gravité locale.
+de la partie rigide, et l'inclinaison ressentie est celle du pont principal,
+où vit l'équipage : inclinaison du vaisseau + accélération latérale du pont /
+gravité locale.
 
 Le régime permanent n'a pas de sens ici (la structure n'est presque pas
 amortie) : la réponse est calculée en temps, avec le même programme de
@@ -68,6 +68,8 @@ def system(mass_t=610, free=True, zeta_prop=0.03, tld=None, omega=OMEGA, R_tot=N
         dv[1], dv[2 + i] = -L, L
         C += 2 * t.get("zeta", zeta_prop) * ws * m * np.outer(dv, dv)
     s_d = hr
+    # Observation : pont principal (X_REF), là où vit l'équipage
+    sm = dict(sm, obs=(X_REF - x_att, OMEGA ** 2 * (ra + X_REF - x_att)))
     f = np.zeros(n)
     f[0], f[1] = 1.0, s_d
     g_d = OMEGA ** 2 * (ra + s_d)
@@ -77,7 +79,8 @@ def system(mass_t=610, free=True, zeta_prop=0.03, tld=None, omega=OMEGA, R_tot=N
 def sweep(tld=None, dt=0.1, **kw):
     """Balayage en temps : renvoie (fréquences, pic glissant de
     l'inclinaison ressentie en °), comme sweep_response de make_web_data."""
-    M, C, K, f, s_d, g_d, _ = system(tld=tld, **kw)
+    M, C, K, f, s_d, g_d, sm = system(tld=tld, **kw)
+    s_o, g_o = sm["obs"]
     n = len(f)
     Mi = np.linalg.inv(M)
     A = np.block([[np.zeros((n, n)), np.eye(n)], [-Mi @ K, -Mi @ C]])
@@ -100,13 +103,13 @@ def sweep(tld=None, dt=0.1, **kw):
     for k in range(len(t)):
         q, qd = x[:n], x[n:]
         qdd = Mi @ (-K @ q - C @ qd - M_INT * acc[k] * f - M_INT * g_d * sv[k] * e1)
-        tilt[k] = abs(q[1] + (qdd[0] + s_d * qdd[1]) / g_d)
+        tilt[k] = abs(q[1] + (qdd[0] + s_o * qdd[1]) / g_o)
         x = Ph @ x + Ga @ np.array([acc[k], sv[k]])
     tilt = np.degrees(tilt)
     out = []
     f0, f1, t0, t1 = 0.004, SWEEP["f1"], 60.0, T - 60
     # fenêtres contiguës, comme sweep_response de make_web_data
-    fs = np.geomspace(f0 * 1.05, f1 * 0.98, 120)
+    fs = np.geomspace(f0 * 1.05, f1, 120)
     tc = t0 + (fs - f0) / (f1 - f0) * (t1 - t0)
     edges = np.concatenate([[tc[0]], (tc[1:] + tc[:-1]) / 2, [tc[-1]]])
     for k, fr in enumerate(fs):
