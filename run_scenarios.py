@@ -228,6 +228,7 @@ CAMPAIGNS = {
         ("T_equipage", TLD + WALK + LAT),
         ("R_resonance_z", BAFFLED + RESO8 + ["--traj-dt", "0.25"]),
         ("T_resonance_z", TLD + RESO8 + ["--traj-dt", "0.25"]),
+        ("T_balayage_t_07", TLD + SWEEP_L + LAT + ["--sweep-f1", "0.7"]),   # au-delà de la corde : mode d'étirement, vers 0,44 Hz
     ],
     # Rupture d'un câble, solution retenue (chicanes + bassin), puis avec moyeu
     "rupture": [
