@@ -1160,7 +1160,11 @@ text.sc-bad { fill: var(--bad); stroke: none; }
 
 <section id="reproduire">
   <h2>17 · Reproduire</h2>
-  <div class="prose"><p>Projet <code>~/Workspace/perso/tethered-station</code>. Environnement Python : <code>.venv</code> (NumPy, Matplotlib, SciPy). Chrono : <code>tools/chrono-env</code> (PyChrono 10.0.0, installé par micromamba).</p></div>
+  <div class="prose"><p>Le code est public : <a href="https://github.com/Thomas-Baeckeroot/tethered-station" target="_blank" rel="noopener">github.com/Thomas-Baeckeroot/tethered-station</a> (licence MIT ; textes et données CC BY 4.0). Toutes les valeurs de ce carnet se recalculent avec les commandes ci-dessous ; reprises, vérifications et contributions sont bienvenues.</p></div>
+<pre>git clone https://github.com/Thomas-Baeckeroot/tethered-station.git
+cd tethered-station
+python3 -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt</pre>
+  <div class="prose"><p>Environnement Python : <code>.venv</code> (NumPy, Matplotlib, SciPy). Chrono : <code>tools/chrono-env</code> (PyChrono 10.0.0, installé par micromamba).</p></div>
 <pre>.venv/bin/python run_scenarios.py rotation      # 8 scénarios de stabilité, ~8 min (M1 Max)
 .venv/bin/python run_scenarios.py internes      # 11 scénarios de mouvements internes, ~30 min
 .venv/bin/python run_scenarios.py final         # configuration générique retenue (Z+)

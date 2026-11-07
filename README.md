@@ -122,6 +122,17 @@ Historique de l'étude :
 
 - Face au Soleil (`sun_pointing.py`, campagne `soleil`, carnet § 5.6) : l'axe suit le Soleil (180° en 259 jours, 1,08 à 0,47 °/jour). Impulsion 2,8·10⁸ N·s en poussée continue, 2,2·10⁸ par impulsions à ±15° de la ligne des nœuds (20 N, 5 s, deux fois par tour) : 66 à 94 t de méthane-oxygène brûlés. Le simulateur (1 000 fois accéléré) retrouve l'angle et l'impulsion à 10⁻³ près. Thermique : avec l'axe fixe, les tuiles éclairées conduisent 5 à 26 kW vers les ergols (réservoirs vides en quelques semaines ; 11 à 70 t par vaisseau avec une housse) ; face au Soleil, les tuiles à l'ombre refroidissent les ergols de 0,6 à 1 kW nets (≈ 1 kW de chauffage pour que le CH4 ne gèle pas).
 
+## Participer
+
+Le projet est ouvert : chacun peut le cloner, refaire les calculs, tester d'autres hypothèses ou approfondir un point de `TODO.md`. Remarques (issues) et contributions (pull requests) sont bienvenues.
+
+```sh
+git clone https://github.com/Thomas-Baeckeroot/tethered-station.git
+cd tethered-station
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python run_scenarios.py retenue   # 4 scénarios, ~10 à 30 min
+```
+
 ## Licence
 
 Code (scripts Python, JavaScript, shell) : [MIT](LICENSE). Textes, figures et données des pages (`docs/`) : [CC BY 4.0](docs/LICENSE).
