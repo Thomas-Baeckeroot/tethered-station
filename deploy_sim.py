@@ -303,7 +303,7 @@ def parser():
     p.add_argument("--segments", type=int, default=8)
     p.add_argument("--strands", type=int, default=1)
     p.add_argument("--ties", type=int, default=0)
-    p.add_argument("--material")
+    p.add_argument("--material", default="sk99")  # câble de référence (carnet § 2.3)
     p.add_argument("--cfl", type=float, default=0.3)
     p.add_argument("--isp", type=float, default=300.0)
     p.add_argument("--duration", type=float, default=20000.0)

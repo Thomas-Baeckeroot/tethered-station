@@ -54,7 +54,9 @@ DECK = ["--g-ref-x", "14"]
 ANCHOR = ["--spread", f"{ts.ANCHOR_SPREAD:g}", "--attach-x", f"{ts.ANCHOR_X:g}", "--bridle", "-4"]
 POOL = ["--tld-mass-t", f"{ts.POOL['m_t']:g}", "--tld-x", f"{ts.POOL['x']:g}", "--tld-radius", f"{ts.POOL['a']:g}",
         "--tld-zeta", f"{ts.POOL['zeta']:g}"]
-MISSION = SV3 + ["--mass-t", "610", "--design-mass-t", "1600", "--accel", "3.711"] + DECK + ANCHOR
+# Câble de référence : Dyneema SK99 tressé, gainé, redondant (carnet § 2.3)
+CABLE = ["--material", "sk99"]
+MISSION = SV3 + ["--mass-t", "610", "--design-mass-t", "1600", "--accel", "3.711"] + DECK + ANCHOR + CABLE
 # Ballottement des ergols : modèle de masse du Starship, ergols figés ou libres
 # (pendules d'Abramson), parois raidies (ζ = 0,1 %) ou chicanes (ζ = 3 %) ;
 # balayage prolongé jusqu'à 0,4 Hz pour couvrir le mode de ballottement
@@ -81,15 +83,15 @@ HUB2 = HUB + ["--hub-spokes", "2"]
 SPIN = ["--spin-from", "0.1", "--dv-radial", "0", "--dv-z", "0", "--droll", "0"]
 # Masses inégales : ergols du vaisseau habité transvasés dans les cargos
 # (220 / 805 / 805 t), attaches sur les points de capture, vaisseau habité à 3,711 m/s² au pont principal : 0,862 tr/min (light_tld.py)
-UNEQ = SV3 + DECK + ANCHOR + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", "--slosh-zeta", "0.03"] + POOL + [
+UNEQ = SV3 + DECK + ANCHOR + CABLE + ["--design-mass-t", "1600", "--accel", "3.711", "--slosh", "free", "--slosh-zeta", "0.03"] + POOL + [
     "--masses-t", "220,805,805", "--target-ship", "0", "--rpm", "0.8621"]
 
 
 # Sensibilité de la solution retenue : V3 aux réservoirs pleins (1 820 t au
-# départ, 693 t en route, câbles dimensionnés pour 1 820 t) ; câble réaliste
-# (Dyneema SK99 tressé, gainé, redondant : 24 t, EA ×1,5, masse linéique ×1,7)
+# départ, 693 t en route, câbles dimensionnés pour 1 820 t) ; câble idéal
+# (Dyneema plein, sans tresse ni redondance : 15 t, EA ÷1,5, masse linéique ÷1,7)
 V3FULL = [a if a not in ("610", "1600") else {"610": "693", "1600": "1820"}[a] for a in TLD]
-SK99 = TLD + ["--material", "sk99"]
+DYN = TLD + ["--material", "dyneema"]
 # Solution retenue, câbles à trois brins par côté (tiers de section, même
 # masse de câble), sur une ferrure commune, coupe-câbles à 1 s
 TLD3 = TLD + ["--side-strands", "3", "--release-delay", "1"]
@@ -326,14 +328,15 @@ CAMPAIGNS = {
         ("N_equipage", V3FULL + WALK + LAT),
         ("N_balayage_z", V3FULL + SWEEP_L + LATZ),
         ("N_balayage_t", V3FULL + SWEEP_L + LAT),
-        ("C_perturbation", SK99 + PERT),
-        ("C_balayage_z", SK99 + SWEEP_L + LATZ),
-        ("C_balayage_t", SK99 + SWEEP_L + LAT),
-        ("C_rupture_milieu", SK99 + BRK + ["--break-at", "0.5", "--duration", "1800"]),
-        ("C_brins2_rupture", SK99 + BRK + ["--side-strands", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
+        ("C_perturbation", DYN + PERT),
+        ("C_balayage_z", DYN + SWEEP_L + LATZ),
+        ("C_balayage_t", DYN + SWEEP_L + LAT),
+        ("C_balayage_t_07", DYN + SWEEP_L + LAT + ["--sweep-f1", "0.7"]),
+        ("C_rupture_milieu", DYN + BRK + ["--break-at", "0.5", "--duration", "1800"]),
+        ("C_brins2_rupture", DYN + BRK + ["--side-strands", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
     ],
     # Câbles à trois brins (solution retenue) : confort en service, rupture
-    # d'un brin (milieu, attache, sans coupe-câbles, câble SK99 réaliste),
+    # d'un brin (milieu, attache, sans coupe-câbles, câble Dyneema plein),
     # puis de deux brins du même côté, ensemble ou à 10 s d'intervalle
     "brins3": [
         ("B3_perturbation", TLD3 + PERT + TRAJ),
@@ -344,7 +347,7 @@ CAMPAIGNS = {
         ("B3_rupture", TLD3 + BRK + ["--break-at", "0.5", "--duration", "900"] + TRAJ),
         ("B3_rupture_attache", TLD3 + BRK + ["--break-at", "0", "--duration", "900"]),
         ("B3_sans_largage", TLD + BRK + ["--side-strands", "3", "--break-at", "0.5", "--duration", "900"]),
-        ("B3_sk99_rupture", TLD3 + BRK + ["--material", "sk99", "--break-at", "0.5", "--duration", "900"]),
+        ("B3_dyneema_rupture", TLD3 + BRK + ["--material", "dyneema", "--break-at", "0.5", "--duration", "900"]),
         ("B3_double_rupture", TLD3 + BRK + ["--break-cable2", "3", "--break-at", "0.5", "--duration", "900"] + TRAJ),
         ("B3_double_rupture_10s", TLD3 + BRK + ["--break-cable2", "3", "--break-time2", "70", "--break-at", "0.5", "--duration", "900"]),
     ],
