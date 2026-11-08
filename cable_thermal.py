@@ -19,11 +19,11 @@ import numpy as np
 SIGMA = 5.670374e-8
 S1 = 1361.0                 # W/m², 1 UA
 R_MARS = 1.52368            # UA
-D0 = 0.12                   # m, câble tressé gainé (12 à 13 cm selon la redondance)
-M_L0 = 24e3 / (3 * 538.6)   # kg/m, Dyneema SK99 redondant, gaine comprise
+D0 = 0.132                  # m, câble de référence : fibre tressée, redondante (Ø équivalent 13,2 cm)
+M_L0 = 25.4e3 / (3 * 579.0)  # kg/m, HMPE SK99 tressé, redondant, gaine comprise
 C_P = 1200.0                # J/kg/K, polyéthylène vers 200 K
-CTE = -12e-6                # 1/K, dilatation axiale du Dyneema
-EPS_LOAD = 0.0011           # allongement de la fibre en route (≈ 3,1 % de la rupture, 3,5 % à rupture)
+CTE = -12e-6                # 1/K, dilatation axiale du HMPE
+EPS_LOAD = 0.0010           # allongement du câble en route (0,10 %, tether_sim matériau sk99)
 SHEATHS = {"blanche": (0.20, 0.90), "métallisée nue": (0.10, 0.05)}   # (α, ε)
 
 
@@ -88,7 +88,7 @@ def main():
                   f"écart d'allongement {abs(CTE) * dT * 100:.3f} % ({abs(CTE) * dT / EPS_LOAD * 100:.0f} % de l'allongement en route)")
     for t in (0.1e-3, 0.3e-3):
         s = section(0.1, D, foil=(200.0, t))
-        m = 2700 * math.pi * D * t * 538.6   # par brin
+        m = 2700 * math.pi * D * t * 579.0   # par brin
         print(f"  k = 0,1 + feuille d'aluminium {t * 1e3:.1f} mm ({m:.0f} kg par brin) : {c(s.max()):+.0f} / {c(s.min()):+.0f} °C, écart {s.max() - s.min():.0f} K")
 
 

@@ -35,10 +35,10 @@ def cuts(d, n=1):
 
 
 def main():
-    cases = [("Câble Ø 10,7 cm (dimensionnement)", 0.107, 1), ("Câble Ø 13 cm (tressé, gainé, redondant)", 0.13, 1),
-             ("2 brins Ø 7,6 cm par côté", 0.107 / math.sqrt(2), 2),
-             ("3 brins Ø 6,2 cm par côté", 0.107 / math.sqrt(3), 3),
-             ("3 brins Ø 7,5 cm par côté (SK99 réaliste)", 0.13 / math.sqrt(3), 3),
+    cases = [("Câble Ø 13,2 cm (référence : tressé, gainé, redondant)", 0.132, 1), ("Câble Ø 10,7 cm (fibre pleine idéale)", 0.107, 1),
+             ("2 brins Ø 9,3 cm par côté", 0.132 / math.sqrt(2), 2),
+             ("3 brins Ø 7,6 cm par côté (retenue)", 0.132 / math.sqrt(3), 3),
+             ("3 brins Ø 6,2 cm par côté (fibre pleine idéale)", 0.107 / math.sqrt(3), 3),
              ("Fil Ø 2 mm, même longueur", 0.002, 1)]
     print(f"Coupures attendues par voyage ({DAYS} j, {SIDES} × {L_SIDE:.0f} m, flux à 1 UA) :")
     for name, d, n in cases:
