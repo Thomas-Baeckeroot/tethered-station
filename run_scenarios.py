@@ -444,7 +444,7 @@ CAMPAIGNS = {
         (f"F_etir_t_{_pname(P)}", TLD + ["--motion", "periodic", "--motion-mass-t", "4", "--motion-axis", "t",
                                           "--motion-amp", f"{(P / (2 * 3.141592653589793)) ** 2:.5f}", "--motion-period", f"{P:.3f}",
                                           "--motion-stop", "360", "--duration", "600"])
-        for P in sorted([1.78 + 0.02 * i for i in range(10)] + [1.865, 1.87, 1.875, 1.885, 1.89, 1.895]
+        for P in sorted([1.78 + 0.02 * i for i in range(10)] + [1.865, 1.87, 1.872, 1.875, 1.877, 1.879, 1.885, 1.89, 1.895]
                         + [1.98 + 0.02 * i for i in range(8)])
     ] + [
         # mode hors plan lent (≈ 4 s) : forçage plus long, la réponse croît encore à 420 s
@@ -452,6 +452,12 @@ CAMPAIGNS = {
                                            "--motion-amp", f"{(P / (2 * 3.141592653589793)) ** 2:.5f}", "--motion-period", f"{P:.3f}",
                                            "--motion-stop", "600", "--duration", "840"])
         for P in [3.40 + 0.05 * i for i in range(21)]
+    ] + [
+        # pics étroits de 3,65 et 4,10 s : pas de 0,01 s, forçage de 15 min
+        (f"F_corde_z_{_pname(P)}", TLD + ["--motion", "periodic", "--motion-mass-t", "4", "--motion-axis", "z",
+                                           "--motion-amp", f"{(P / (2 * 3.141592653589793)) ** 2:.5f}", "--motion-period", f"{P:.3f}",
+                                           "--motion-stop", "900", "--duration", "1100"])
+        for P in [3.62, 3.63, 3.64, 3.66, 3.67, 3.68, 4.06, 4.07, 4.08, 4.09, 4.11, 4.12, 4.13, 4.14]
     ],
 }
 
