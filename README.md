@@ -78,6 +78,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python meteorites.py > out/meteorites.log  # coupures par les météorites
 .venv/bin/python cable_thermal.py              # thermique des câbles (--brins 3 pour un brin)
 .venv/bin/python make_web_data.py              # met à jour docs/data/
+.venv/bin/python -m unittest discover tests     # tests rapides (≈ 1 min)
 ```
 
 Validation Chrono (environnement conda local, non versionné) :
