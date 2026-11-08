@@ -375,6 +375,7 @@ class Station:
             if lay != "ferrure" and args.topology != "triangle2":
                 raise ValueError("dispositions plan, croise et lie : topologie triangle2 seulement")
             na0, cab0 = len(topo["attach"]), topo["cables"]
+            topo["fittings"] = na0
             offs = np.linspace(args.strand_gap / 2, -args.strand_gap / 2, ns_)
             if lay == "plan":
                 topo["attach"] = [(s_ + d * math.copysign(1.0, s_), 0.0) for d in offs for s_, _ in topo["attach"]]
@@ -395,8 +396,10 @@ class Station:
                 raise ValueError("le moyeu suppose une topologie en triangle")
             n_sides = len(topo["cables"])
             if getattr(args, "hub_spokes", 1) == 2:
-                # rayons doublés : un depuis chacun des deux points d'attache du nez
-                topo["cables"] = topo["cables"] + [((b, k), ("hub", 0)) for b in range(len(topo["angles"])) for k in range(len(topo["attach"]))]
+                # rayons doublés : un depuis chacune des deux ferrures du nez
+                # (avec plusieurs brins par côté, un seul rayon par ferrure)
+                n_fit = topo.get("fittings", len(topo["attach"]))
+                topo["cables"] = topo["cables"] + [((b, k), ("hub", 0)) for b in range(len(topo["angles"])) for k in range(n_fit)]
             else:
                 k_hub = len(topo["attach"])
                 topo["attach"] = topo["attach"] + [(0.0, 0.0)]

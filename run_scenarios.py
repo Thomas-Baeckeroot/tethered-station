@@ -122,6 +122,12 @@ def UNEQ_K(masses, rpm):
     return a
 
 
+def _pname(P):
+    """Nom de scénario d'une période : 1.88 → 1_88, 1.865 → 1_865."""
+    v = f"{P:.3f}"
+    return (v[:-1] if v.endswith("0") else v).replace(".", "_")
+
+
 CAMPAIGNS = {
     "rotation": [
         ("A_haltere_tangentiel", A + ["--duration", "1800"]),
@@ -374,7 +380,10 @@ CAMPAIGNS = {
         # Perte d'une ferrure (revue R-03) : les trois brins d'un côté cèdent
         # ensemble à l'attache, morceaux largués ; sans moyeu, puis avec
         ("B3_ferrure", TLD3 + BRK + ["--break-cable2", "3", "--break-cable3", "6", "--break-at", "0", "--duration", "900"] + TRAJ),
-        ("Z3_ferrure", TLD3 + HUB2 + BRK + ["--break-cable2", "3", "--break-cable3", "6", "--break-at", "0", "--duration", "900"] + TRAJ),
+        # Avec moyeu : avant la rupture, les trois brins d'une ferrure commune
+        # équivalent à un câble ; perdre la ferrure coupe le côté et le rayon
+        # qui en part (câble 3 : vaisseau 0, attache 0)
+        ("Z3_ferrure", TLD + HUB2 + BRK + ["--break-cable2", "3", "--break-at", "0", "--release-delay", "1", "--duration", "900"] + TRAJ),
     ],
     # Retour en fin de rampe (250 t, 1 g) : tensions en service et après la
     # rupture d'un ou deux brins, pour les cas de charge du fluage (creep.py)
@@ -432,15 +441,17 @@ CAMPAIGNS = {
     # d'étirement dans le plan (≈ 0,53 Hz) ; corde, LOX et roulis hors plan
     # (≈ 0,26 Hz)
     "frequences": [
-        (f"F_etir_t_{P:.2f}".replace(".", "_"), TLD + ["--motion", "periodic", "--motion-mass-t", "4", "--motion-axis", "t",
-                                                       "--motion-amp", f"{(P / (2 * 3.141592653589793)) ** 2:.5f}", "--motion-period", f"{P:.3f}",
-                                                       "--motion-stop", "360", "--duration", "600"])
-        for P in [1.78 + 0.02 * i for i in range(10)]
+        (f"F_etir_t_{_pname(P)}", TLD + ["--motion", "periodic", "--motion-mass-t", "4", "--motion-axis", "t",
+                                          "--motion-amp", f"{(P / (2 * 3.141592653589793)) ** 2:.5f}", "--motion-period", f"{P:.3f}",
+                                          "--motion-stop", "360", "--duration", "600"])
+        for P in sorted([1.78 + 0.02 * i for i in range(10)] + [1.865, 1.87, 1.875, 1.885, 1.89, 1.895]
+                        + [1.98 + 0.02 * i for i in range(8)])
     ] + [
-        (f"F_corde_z_{P:.2f}".replace(".", "_"), TLD + ["--motion", "periodic", "--motion-mass-t", "4", "--motion-axis", "z",
-                                                        "--motion-amp", f"{(P / (2 * 3.141592653589793)) ** 2:.5f}", "--motion-period", f"{P:.3f}",
-                                                        "--motion-stop", "420", "--duration", "600"])
-        for P in [3.60 + 0.05 * i for i in range(11)]
+        # mode hors plan lent (≈ 4 s) : forçage plus long, la réponse croît encore à 420 s
+        (f"F_corde_z_{_pname(P)}", TLD + ["--motion", "periodic", "--motion-mass-t", "4", "--motion-axis", "z",
+                                           "--motion-amp", f"{(P / (2 * 3.141592653589793)) ** 2:.5f}", "--motion-period", f"{P:.3f}",
+                                           "--motion-stop", "600", "--duration", "840"])
+        for P in [3.40 + 0.05 * i for i in range(21)]
     ],
 }
 
