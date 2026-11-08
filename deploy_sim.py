@@ -129,6 +129,10 @@ def run(o):
     w_now, rn_m, dr_m = w0, o.r0, o.dr0
     print(f"{o.name} : {o.mode}, r0 {o.r0:g} m, {o.rpm0:g} tr/min, câble {L0:.1f} → {o.L_end:g} m, {M_ship / 1e3:.0f} t par vaisseau, dt {dt * 1e3:.3f} ms", flush=True)
     i_s, j_s = st.seg[:, 0], st.seg[:, 1]
+    # Ballottement : fréquence des pendules ∝ ω·√r ; leurs amortisseurs (réglés
+    # par Station au départ) suivent ω et le rayon, ζ constant
+    r_bob0 = st.s_w ** 2 * st.sL / max(st.omega, 1e-12) ** 2 if len(st.sm) else np.zeros(0)
+    rn0 = geom()[0]
     while True:
         if step % 200 == 0:
             dt = o.cfl * 2 / (2 * math.sqrt(st.k.max() / st.mn.min()))
@@ -182,6 +186,10 @@ def run(o):
             rn, er, drn = geom()
             rn_m, dr_m = float(rn.mean()), float(drn.mean())
             w_now = st.spin_rate()
+            if len(st.sm):
+                st.s_w = abs(w_now) * np.sqrt(np.maximum(r_bob0 + rn[st.sb] - rn0[st.sb], 1.0) / st.sL)
+                st._s_w_ref = abs(w_now)
+                st.s_c = 2 * st.s_zeta * st.sm * st.s_w
             et = np.cross(ez, er)
             done = bool(np.all(L >= o.L_end - 1e-3))
             Fth[:] = 0.0

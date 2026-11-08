@@ -103,7 +103,7 @@ def slosh_tank(m, depth, a=SHIP_TANK_RADIUS):
     return dict(m=m, depth=depth, ms=ms, L=L, H=H, hb=hb, mf=mf, hf=hf)
 
 
-def starship_mass_model(M_t, slosh=True, tld=None, ballast=None):
+def starship_mass_model(M_t, slosh=True, tld=None, ballast=None, frozen=None):
     """Starship en route : structure et charge utile (SHIP_PARTS), ergols
     restants (rapport de mélange 3,6) posés au fond de leurs réservoirs par la
     gravité artificielle. Partie rigide : éléments de structure, charge, masse
@@ -119,12 +119,16 @@ def starship_mass_model(M_t, slosh=True, tld=None, ballast=None):
 
     ballast : lest bas, dict(m_t, x) : masse prise sur la charge utile
     (réserves, eau en conteneurs) et posée à x de la pointe, sans
-    ballottement (masse totale inchangée)."""
+    ballottement (masse totale inchangée).
+
+    frozen : liste de dict(m_t, x) : eau figée (bassin absent de ce vaisseau,
+    même eau en réservoirs cloisonnés), prise sur la charge utile."""
+    frozen = frozen or []
     tlds = tld if isinstance(tld, list) else ([tld] if tld else [])
     rigid = []  # (masse kg, x, I_axe propre, I_transverse propre)
     for name, m_t, x0, x1, r, shell in SHIP_PARTS:
         if name == "charge":
-            m_t -= sum(t["m_t"] for t in tlds) + (ballast["m_t"] if ballast else 0.0)
+            m_t -= sum(t["m_t"] for t in tlds) + sum(fz["m_t"] for fz in frozen) + (ballast["m_t"] if ballast else 0.0)
         m, ell = m_t * 1e3, x1 - x0
         rigid.append((m, (x0 + x1) / 2, m * r * r * (1.0 if shell else 0.5), m * (r * r * (0.5 if shell else 0.25) + ell * ell / 12)))
     prop = (M_t - sum(p[1] for p in SHIP_PARTS)) * 1e3
@@ -146,6 +150,8 @@ def starship_mass_model(M_t, slosh=True, tld=None, ballast=None):
             rigid.append((tk["ms"], tk["x_bob"], 0.0, 0.0))
     if ballast:
         rigid.append((ballast["m_t"] * 1e3, ballast["x"], 0.0, 0.0))
+    for fz in frozen:
+        rigid.append((fz["m_t"] * 1e3, fz["x"], 0.0, 0.0))
     for k, td in enumerate(tlds):
         m = td["m_t"] * 1e3
         tk = slosh_tank(m, m / (1000.0 * math.pi * td["a"] ** 2), td["a"])
@@ -310,8 +316,23 @@ class Station:
             if getattr(args, "tld2_mass_t", 0) > 0:
                 tld.append(dict(m_t=args.tld2_mass_t, x=args.tld2_x, a=args.tld2_radius, zeta=args.tld2_zeta))
             bal = dict(m_t=args.ballast_t, x=args.ballast_x) if getattr(args, "ballast_t", 0) > 0 else None
-            self.ships = [starship_mass_model(mt, slosh=slosh == "free", tld=tld, ballast=bal if b == getattr(args, "ballast_ship", 0) else None)
-                          for b, mt in enumerate(masses_t)]
+            # --tld-ships : vaisseaux équipés du bassin ; dans les autres, la même
+            # eau est figée au même endroit (réservoirs cloisonnés : masse et
+            # centre de masse inchangés)
+            tld_sel = getattr(args, "tld_ships", None)
+            tld_sel = None if tld_sel in (None, "") else {int(v) for v in str(tld_sel).split(",")}
+
+            def ship_tld(b):
+                if tld_sel is None or b in tld_sel:
+                    return tld, None
+                fz = [dict(m_t=td["m_t"], x=td["x"] - td["m_t"] / (math.pi * td["a"] ** 2) / 2) for td in tld]
+                return [], (fz or None)
+
+            self.ships = []
+            for b, mt in enumerate(masses_t):
+                tld_b, frozen = ship_tld(b)
+                self.ships.append(starship_mass_model(mt, slosh=slosh == "free", tld=tld_b,
+                                                      ballast=bal if b == getattr(args, "ballast_ship", 0) else None, frozen=frozen))
             self.ship = self.ships[0]
             x_att = getattr(args, "attach_x", None)
             h_att, M_rigid, off = [], [], []
@@ -1079,6 +1100,11 @@ class Station:
             cos_psi = (r @ ex) / rn
             Fp = math.pi * np.linalg.norm(tau) / (2 * self.nb * rn.mean() * math.sin(hw))
             f = np.where(np.abs(cos_psi) >= math.cos(hw), Fp * np.sign(cos_psi), 0.0)
+            N = max(1, getattr(a, "precess_group", 1))
+            if N > 1:
+                # un tour sur N (le 2ᵉ de chaque groupe, après la mise en route), poussée × N
+                turn = int(t * self.omega / (2 * math.pi))
+                f = f * N if turn % N == 1 else 0.0 * f
         else:
             G = np.cross(r, eL)                       # couple par newton de poussée, vaisseau par vaisseau
             f = np.linalg.pinv(G.T) @ tau
@@ -1376,16 +1402,23 @@ def run(args):
     brk2 = getattr(args, "break_cable2", -1) if brk >= 0 else -1
     t_brk2 = args.break_time if getattr(args, "break_time2", None) is None else args.break_time2
     k_brk2, brk2_meta = None, None
+    # Troisième rupture, même endroit, même instant que la deuxième : avec
+    # trois brins par côté, rupture des trois brins à la ferrure (perte de la ferrure)
+    brk3 = getattr(args, "break_cable3", -1) if brk2 >= 0 else -1
+    k_brk3, brk3_meta = None, None
     if brk >= 0:
         f0 = st.cable_first_seg[brk]
         k_brk = f0 + min(int(args.break_at * ns), ns - 1)
-        cabs = [brk] + ([brk2] if brk2 >= 0 else [])
+        cabs = [brk] + ([brk2] if brk2 >= 0 else []) + ([brk3] if brk3 >= 0 else [])
         brk_nodes = np.unique(np.concatenate([st.seg[st.cable_first_seg[c]:st.cable_first_seg[c] + ns] for c in cabs]))
         brk_nodes = brk_nodes[brk_nodes < st.nf]
         p(f"Rupture         : câble {brk}, segment {k_brk - f0 + 1}/{ns} (fraction {args.break_at:g}), à t = {args.break_time:g} s")
         if brk2 >= 0:
             k_brk2 = st.cable_first_seg[brk2] + k_brk - f0
             p(f"Seconde rupture : câble {brk2}, même segment, à t = {t_brk2:g} s")
+        if brk3 >= 0:
+            k_brk3 = st.cable_first_seg[brk3] + k_brk - f0
+            p(f"Troisième rupture : câble {brk3}, même segment, à t = {t_brk2:g} s")
     pairs = [(a, b) for a in range(st.nb) for b in range(a + 1, st.nb)]
     tpk = np.zeros(nc)  # tension de crête par câble depuis le dernier enregistrement
     traj = {k: [] for k in ("t", "xb", "R", "xn", "pa", "xi", "xs")}
@@ -1401,20 +1434,22 @@ def run(args):
         if spin and step % rec_every == 0:
             st.set_slosh_rate(st.spin_rate())
         t = step * dt
-        for kb, cb, tb, key in ((k_brk, brk, args.break_time, 0), (k_brk2, brk2, t_brk2, 1)):
-            if kb is not None and (brk_meta, brk2_meta)[key] is None and t >= tb:
+        for kb, cb, tb, key in ((k_brk, brk, args.break_time, 0), (k_brk2, brk2, t_brk2, 1), (k_brk3, brk3, t_brk2, 2)):
+            if kb is not None and (brk_meta, brk2_meta, brk3_meta)[key] is None and t >= tb:
                 # Le segment cède : son énergie élastique est perdue (comptée dissipée)
                 _, _, stretch, taut, _ = st.spring_forces(P)
                 E_rel = 0.5 * st.k[kb] * stretch[kb] ** 2 if taut[kb] else 0.0
                 w_diss += E_rel
                 st.alive[kb] = False
                 meta = dict(t=t, cable=cb, seg=int(kb), E_seg_J=float(E_rel))
-                if key:
+                if key == 2:
+                    brk3_meta = meta
+                elif key:
                     brk2_meta = meta
                 else:
                     brk_meta = meta
                 F, *_ = st.spring_forces(P)
-        for m, cb in ((brk_meta, brk), (brk2_meta, brk2)):
+        for m, cb in ((brk_meta, brk), (brk2_meta, brk2), (brk3_meta, brk3)):
             if m and args.release_delay >= 0 and "released" not in m and t >= m["t"] + args.release_delay:
                 # Coupe-câbles : les deux segments d'attache du câble rompu sont
                 # coupés, les morceaux sont largués
@@ -1526,6 +1561,8 @@ def run(args):
         info["ties"] = dict(n=int(len(st.ties[0])), every=args.strand_ties, slack_m=args.tie_slack, k_N_m=st.tie_k, T_max_MN=st.tie_tmax / 1e6)
     if brk2_meta:
         info["break2"] = brk2_meta
+    if brk3_meta:
+        info["break3"] = brk3_meta
     info["masses_t"] = st.masses_t
     if st.g_ref_x is not None:
         info["g_ref"] = dict(x=st.g_ref_x, R=st.R_ref)
@@ -1577,7 +1614,7 @@ def break_results(rec, info, args):
     # fouet : jusqu'au largage des morceaux (ensuite ils filent en ligne droite)
     whip = after & (t <= (b["released"]["t"] if "released" in b else b["t"] + 60))
     tail = t >= t[-1] - 300
-    broken = [b["cable"]] + ([info["break2"]["cable"]] if "break2" in info else [])
+    broken = [b["cable"]] + [info[k]["cable"] for k in ("break2", "break3") if k in info]
     keep = [c for c in range(rec["Tc"].shape[1]) if c not in broken]
     Tk = rec["Tc"][:, keep]
     i_T = np.unravel_index(np.argmax(np.where(after[:, None], Tk, -1)), Tk.shape)
@@ -1637,6 +1674,11 @@ def report(st, rec, E0, L0v, args, info, p):
         ang = np.degrees(np.arccos(np.clip(Lh @ (L0v / np.linalg.norm(L0v)), -1, 1)))
         # angle prévu : Ω_p (t − 15 s) une fois la mise en route (30 s) passée
         pred = args.precess_rate / 86400.0 * max(t[-1] - 15.0, 0.0)
+        N = max(1, getattr(args, "precess_group", 1))
+        if N > 1:  # impulsions groupées : un tour sur N, poussée × N
+            T_rot = 60.0 / args.rpm
+            n_fired = sum(1 for k in range(int(t[-1] / T_rot)) if k % N == 1)
+            pred = args.precess_rate / 86400.0 * N * T_rot * n_fired
         Lm = float(np.linalg.norm(L0v))
         R_m = float(rec["rship"][0].mean())
         dth = math.radians(float(ang[-1]))
@@ -1801,6 +1843,7 @@ def make_parser():
     p.add_argument("--tld-x", type=float, default=46.0, help="fond du bassin, en m depuis la pointe")
     p.add_argument("--tld-radius", type=float, default=4.5, help="rayon du bassin (m) ; la profondeur, donc l'accord, en découle")
     p.add_argument("--tld-zeta", type=float, default=0.15, help="amortissement du clapotis du bassin (grilles, écrans perforés)")
+    p.add_argument("--tld-ships", default=None, help="vaisseaux équipés du bassin (liste, ex. 0) ; ailleurs, la même eau est figée au même endroit ; défaut : tous")
     p.add_argument("--tld2-mass-t", type=float, default=0.0, help="second bassin accordé : masse d'eau (t)")
     p.add_argument("--tld2-x", type=float, default=46.0, help="second bassin : fond, en m depuis la pointe")
     p.add_argument("--tld2-radius", type=float, default=4.5, help="second bassin : rayon (m)")
@@ -1813,6 +1856,7 @@ def make_parser():
     p.add_argument("--precess-rate", type=float, default=0.0, help="pivotement de l'axe de rotation (°/jour, autour de l'axe inertiel x ; 0 = sans). "
                    "Suivre le Soleil vers Mars : 0,695 °/jour en moyenne")
     p.add_argument("--precess-pulse", type=float, default=0.0, help="pivotement : impulsions à ± cet angle (°) de la ligne des nœuds ; 0 = poussée continue")
+    p.add_argument("--precess-group", type=int, default=1, help="pivotement par impulsions : un tour sur N seulement (le 2ᵉ de chaque groupe), poussée × N")
     p.add_argument("--ballast-t", type=float, default=0.0, help="lest bas (t) : charge utile déplacée en bas d'un vaisseau (masse inchangée)")
     p.add_argument("--ballast-x", type=float, default=44.0, help="lest bas : position, en m depuis la pointe")
     p.add_argument("--ballast-ship", type=int, default=0, help="lest bas : vaisseau concerné")
@@ -1823,6 +1867,7 @@ def make_parser():
     p.add_argument("--break-time", type=float, default=60.0, help="instant de la rupture (s)")
     p.add_argument("--break-cable2", type=int, default=-1, help="seconde rupture : câble (indice ; −1 = aucune), au même endroit le long du câble")
     p.add_argument("--break-time2", type=float, default=None, help="seconde rupture : instant (s ; défaut : celui de la première)")
+    p.add_argument("--break-cable3", type=int, default=-1, help="troisième rupture (avec --break-cable2) : câble, même segment, même instant que la deuxième")
     p.add_argument("--release-delay", type=float, default=-1.0, help="coupe-câbles : largage des morceaux du câble rompu après ce délai (s ; −1 = jamais)")
     p.add_argument("--strand-ties", type=int, default=0, help="entretoises entre brins d'un même côté tous les N segments (0 = aucune)")
     p.add_argument("--tie-slack", type=float, default=0.5, help="entretoises : jeu (m) avant qu'elles ne portent")

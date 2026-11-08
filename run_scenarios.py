@@ -92,6 +92,8 @@ UNEQ = SV3 + DECK + ANCHOR + CABLE + ["--design-mass-t", "1600", "--accel", "3.7
 # (Dyneema plein, sans tresse ni redondance : 15 t, EA ÷1,5, masse linéique ÷1,7)
 V3FULL = [a if a not in ("610", "1600") else {"610": "693", "1600": "1820"}[a] for a in TLD]
 DYN = TLD + ["--material", "dyneema"]
+PREC_R = TLD + ["--dv-radial", "0", "--dv-z", "0", "--droll", "0", "--precess-rate", "0.695", "--precess-pulse", "15"]
+TLD_Z30 = [a if a != f"{ts.POOL['zeta']:g}" else "0.3" for a in TLD]
 # Solution retenue, câbles à trois brins par côté (tiers de section, même
 # masse de câble), sur une ferrure commune, coupe-câbles à 1 s
 TLD3 = TLD + ["--side-strands", "3", "--release-delay", "1"]
@@ -230,7 +232,18 @@ CAMPAIGNS = {
         ("T_equipage", TLD + WALK + LAT),
         ("R_resonance_z", BAFFLED + RESO8 + ["--traj-dt", "0.25"]),
         ("T_resonance_z", TLD + RESO8 + ["--traj-dt", "0.25"]),
-        ("T_balayage_t_07", TLD + SWEEP_L + LAT + ["--sweep-f1", "0.7"]),   # au-delà de la corde : mode d'étirement, vers 0,44 Hz
+        ("T_balayage_t_07", TLD + SWEEP_L + LAT + ["--sweep-f1", "0.7"]),   # au-delà de la corde : mode d'étirement, vers 0,53 Hz
+        ("T_balayage_z_07", TLD + SWEEP_L + LATZ + ["--sweep-f1", "0.7"]),
+        # Revue du 2026-11-06 : grilles plus serrées (ζ = 0,30, modèle
+        # linéaire : 0,67° au lieu de 0,79° au pont) ; cargaison déplacée hors
+        # plan (R-16) ; bassin dans le seul vaisseau habité, eau figée dans les
+        # cargos, masse inchangée (R-17)
+        ("T_zeta30_balayage_z", TLD_Z30 + SWEEP_L + LATZ),
+        ("T_zeta30_balayage_t", TLD_Z30 + SWEEP_L + LAT),
+        ("T_cargaison_hors_plan", TLD + CARGO + LATZ),
+        ("T_bassin0_balayage_z", TLD + ["--tld-ships", "0"] + SWEEP_L + LATZ),
+        ("T_bassin0_balayage_t", TLD + ["--tld-ships", "0"] + SWEEP_L + LAT),
+        ("T_bassin0_equipage", TLD + ["--tld-ships", "0"] + WALK + LAT),
     ],
     # Rupture d'un câble, solution retenue (chicanes + bassin), puis avec moyeu
     "rupture": [
@@ -284,6 +297,11 @@ CAMPAIGNS = {
         ("P_pivot_sinus", TLD + ["--dv-radial", "0", "--dv-z", "0", "--droll", "0", "--precess-rate", "695", "--duration", "1200"]),
         ("P_pivot_impulsions", TLD + ["--dv-radial", "0", "--dv-z", "0", "--droll", "0", "--precess-rate", "695",
                                       "--precess-pulse", "15", "--duration", "1200"]),
+        # Vitesse réelle (0,695 °/jour) : impulsions à chaque tour, ou groupées
+        # un tour sur 10 ou sur 100, poussée × 10 ou × 100 (revue R-08)
+        ("P_impulsions_reel", PREC_R + ["--duration", "900"]),
+        ("P_groupe10_reel", PREC_R + ["--precess-group", "10", "--duration", "1500"]),
+        ("P_groupe100_reel", PREC_R + ["--precess-group", "100", "--duration", "900"]),
     ],
     # Masses inégales (transfert d'ergols vers les cargos)
     "masses": [
@@ -333,6 +351,9 @@ CAMPAIGNS = {
         ("C_balayage_t", DYN + SWEEP_L + LAT),
         ("C_balayage_t_07", DYN + SWEEP_L + LAT + ["--sweep-f1", "0.7"]),
         ("C_rupture_milieu", DYN + BRK + ["--break-at", "0.5", "--duration", "1800"]),
+        # amortissement des câbles ÷ 4 (ζ = 0,5 % au lieu de 2 %), jusqu'au
+        # mode d'étirement (revue R-10)
+        ("Q_amort05_balayage_t_07", TLD + SWEEP_L + LAT + ["--sweep-f1", "0.7", "--zeta", "0.005"]),
         ("C_brins2_rupture", DYN + BRK + ["--side-strands", "2", "--break-at", "0.5", "--release-delay", "1", "--duration", "900"]),
     ],
     # Câbles à trois brins (solution retenue) : confort en service, rupture
@@ -350,6 +371,10 @@ CAMPAIGNS = {
         ("B3_dyneema_rupture", TLD3 + BRK + ["--material", "dyneema", "--break-at", "0.5", "--duration", "900"]),
         ("B3_double_rupture", TLD3 + BRK + ["--break-cable2", "3", "--break-at", "0.5", "--duration", "900"] + TRAJ),
         ("B3_double_rupture_10s", TLD3 + BRK + ["--break-cable2", "3", "--break-time2", "70", "--break-at", "0.5", "--duration", "900"]),
+        # Perte d'une ferrure (revue R-03) : les trois brins d'un côté cèdent
+        # ensemble à l'attache, morceaux largués ; sans moyeu, puis avec
+        ("B3_ferrure", TLD3 + BRK + ["--break-cable2", "3", "--break-cable3", "6", "--break-at", "0", "--duration", "900"] + TRAJ),
+        ("Z3_ferrure", TLD3 + HUB2 + BRK + ["--break-cable2", "3", "--break-cable3", "6", "--break-at", "0", "--duration", "900"] + TRAJ),
     ],
     # Retour en fin de rampe (250 t, 1 g) : tensions en service et après la
     # rupture d'un ou deux brins, pour les cas de charge du fluage (creep.py)
@@ -376,6 +401,8 @@ CAMPAIGNS = {
         ("E_rupture_attache", TLD3 + TIES + BRK + ["--break-at", "0", "--duration", "900"]),
         ("E_double_rupture", TLD3 + TIES + BRK + ["--break-cable2", "3", "--break-at", "0.5", "--duration", "900"]),
         ("E_retour_rupture", RET + TIES + BRK + ["--break-at", "0.5", "--duration", "900"]),
+        # entretoises et coupe-câbles ensemble (revue R-06)
+        ("E_rupture_largage", TLD3 + TIES + ["--release-delay", "1"] + BRK + ["--break-at", "0.5", "--duration", "900"] + TRAJF),
     ],
     # Câbles multiples (même masse de câble) : un brin sur deux ou trois
     # rompt au milieu, les autres reprennent la charge ; brins sur la même
@@ -399,6 +426,21 @@ CAMPAIGNS = {
                                                   "--duration", "900"]),
         ("W_brins2_lies", TLD + BRK + ["--side-strands", "2", "--strand-layout", "lie", "--break-at", "0.5", "--release-delay", "1",
                                        "--duration", "900"]),
+    ],
+    # Forçage à période fixe (4 t, 1 m/s² d'accélération) autour des modes
+    # étroits que les balayages sous-estiment (revue R-02) : mode
+    # d'étirement dans le plan (≈ 0,53 Hz) ; corde, LOX et roulis hors plan
+    # (≈ 0,26 Hz)
+    "frequences": [
+        (f"F_etir_t_{P:.2f}".replace(".", "_"), TLD + ["--motion", "periodic", "--motion-mass-t", "4", "--motion-axis", "t",
+                                                       "--motion-amp", f"{(P / (2 * 3.141592653589793)) ** 2:.5f}", "--motion-period", f"{P:.3f}",
+                                                       "--motion-stop", "360", "--duration", "600"])
+        for P in [1.78 + 0.02 * i for i in range(10)]
+    ] + [
+        (f"F_corde_z_{P:.2f}".replace(".", "_"), TLD + ["--motion", "periodic", "--motion-mass-t", "4", "--motion-axis", "z",
+                                                        "--motion-amp", f"{(P / (2 * 3.141592653589793)) ** 2:.5f}", "--motion-period", f"{P:.3f}",
+                                                        "--motion-stop", "420", "--duration", "600"])
+        for P in [3.60 + 0.05 * i for i in range(11)]
     ],
 }
 
