@@ -275,7 +275,9 @@ def export_validation(dest):
         if v.get("starship"):
             # vaisseau 0 : plancher ; câbles : tension du premier segment (MN)
             v["chrono"].update(tilt=r(ch["tilt"][::k, 0], 3), T=r(ch["T"][::k].T / 1e6, 3))
-            v["numpy"].update(tilt=r(npy["tilt"][::kn, 0], 3), T=r(npy["T"][::kn].T / 1e6, 3))
+            # même point de mesure que Chrono : centre de masse de la partie rigide
+            tilt_np = npy["tilt_cm"] if "tilt_cm" in npy.files else npy["tilt"]
+            v["numpy"].update(tilt=r(tilt_np[::kn, 0], 3), T=r(npy["T"][::kn].T / 1e6, 3))
         res[name] = v
     conv = {}
     for name in ("B_conv_ref", "B_conv_seg32", "B_conv_cfl015"):

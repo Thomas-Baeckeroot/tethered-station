@@ -231,7 +231,11 @@ def main():
     t0 = time.time()
     ts.run(args)
     t_np = time.time() - t0
-    ref = np.load(os.path.join(out, args.name + ".npz"))
+    ref = dict(np.load(os.path.join(out, args.name + ".npz")))
+    if "tilt_cm" in ref:
+        # Chrono mesure l'inclinaison au centre de masse de la partie rigide : même point côté NumPy
+        # (avec --g-ref-x, « tilt » est mesuré au pont, environ deux fois plus fort)
+        ref["tilt"] = ref["tilt_cm"]
 
     # 2) Même état initial pour Chrono
     st = ts.Station(args)
