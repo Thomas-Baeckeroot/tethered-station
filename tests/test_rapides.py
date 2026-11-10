@@ -4,7 +4,8 @@
   .venv/bin/python -m unittest discover tests
 
 Ils vérifient la géométrie de la solution retenue, la conservation de
-l'énergie et du moment cinétique, le modèle de masse et quelques options,
+l'énergie et du moment cinétique, le modèle de masse, l'amortissement des
+câbles et quelques options,
 sans relancer les campagnes (plusieurs heures)."""
 import json
 import math
@@ -12,6 +13,8 @@ import os
 import sys
 import tempfile
 import unittest
+
+import numpy as np
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
@@ -44,6 +47,36 @@ class Geometrie(unittest.TestCase):
             self.assertAlmostEqual(a["x_tot"], b["x_tot"], places=6)
             self.assertAlmostEqual(a["M_rigid"] + sum(p["ms"] for p in a["pendulums"]),
                                    b["M_rigid"] + sum(p["ms"] for p in b["pendulums"]), delta=1e-6)
+
+
+class AmortissementCables(unittest.TestCase):
+    def taux(self, segments):
+        """Taux de décroissance de la vitesse d'écartement de deux vaisseaux, amortissement des câbles seul."""
+        st = ts.Station(ts.make_parser().parse_args(rs.TLD3 + ["--segments", str(segments), "--quiet"]))
+        st.relax(verbose=False)
+        st.vn[:], st.vb[:], st.pi[:] = 0.0, 0.0, 0.0
+        e = (st.xb[1] - st.xb[0]) / np.linalg.norm(st.xb[1] - st.xb[0])
+        st.vb[0], st.vb[1] = -0.5 * e, 0.5 * e
+        n = int(3.0 / st.dt)
+        rel = np.empty(n)
+        for k in range(n):
+            st.damp(st.dt)
+            rel[k] = (st.vb[1] - st.vb[0]) @ e
+        t = (np.arange(n) + 1) * st.dt
+        visé = 3 * st.c[0] / st.n / (st.Mb[0] / 2)                   # trois brins en parallèle, masse réduite des deux coques
+        # ζ vaut pour le côté entier, quel que soit le nombre de brins
+        k_side = 3 * st.EA / (st.ds0[0] * st.n)
+        self.assertAlmostEqual(3 * st.c[0] / st.n, 2 * st.args.zeta * math.sqrt(k_side * st.M / 2), delta=1e-6 * st.c[0])
+        p = np.abs(st.mn @ st.vn + st.Mb @ st.vb).max() / st.Mb[0]
+        return -np.polyfit(t[t > 1.2], np.log(rel[t > 1.2]), 1)[0], visé, p
+
+    def test_taux_independant_du_decoupage(self):
+        # mode lent (câble étiré d'un bout à l'autre) : même taux avec 16 et 48 segments, proche du taux visé
+        r16, visé, p16 = self.taux(16)
+        r48, _, p48 = self.taux(48)
+        self.assertAlmostEqual(r48 / r16, 1.0, delta=0.005)
+        self.assertAlmostEqual(r16 / visé, 1.0, delta=0.05)
+        self.assertLess(max(p16, p48), 1e-12)                         # quantité de mouvement conservée
 
 
 class Simulations(unittest.TestCase):

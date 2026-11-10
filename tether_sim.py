@@ -20,8 +20,8 @@ Modèle :
   nutation de Kane) ;
 - intégration « kick-drift-kick » ; rotation libre des corps par
   décomposition symétrique autour des axes principaux (symplectique,
-  conserve |L| exactement) ; amortissement des câbles appliqué de façon
-  exacte à part ;
+  conserve |L| exactement) ; amortissement des câbles appliqué à part,
+  en implicite sur toute la chaîne ;
 - options : moyeu central (masse ponctuelle) relié à chaque module par un
   rayon légèrement prétendu ; rupture d'un câble (un segment cesse de porter
   à un instant donné, son énergie élastique est comptée comme dissipée).
@@ -604,27 +604,12 @@ class Station:
         self.spoke_eps = (getattr(args, "spoke_tension", 0.0) * M * args.g * G0 * topo["tfac"] / self.EA
                           / (2 if getattr(args, "hub_spokes", 1) == 2 else 1))
 
-        # Segments nœud-nœud en groupes sans nœud partagé (amortissement exact
-        # par paires) : coloriage glouton des arêtes (deux groupes pour une
-        # chaîne, un de plus autour du moyeu)
+        # Segments d'attache (un bout sur un corps) : indice, point d'attache
         i, j = self.seg[:, 0], self.seg[:, 1]
         att_i, att_j = i >= nf, j >= nf
-        nn = ~(att_i | att_j)
-        groups, used = [], []
-        for s in np.where(nn)[0]:
-            for g, u in zip(groups, used):
-                if i[s] not in u and j[s] not in u:
-                    g.append(s)
-                    u.update((i[s], j[s]))
-                    break
-            else:
-                groups.append([s])
-                used.append({i[s], j[s]})
-        self.nn_groups = [np.array(g, dtype=int) for g in groups]
-        # Segments d'attache : (point d'attache, nœud)
-        self.as_idx = np.where(~nn)[0]
+        self.as_idx = np.where(att_i | att_j)[0]
         self.as_att = np.where(att_i[self.as_idx], i[self.as_idx], j[self.as_idx]) - nf
-        self.as_node = np.where(att_i[self.as_idx], j[self.as_idx], i[self.as_idx])
+        self._damp_topology()
 
         # Pas de temps : stabilité de Verlet dt < 2/ω_max, ω_max ≈ 2·sqrt(k/m_min)
         self.dt = args.cfl * 2 / (2 * math.sqrt(self.k.max() / self.mn.min()))
@@ -671,9 +656,12 @@ class Station:
 
     def _update_stiffness(self):
         self.k = self.EA / self.ds0
-        # Amortissement : ζ visé sur le mode bungee d'un haltère ; ressorts en série → c_seg = N·c_eff
+        # Amortissement : ζ visé sur le mode bungee d'un haltère ; ressorts en série → c_seg = N·c_eff.
+        # Avec plusieurs brins par côté, ζ vaut pour le côté entier (brins en parallèle : c et k s'ajoutent),
+        # donc c/k ne dépend pas du nombre de brins. Avant le 2026-11-10, chaque brin recevait le ζ visé :
+        # le côté était √(brins) fois plus amorti.
         k_cable = self.EA / (self.ds0 * self.n)
-        self.c = 2 * self.args.zeta * np.sqrt(k_cable * self.M / 2) * self.n
+        self.c = 2 * self.args.zeta * np.sqrt(k_cable * self.M / 2) * self.n / math.sqrt(getattr(self.args, "side_strands", 1))
 
     @property
     def m_total(self):
@@ -843,44 +831,137 @@ class Station:
             ke += 0.5 * np.sum(self.hs ** 2) / self.J
         return ke
 
+    def _damp_topology(self):
+        """Structure fixe du système résolu par damp. Chaque câble a deux
+        segments d'extrémité (sur une attache ou sur le moyeu) et n − 2
+        segments intérieurs, chacun couplé à ses deux voisins par leur nœud
+        commun. Les segments d'extrémité sont couplés entre eux par les corps
+        (attaches d'un même vaisseau) et par les nœuds libres qu'ils partagent
+        (moyeu ; nœud unique si n = 2)."""
+        nf, n = self.nf, self.n
+        i, j = self.seg[:, 0], self.seg[:, 1]
+        f0 = np.array(self.cable_first_seg, dtype=int)
+        assert len(self.seg) == n * len(f0)
+        ends = np.stack([f0, f0 + n - 1], axis=1).ravel()          # rang 2c : début du câble c ; 2c + 1 : fin
+        inner = f0[:, None] + np.arange(1, n - 1)[None, :]          # (câbles, n − 2)
+        chain = f0[:, None] + np.arange(n)[None, :]
+        assert np.all(j[chain[:, :-1]] == i[chain[:, 1:]]) and np.all(j[chain[:, :-1]] < nf)
+        # paires de segments d'extrémité qui partagent un nœud libre (elles-mêmes comprises)
+        by_node = {}
+        for k, s in enumerate(ends):
+            for p, sign in ((int(i[s]), -1.0), (int(j[s]), 1.0)):
+                if p < nf:
+                    by_node.setdefault(p, []).append((k, sign))
+        n_p, n_q, n_node, n_sign = [], [], [], []
+        for node, lst in by_node.items():
+            for k, a in lst:
+                for k2, b in lst:
+                    n_p.append(k), n_q.append(k2), n_node.append(node), n_sign.append(a * b)
+        # segments d'extrémité portés par un corps, et paires sur un même corps
+        a_k = np.where((i[ends] >= nf) | (j[ends] >= nf))[0]
+        a_sign = np.where(i[ends[a_k]] >= nf, -1.0, 1.0)            # −1 : l'attache est le bout i du segment
+        a_att = np.where(i[ends[a_k]] >= nf, i[ends[a_k]], j[ends[a_k]]) - nf
+        a_body = self.att_body[a_att]
+        b_p, b_q = np.where(a_body[:, None] == a_body[None, :])
+        self._dtopo = dict(ends=ends, inner=inner, n_p=np.array(n_p, dtype=int), n_q=np.array(n_q, dtype=int),
+                           n_node=np.array(n_node, dtype=int), n_sign=np.array(n_sign), a_k=a_k, a_sign=a_sign, a_att=a_att,
+                           a_body=a_body, b_p=b_p, b_q=b_q, b_sign=a_sign[b_p] * a_sign[b_q], b_body=a_body[b_p])
+
     def damp(self, dt):
-        """Amortissement exact par segment tendu : la vitesse relative le long
-        du segment décroît en exp(-c·dt/μ) (μ = masse réduite, masse effective
-        du corps au point d'attache). En explicite, c/m ~ 2e3 s⁻¹ imposerait un
-        pas minuscule ; ici c'est inconditionnellement stable. Renvoie
+        """Amortissement axial (Kelvin-Voigt) des segments tendus, résolu sur
+        toute la chaîne. En explicite, c/m ~ 2e3 s⁻¹ imposerait un pas
+        minuscule. Le sous-problème d'amortissement seul, géométrie figée
+        pendant le pas (M·dv/dt = −Gᵀ·c·G·v, G = allongement de chaque segment
+        par unité de vitesse), est résolu par Euler implicite, en inconnues
+        d'impulsion J par segment :
+
+            (1/(c·dt) + G·M⁻¹·Gᵀ)·J = G·v − ṡ₀        v⁺ = v − M⁻¹·Gᵀ·J
+
+        Inconditionnellement stable, conserve la quantité de mouvement et le
+        moment cinétique, et le taux d'amortissement des modes lents (câble
+        étiré d'un bout à l'autre) ne dépend ni du pas ni du découpage. Une
+        décroissance exacte appliquée segment par segment (version d'avant le
+        2026-11-10) ne les amortissait qu'en partie dès que c·dt/μ dépasse 1 :
+        55 % du taux visé avec 16 segments, 19 % avec 48.
+
+        Le système est tridiagonal le long de chaque câble : les segments
+        intérieurs sont éliminés câble par câble (résolution par lots), il
+        reste un petit système plein sur les segments d'extrémité. Renvoie
         l'énergie dissipée."""
+        tp = self._dtopo
         ke0 = self.kinetic()
-        for grp in self.nn_groups:
-            i, j = self.seg[grp, 0], self.seg[grp, 1]
-            d = self.xn[j] - self.xn[i]
-            l = np.linalg.norm(d, axis=1)
-            e = d / l[:, None]
-            mu = self.mn[i] * self.mn[j] / (self.mn[i] + self.mn[j])
-            vrel = np.einsum("ij,ij->i", self.vn[j] - self.vn[i], e) - self.ds0_rate[grp]
-            J = np.where((l > self.ds0[grp]) & self.alive[grp], mu * vrel * (1 - np.exp(-self.c[grp] * dt / mu)), 0.0)
-            imp = J[:, None] * e
-            np.add.at(self.vn, i, imp / self.mn[i][:, None])
-            np.add.at(self.vn, j, -imp / self.mn[j][:, None])
-        # Segments d'attache : nœud ↔ corps rigide
-        a, nd = self.as_att, self.as_node
-        b = self.att_body[a]
-        rw = np.einsum("aij,aj->ai", self.R[b], self.att_r[a])
-        d = self.xn[nd] - (self.xb[b] + rw)
+        nf, n = self.nf, self.n
+        i, j = self.seg[:, 0], self.seg[:, 1]
+        pa, rw = self._attach_points(self.xb, self.R)
+        P = np.concatenate([self.xn, pa])
+        V = np.concatenate([self.vn, self.vb[self.att_body] + np.cross(self.omega_world()[self.att_body], rw)])
+        d = P[j] - P[i]
         l = np.linalg.norm(d, axis=1)
         e = d / l[:, None]
-        u = np.einsum("aji,aj->ai", self.R[b], np.cross(rw, e))
-        m_eff = 1 / (1 / self.Mb[b] + np.sum(u ** 2 / self.Ib[b], axis=1))
-        va = self.vb[b] + np.cross(self.omega_world()[b], rw)
-        vrel = np.einsum("ij,ij->i", self.vn[nd] - va, e) - self.ds0_rate[self.as_idx]
-        mu = 1 / (1 / self.mn[nd] + 1 / m_eff)
-        cs = self.c[self.as_idx]
-        J = np.where((l > self.ds0[self.as_idx]) & self.alive[self.as_idx], mu * vrel * (1 - np.exp(-cs * dt / mu)), 0.0)
+        act = (l > self.ds0) & self.alive
+        rhs = np.where(act, np.einsum("ij,ij->i", V[j] - V[i], e) - self.ds0_rate, 0.0)
+        im = np.concatenate([1 / self.mn, np.zeros(len(pa))])      # 0 : attache, portée par son corps
+        own = np.where(act, 1 / (np.maximum(self.c, 1e-30) * dt), 1.0)
+
+        # Segments d'extrémité : couplages par les nœuds libres et par les corps
+        ends = tp["ends"]
+        nB = len(ends)
+        eB, actB = e[ends], act[ends]
+        p, q = tp["n_p"], tp["n_q"]
+        w_n = tp["n_sign"] * np.einsum("ij,ij->i", eB[p], eB[q]) * im[tp["n_node"]] * (actB[p] & actB[q])
+        ak, bp, bq, bb = tp["a_k"], tp["b_p"], tp["b_q"], tp["b_body"]
+        u = np.einsum("aji,aj->ai", self.R[tp["a_body"]], np.cross(rw[tp["a_att"]], eB[ak]))   # (r × e), repère du corps
+        w_b = tp["b_sign"] * (np.einsum("ij,ij->i", eB[ak[bp]], eB[ak[bq]]) / self.Mb[bb]
+                              + np.sum(u[bp] * u[bq] / self.Ib[bb], axis=1)) * (actB[ak[bp]] & actB[ak[bq]])
+        S = np.bincount(np.concatenate([p * nB + q, ak[bp] * nB + ak[bq]]), weights=np.concatenate([w_n, w_b]),
+                        minlength=nB * nB).reshape(nB, nB)
+        kd = np.arange(nB)
+        S[kd, kd] += own[ends]
+        rB = rhs[ends].copy()
+
+        J = np.empty(len(self.seg))
+        if n > 2:
+            # Segments intérieurs : un système tridiagonal par câble, éliminé (complément de Schur)
+            inner = tp["inner"]
+            nc, m = inner.shape
+            ar = np.arange(m)
+            T = np.zeros((nc, m, m))
+            T[:, ar, ar] = np.where(act[inner], own[inner] + im[i[inner]] + im[j[inner]], 1.0)
+            s1, s2 = inner[:, :-1], inner[:, 1:]
+            off = -np.einsum("cki,cki->ck", e[s1], e[s2]) * im[j[s1]] * (act[s1] & act[s2])
+            T[:, ar[:-1], ar[1:]] = off
+            T[:, ar[1:], ar[:-1]] = off
+            sA, sB = ends[0::2], ends[1::2]
+            cA = -np.einsum("ci,ci->c", e[sA], e[inner[:, 0]]) * im[j[sA]] * (act[sA] & act[inner[:, 0]])
+            cB = -np.einsum("ci,ci->c", e[inner[:, -1]], e[sB]) * im[i[sB]] * (act[inner[:, -1]] & act[sB])
+            rh = np.zeros((nc, m, 3))
+            rh[:, :, 0] = rhs[inner]
+            rh[:, 0, 1] = cA
+            rh[:, -1, 2] = cB
+            X = np.linalg.solve(T, rh)
+            ka, kb = kd[0::2], kd[1::2]
+            S[ka, ka] -= cA * X[:, 0, 1]
+            S[ka, kb] -= cA * X[:, 0, 2]
+            S[kb, ka] -= cB * X[:, -1, 1]
+            S[kb, kb] -= cB * X[:, -1, 2]
+            rB[ka] -= cA * X[:, 0, 0]
+            rB[kb] -= cB * X[:, -1, 0]
+            JB = np.linalg.solve(S, rB)
+            J[inner] = X[:, :, 0] - X[:, :, 1] * JB[ka][:, None] - X[:, :, 2] * JB[kb][:, None]
+        else:
+            JB = np.linalg.solve(S, rB)
+        J[ends] = JB
+
+        # Impulsions : +J·e sur le bout i, −J·e sur le bout j (nœuds, puis points d'attache)
         imp = J[:, None] * e
-        np.add.at(self.vn, nd, -imp / self.mn[nd][:, None])
+        dp = np.zeros_like(P)
+        np.add.at(dp, i, imp)
+        np.add.at(dp, j, -imp)
+        self.vn += dp[:nf] / self.mn[:, None]
         Fb = np.zeros((self.nb, 3))
         Tb = np.zeros((self.nb, 3))
-        np.add.at(Fb, b, imp)
-        np.add.at(Tb, b, np.cross(rw, imp))
+        np.add.at(Fb, self.att_body, dp[nf:])
+        np.add.at(Tb, self.att_body, np.cross(rw, dp[nf:]))
         self.vb += Fb / self.Mb[:, None]
         Lw = np.einsum("bij,bj->bi", self.R, self.pi) + Tb
         self.pi = np.einsum("bji,bj->bi", self.R, Lw)
