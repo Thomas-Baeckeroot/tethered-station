@@ -79,7 +79,7 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 ## Physics pitfalls already met
 
 - Rotating-frame relaxation: whole-system translation is unstable (centrifugal on an offset centre of mass); the centre of mass is re-centred every step.
-- Explicit cable damping is unstable for realistic c/m; damping is applied exactly (exponential decay per segment) after each step.
+- Explicit cable damping is unstable for realistic c/m; damping is applied after each step by an implicit solve over the whole chain (`Station.damp`: impulse unknowns per segment, tridiagonal per cable, Schur complement on the end segments; NumPy only). Before 2026-11-10 it was an exact exponential decay per segment pair, which under-damped the whole-cable stretch mode once c·dt/μ > 1 (55 % of the target rate with 16 segments, 19 % with 48): break recovery times were 2–4× too long and depended on step and segment count. `--zeta` now applies to a whole side (strands share c and k); before, each strand got it and a three-strand side was √3 more damped.
 - Prescribed internal motions must have bounded acceleration: an instantaneous reversal shows up as a large horizontal jolt in the felt gravity.
 - Slosh damping acts on the pendulum velocity **relative to the wall**, L(φ̇ − θ̇), not on the absolute angle.
 - Felt floor tilt = ship tilt + lateral acceleration of the observation point / local g (θ + ü/g), at the deck (a_deck = a_c + α×r + ω×(ω×r)), not at the rigid centre of mass: the deck is 20 m above it and feels about twice the tilt. Sanity check: a free simple pendulum feels zero tilt. A sign error here once gave 0.69° instead of ≈ 2.7°.
