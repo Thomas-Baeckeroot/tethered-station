@@ -1,5 +1,5 @@
 #!/bin/bash
-# Construit le site statique (ex. http://t.baeckeroot.free.fr/tethered-station/) dans le dossier donné :
+# Construit le site statique (ex. https://t-baeckeroot.pages-perso.free.fr/tethered-station/) dans le dossier donné :
 #   <dossier>/index.html        redirection vers la page grand public
 #   <dossier>/grand-public/     page grand public + ses données
 #   <dossier>/technique/        carnet technique + toutes les données
