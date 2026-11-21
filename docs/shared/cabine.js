@@ -3,6 +3,8 @@
  * drawCabin(figure) : `figure` contient .cabin-scene > svg.cabin-svg et
  * .cabin-window (vue three.js de hublot.js), les boutons [data-lights],
  * [data-compare], [data-preset], le curseur [data-rpm] et les sorties [data-out].
+ * Chaque changement de vitesse émet sur la figure l'événement « cabin-omega »
+ * ({omega en rad/s, rpm}), que la page relaie au visualiseur de la station.
  *
  * Coupe dans le plan de rotation (vue le long de l'axe, depuis le Soleil) :
  * le haut est le centre de la station, la droite le sens de la rotation.
@@ -242,6 +244,7 @@
       const sl = fig.querySelector("[data-rpm]");
       if (Math.abs(parseFloat(sl.value) - rpm) > 1e-9) sl.value = rpm;
       if (porthole) porthole.setOmega(w);
+      fig.dispatchEvent(new CustomEvent("cabin-omega", { detail: { omega: w, rpm } }));
       readouts();
       if (REDUCE) still();
     };

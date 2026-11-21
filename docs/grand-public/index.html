@@ -285,7 +285,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     <div class="viewer" id="hero-viewer" data-anim="R_perturbation" data-autostart data-inertial data-speed="1" data-exag="1">
       <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":4.8,"bridle":-4,"ship":"starship","radius":4.5,"length":50,"exag":1}'></div>
     </div>
-    <figcaption>La station simulée, affichée en temps réel : un tour par minute. Tout est à l'échelle : chaque vaisseau mesure 50 m de haut, et leurs centres de masse sont sur un cercle de 717 m de diamètre ; la règle au centre mesure 200 m. Faites glisser pour tourner autour.</figcaption>
+    <figcaption>La station simulée, affichée en temps réel : un tour par minute <b>pour la gravité martienne</b>. Tout est à l'échelle : chaque vaisseau mesure 50 m de haut, et leurs centres de masse sont sur un cercle de 717 m de diamètre ; la règle au centre mesure 200 m. Faites glisser pour tourner autour.</figcaption>
   </figure>
   <figure class="wide cabin" id="cabin" data-lights="on" data-compare="off">
     <div class="cabin-scene" role="img" aria-label="Coupe du pont principal du vaisseau habité : un passager debout regarde par un hublot tourné dans le sens de la rotation, où les étoiles défilent vers le bas ; à côté de lui, un pendule, un fil à plomb avec une bille qu'on lâche, une balance de cuisine et une balance à plateaux.">
@@ -973,9 +973,19 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
       attachStationControls(viewer, ctrl, { mass: !!(viewer.anim.bi && viewer.anim.bi.length) });
     }
     if (!keep) active = { viewer, box, ctrl };
+    return viewer;
   }
+  /* La station d'ouverture tourne à la vitesse choisie sous la cabine (événement « cabin-omega ») */
+  let heroViewer = null, cabinOmega = null;
   document.querySelectorAll(".viewer[data-anim]").forEach((box) => {
-    if (box.dataset.autostart !== undefined) { startViewer(box, true); return; }
+    if (box.dataset.autostart !== undefined) {
+      startViewer(box, true).then((v) => {
+        if (!v || box.id !== "hero-viewer") return;
+        heroViewer = v;
+        if (cabinOmega !== null) v.setOmega(cabinOmega);
+      });
+      return;
+    }
     const b = document.createElement("button");
     b.type = "button";
     b.className = "btn start";
@@ -985,6 +995,10 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
   });
   /* La cabine du pont principal : expériences de pesanteur et hublot (ciel en rotation, station immobile) */
   const cab = document.getElementById("cabin");
+  if (cab) cab.addEventListener("cabin-omega", (e) => {
+    cabinOmega = e.detail.omega;
+    if (heroViewer) heroViewer.setOmega(cabinOmega);
+  });
   if (cab && window.drawCabin) {
     try { drawCabin(cab); } catch (e) { cab.hidden = true; }
   }

@@ -59,6 +59,8 @@
       this.rotating = this.opts.rotating;
       this.playing = false;
       this.time = 0;
+      this.omegaView = null;              // vitesse affichée imposée (setOmega), sinon celle de la simulation
+      this.phase = 0;
       this.onTime = null;
       this._build();
     }
@@ -111,6 +113,7 @@
         this._last = now;
         if (this.playing && this.anim) {
           this.time += dt * this.speed;
+          if (this.omegaView !== null) this.phase += dt * this.speed * this.omegaView;
           if (this.time > this.tEnd) this.time = this.tStart;
           this._setFrameTime(this.time);
         }
@@ -375,7 +378,7 @@
         const p = A.xi[k].map((v, d) => lerp(v, B.xi[k][d]));
         m.position.set(...p.map((v, d) => xb[body][d] + ex * (v - xb[body][d])));
       });
-      this.world.rotation.z = this.rotating ? 0 : this.anim.omega * t;
+      this.world.rotation.z = this.rotating ? 0 : this.omegaView === null ? this.anim.omega * t : this.phase;
       if (this.follow) {
         const p = new THREE.Vector3(...xb[0]).applyAxisAngle(new THREE.Vector3(0, 0, 1), this.world.rotation.z);
         const delta = p.clone().sub(this.controls.target);
@@ -396,6 +399,12 @@
     pause() { this.playing = false; }
     seek(t) { this.time = t; this._setFrameTime(t); }
     setSpeed(s) { this.speed = s; }
+    /* Repère inertiel : fait tourner la station affichée à w (rad/s) au lieu de la vitesse simulée,
+       sans saut d'angle ; le mouvement propre (repère tournant) reste celui de la simulation. */
+    setOmega(w) {
+      if (this.omegaView === null && this.anim) this.phase = this.anim.omega * this.time;
+      this.omegaView = w;
+    }
     setRotating(r) { this.rotating = r; this._setFrameTime(this.time); }
     setExaggeration(e) { this.exag = e; this._buildObjects(); this._setFrameTime(this.time); }
     setFollow(f) {
