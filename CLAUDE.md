@@ -28,7 +28,7 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 ## Conventions
 
 - The user writes comments, CLI help, UI strings and the pages in **French**; keep that for code and docs in this repo. Commit messages: compact one-line English, no model attribution, no Co-Authored-By trailer.
-- **Commit as you go**: commit each coherent step (code change, campaign results, page update) without waiting to be asked. Remote `origin` = public GitHub repo; push only when the user asks.
+- **Commit as you go**: commit each coherent step (code change, campaign results, page update) without waiting to be asked. Remote `origin` = public GitHub repo. Since 2026-11-21 the user allows pushing and publishing to free.fr (`~/.local/bin/publish-tethered-free.sh`, credentials in `~/.netrc`) without asking, once a change is verified; the claude.ai Artifacts are updated only on request.
 - The Mac is often in use: run long computations at low priority (`nice -n 19`), few in parallel (`--jobs 2`), in the background. Several hours of compute are acceptable.
 - `tether_sim.py` is the single source of the physics. `run_scenarios.py` holds the scenario catalogues (`CAMPAIGNS`). Keep both self-contained (NumPy + Matplotlib only) so they run in either venv.
 - When changing a motion program or a diagnostic, re-run the affected campaign and `make_web_data.py`; the pages read everything from `docs/data/`.
