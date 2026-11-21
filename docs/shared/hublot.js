@@ -1,6 +1,6 @@
 /* Vue depuis un hublot du vaisseau habité (three.js r128, UMD).
  *
- * drawPorthole(container, opts)
+ * drawPorthole(container, opts) → { setOmega(w), setLights(on), setPhase(p), ... }
  *
  * Repère tournant de la station : z = axe de rotation, pointé vers le Soleil ;
  * les trois vaisseaux sont dans le plan (x, y), pointe vers le centre. Dans ce
@@ -9,8 +9,16 @@
  * pointe à 324,4 m du centre (pont principal à 338,4 m, centre de masse à
  * 358,4 m), ferrures à 13 m de la pointe et à ±4,8 m de l'axe, trois brins par
  * côté écartés d'environ 0,8 m. Côté Soleil (+z) : isolant argenté et panneaux
- * fixes ; côté ombre (−z) : tuiles noires du bouclier thermique, ailerons dans
- * le plan de rotation. Le ciel est un tirage aléatoire, pas un vrai catalogue.
+ * fixes ; côté ombre (−z) : tuiles noires du bouclier thermique, ailerons avant
+ * repliés.
+ *
+ * Ciel : vraies étoiles (window.ETOILES, Bright Star Catalogue, make_stars.py),
+ * Soleil vu à la longitude écliptique 5° (dans les Poissons, vers le milieu d'un
+ * voyage parti fin 2028) ; Voie lactée et Nuages de Magellan en lueur diffuse
+ * placée sur le vrai plan galactique. Sans catalogue : tirage aléatoire.
+ * Éclairage de la cabine : allumée, l'œil adapté à la lumière et les reflets sur
+ * la vitre ne laissent passer que les étoiles les plus brillantes ; éteinte,
+ * l'œil s'adapte (accéléré : une douzaine de secondes au lieu de 20 à 30 min).
  */
 (function () {
   "use strict";
@@ -19,6 +27,9 @@
   const R_TIP = 324.4;                      // m, pointe des vaisseaux
   const X_ATT = 13, SPREAD = 4.8;           // ferrures : distance à la pointe, écart à l'axe
   const REDUCE = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const D2R = Math.PI / 180, EPS = 23.4393 * D2R;
+  const LAMBDA_SUN = 5 * D2R;               // longitude écliptique du Soleil vu du vaisseau
+  const LIM_LIT = 1.7, LIM_DARK = 6.3, ADAPT_S = 12;   // magnitudes limites, durée d'adaptation affichée
 
   function rand(seed) {                     // mulberry32 : ciel identique à chaque chargement
     let a = seed >>> 0;
@@ -31,53 +42,112 @@
     };
   }
 
-  /* Étoiles : fond uniforme, plus une bande de Voie lactée (grand cercle
-     incliné, densité plus forte d'un côté). Pas de scintillement : pas d'air. */
-  function starField(n, nBand) {
-    const r = rand(20261121), R = 9000;
-    const pos = [], col = [], size = [];
-    const gauss = () => Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r());
-    const tint = (k) => {                   // k : 0 bleuté, 0,5 blanc, 1 orangé
-      if (k < 0.5) return [0.78 + 0.44 * k, 0.86 + 0.28 * k, 1.0];
-      return [1.0, 1.0 - 0.22 * (k - 0.5), 1.0 - 0.5 * (k - 0.5)];
-    };
-    const push = (v, b, s, k) => {
-      const c = tint(k);
-      pos.push(v.x * R, v.y * R, v.z * R);
-      col.push(c[0] * b, c[1] * b, c[2] * b);
-      size.push(s);
-    };
+  /* Équatorial J2000 → repère du ciel de la station (z vers le Soleil, x vers le
+     pôle nord de l'écliptique, y = z × x). */
+  const SUN = new THREE.Vector3(Math.cos(LAMBDA_SUN), Math.sin(LAMBDA_SUN), 0);
+  const ENP = new THREE.Vector3(0, 0, 1), EY = SUN.clone().cross(ENP);
+  function skyDir(raDeg, decDeg) {
+    const ra = raDeg * D2R, de = decDeg * D2R;
+    const x = Math.cos(de) * Math.cos(ra), y = Math.cos(de) * Math.sin(ra), z = Math.sin(de);
+    const e = new THREE.Vector3(x, y * Math.cos(EPS) + z * Math.sin(EPS), -y * Math.sin(EPS) + z * Math.cos(EPS));
+    return new THREE.Vector3(e.dot(ENP), e.dot(EY), e.dot(SUN));
+  }
+
+  /* Couleur d'après l'indice B−V, désaturée (l'œil voit peu la couleur des étoiles). */
+  function bvColor(bv) {
+    const k = [[-0.4, [0.70, 0.78, 1.0]], [0.0, [0.84, 0.89, 1.0]], [0.4, [1.0, 0.98, 0.95]],
+      [0.8, [1.0, 0.92, 0.80]], [1.2, [1.0, 0.84, 0.66]], [1.8, [1.0, 0.74, 0.52]]];
+    if (bv <= k[0][0]) return k[0][1];
+    for (let i = 1; i < k.length; i++) if (bv <= k[i][0]) {
+      const f = (bv - k[i - 1][0]) / (k[i][0] - k[i - 1][0]), a = k[i - 1][1], b = k[i][1];
+      return [a[0] + f * (b[0] - a[0]), a[1] + f * (b[1] - a[1]), a[2] + f * (b[2] - a[2])];
+    }
+    return k[k.length - 1][1];
+  }
+
+  function catalogStars() {
+    const E = window.ETOILES, bin = atob(E.data), pos = [], col = [], mag = [];
+    const u8 = (i) => bin.charCodeAt(i), i8 = (i) => (u8(i) << 24) >> 24;
+    for (let k = 0; k < E.n; k++) {
+      const o = 6 * k, ra = (u8(o) | (u8(o + 1) << 8)) * 360 / 65536;
+      const dec = (((u8(o + 2) | (u8(o + 3) << 8)) << 16) >> 16) * 90 / 32767;
+      const v = skyDir(ra, dec).multiplyScalar(9000), c = bvColor(i8(o + 5) / 50);
+      pos.push(v.x, v.y, v.z);
+      col.push(c[0], c[1], c[2]);
+      mag.push(i8(o + 4) / 20);
+    }
+    return { pos, col, mag };
+  }
+
+  function randomStars(n) {
+    const r = rand(20261121), pos = [], col = [], mag = [];
     for (let i = 0; i < n; i++) {
       const z = 2 * r() - 1, ph = 2 * Math.PI * r(), s = Math.sqrt(1 - z * z);
-      const m = Math.pow(r(), 4.5);                     // beaucoup d'étoiles faibles, peu de brillantes
-      push(new THREE.Vector3(s * Math.cos(ph), s * Math.sin(ph), z), 0.22 + 0.95 * m, 1.3 + 2.6 * m, r());
+      pos.push(9000 * s * Math.cos(ph), 9000 * s * Math.sin(ph), 9000 * z);
+      const c = bvColor(-0.2 + 1.6 * r());
+      col.push(c[0], c[1], c[2]);
+      mag.push(6.3 - 7.5 * Math.pow(r(), 6));
     }
-    // Voie lactée : pôle galactique incliné de 60° sur l'axe de rotation (ordre de grandeur réel
-    // pour un axe dans le plan de l'écliptique)
-    const pole = new THREE.Vector3(Math.sin(1.05), 0.25, Math.cos(1.05)).normalize();
-    const u = new THREE.Vector3(0, 0, 1).cross(pole).normalize(), w = pole.clone().cross(u);
-    for (let i = 0; i < nBand; i++) {
-      let lon = 2 * Math.PI * r();
-      if (r() < 0.45) lon = 0.9 * gauss();               // plus dense vers le centre galactique
-      const lat = 0.11 * gauss() * (r() < 0.7 ? 1 : 2.2);
-      const v = u.clone().multiplyScalar(Math.cos(lat) * Math.cos(lon))
-        .add(w.clone().multiplyScalar(Math.cos(lat) * Math.sin(lon)))
-        .add(pole.clone().multiplyScalar(Math.sin(lat)));
-      push(v, 0.10 + 0.22 * Math.pow(r(), 3), 1.1 + 0.5 * r(), 0.35 + 0.4 * r());
-    }
+    return { pos, col, mag };
+  }
+
+  /* Étoiles : taille et éclat selon la magnitude, coupure douce à la magnitude
+     limite de l'œil (uniforme lim). Pas de scintillement : pas d'air. */
+  function starField() {
+    const d = window.ETOILES ? catalogStars() : randomStars(5000);
     const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
-    g.setAttribute("size", new THREE.Float32BufferAttribute(size, 1));
+    g.setAttribute("position", new THREE.Float32BufferAttribute(d.pos, 3));
+    g.setAttribute("color", new THREE.Float32BufferAttribute(d.col, 3));
+    g.setAttribute("mag", new THREE.Float32BufferAttribute(d.mag, 1));
     const mat = new THREE.ShaderMaterial({
-      uniforms: { pr: { value: 1 } },
-      vertexShader: `attribute float size; attribute vec3 color; varying vec3 vC; uniform float pr;
-        void main() { vC = color; gl_PointSize = size * pr; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      uniforms: { pr: { value: 1 }, lim: { value: LIM_DARK }, gain: { value: 1 } },
+      vertexShader: `attribute float mag; attribute vec3 color; varying vec3 vC; uniform float pr, lim, gain;
+        void main() {
+          float vis = smoothstep(lim + 0.35, lim - 0.35, mag);
+          float b = pow(10.0, -0.4 * 0.62 * (mag + 1.0));
+          vC = color * gain * vis * clamp(0.15 + 1.25 * b, 0.0, 1.5);
+          gl_PointSize = clamp(5.4 - 0.62 * mag, 1.7, 6.6) * pr;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          if (vis <= 0.0) gl_PointSize = 0.0;
+        }`,
       fragmentShader: `varying vec3 vC;
-        void main() { float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d); gl_FragColor = vec4(vC * a * a, 1.0); }`,
+        void main() { float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d); gl_FragColor = vec4(vC * a * a * 1.6, 1.0); }`,
       blending: THREE.AdditiveBlending, depthWrite: false, transparent: true,
     });
     return new THREE.Points(g, mat);
+  }
+
+  /* Voie lactée et Nuages de Magellan : lueur diffuse sur une sphère, calculée par
+     pixel à partir des coordonnées galactiques (bulbe vers le centre, bandes
+     sombres irrégulières). Schématique en détail, juste en position. */
+  function milkyWay() {
+    const gp = skyDir(192.8595, 27.1283), gc = skyDir(266.405, -28.936);
+    const lmc = skyDir(80.89, -69.76), smc = skyDir(13.19, -72.83);
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { gp: { value: gp }, gc: { value: gc }, lmc: { value: lmc }, smc: { value: smc }, k: { value: 1 } },
+      vertexShader: `varying vec3 vP; void main() { vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `varying vec3 vP; uniform vec3 gp, gc, lmc, smc; uniform float k;
+        float h(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+        float n3(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(mix(h(i), h(i + vec3(1,0,0)), f.x), mix(h(i + vec3(0,1,0)), h(i + vec3(1,1,0)), f.x), f.y),
+                     mix(mix(h(i + vec3(0,0,1)), h(i + vec3(1,0,1)), f.x), mix(h(i + vec3(0,1,1)), h(i + vec3(1,1,1)), f.x), f.y), f.z); }
+        void main() {
+          vec3 n = normalize(vP);
+          float b = asin(clamp(dot(n, gp), -1.0, 1.0));
+          vec3 gq = cross(gp, gc);
+          float l = atan(dot(n, gq), dot(n, gc));
+          float fb = 0.5 * n3(n * 7.0) + 0.3 * n3(n * 17.0) + 0.2 * n3(n * 41.0);
+          float band = exp(-pow(b / (0.075 + 0.05 * fb), 2.0)) * (0.45 + 0.55 * exp(-l * l / 0.9));
+          float bulge = exp(-(b * b) / 0.018 - (l * l) / 0.09);
+          float rift = smoothstep(0.35, 0.75, n3(n * 11.0 + 3.1)) * exp(-pow(b / 0.05, 2.0)) * (0.4 + 0.6 * exp(-l * l / 1.2));
+          float mw = (band * (0.55 + 0.6 * fb) + 0.9 * bulge) * (1.0 - 0.75 * rift);
+          mw += 0.55 * exp(-pow(acos(clamp(dot(n, lmc), -1.0, 1.0)) / 0.055, 2.0));
+          mw += 0.30 * exp(-pow(acos(clamp(dot(n, smc), -1.0, 1.0)) / 0.03, 2.0));
+          gl_FragColor = vec4(vec3(0.93, 0.92, 0.88) * mw * 0.12 * k, 1.0);
+        }`,
+      side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true,
+    });
+    return new THREE.Mesh(new THREE.SphereGeometry(9500, 64, 32), mat);
   }
 
   /* Starship : géométrie du visualiseur (pointe en x = −25), couleurs par sommet
@@ -185,9 +255,12 @@
   }
 
   function drawPorthole(container, opts = {}) {
-    // Cadrage retenu : hublot du pont principal (14,5 m de la pointe), à 70° du côté Soleil vers la ferrure,
-    // regard vers le vaisseau 1 (48° au-dessus de l'horizontale du pont) ; haut de l'image = côté Soleil.
-    const o = Object.assign({ side: 70, az: 90, el: 48, up: "sun", fov: 76, xCam: 14.5, roll: 0, exposure: 1, glint: 1 }, opts);
+    // Cadrage retenu : hublot du pont principal tourné dans le sens de la rotation, juste au-dessus de la
+    // ferrure (côté Soleil de 0,25 m), œil à 1,6 m du plancher (12,4 m de la pointe), regard horizontal ;
+    // haut de l'image = vers le centre de la station. Les voisins sont à 59° au-dessus de l'horizon, hors
+    // du champ : on voit les brins qui montent vers eux depuis la plaque, 0,6 m plus bas.
+    const o = Object.assign({ side: 87, az: 90, el: 0, up: "deck", fov: 64, xCam: 12.4, roll: 0, exposure: 1, glint: 1,
+      lights: false, omega: OMEGA, phase0: null }, opts);
     const w0 = container.clientWidth || 480, h0 = container.clientHeight || 300;
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     const pr = Math.min(window.devicePixelRatio || 1, 2);
@@ -200,10 +273,10 @@
     scene.background = new THREE.Color(0x000000);
     const camera = new THREE.PerspectiveCamera(o.fov, w0 / h0, 0.2, 20000);
 
-    const sky = starField(2600, 9000);
+    const sky = starField(), mw = milkyWay();
     sky.material.uniforms.pr.value = pr;
     const skyHolder = new THREE.Group();
-    skyHolder.add(sky);
+    skyHolder.add(mw, sky);
     scene.add(skyHolder);
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.05));
@@ -247,16 +320,31 @@
     if (o.roll) camera.rotateZ(o.roll * D);
     skyHolder.position.copy(camera.position);
 
-    let phase = o.phase || 0, last = performance.now(), visible = true, raf = null;
+    // Phase de départ : Bételgeuse (Orion) 15° au-dessus du centre du hublot, elle descend vers l'horizon.
+    let phase = o.phase || 0;
+    if (o.phase0 === null && window.ETOILES) {
+      const b = skyDir(88.79, 7.41), look = camera.getWorldDirection(new THREE.Vector3());
+      phase = Math.atan2(b.y, b.x) - Math.atan2(look.y, look.x) - 15 * D2R;
+    }
+    let omega = o.omega, lights = o.lights, adapt = lights ? 0 : 1, last = performance.now(), visible = true, raf = null;
+    const applyLights = () => {
+      // éteinte : magnitude limite de 1,7 à 6,3 en ADAPT_S s (cônes puis bâtonnets), Voie lactée en dernier
+      const e = 1 - Math.pow(1 - adapt, 2.2);
+      sky.material.uniforms.lim.value = lights ? LIM_LIT : LIM_LIT + (LIM_DARK - LIM_LIT) * e;
+      sky.material.uniforms.gain.value = lights ? 0.55 : 0.55 + 0.45 * e;
+      mw.material.uniforms.k.value = lights ? 0 : Math.max(0, (adapt - 0.45) / 0.55);
+    };
     const render = () => {
       skyHolder.rotation.z = -phase;       // le ciel tourne en sens inverse de la station
+      applyLights();
       renderer.render(scene, camera);
     };
     const loop = (now) => {
       raf = requestAnimationFrame(loop);
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      phase += dt * OMEGA;
+      phase += dt * omega;
+      if (!lights && adapt < 1) adapt = Math.min(1, adapt + dt / ADAPT_S);
       render();
     };
     const start = () => { if (!raf && !REDUCE && visible) { last = performance.now(); raf = requestAnimationFrame(loop); } };
@@ -274,7 +362,12 @@
       render();
     }).observe(container);
     start();
-    return { setPhase(p) { phase = p; render(); }, camera, scene, render };
+    return {
+      setPhase(p) { phase = p; render(); },
+      setOmega(w) { omega = w; },
+      setLights(on) { lights = !!on; adapt = lights ? 0 : (REDUCE ? 1 : 0); render(); },
+      camera, scene, render,
+    };
   }
 
   window.drawPorthole = drawPorthole;

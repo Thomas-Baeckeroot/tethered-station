@@ -33,7 +33,8 @@ Site statique : `docs/build_site.sh <dossier>` construit `index.html`, `grand-pu
 | `deploy_campaign.py` | Catalogue des scénarios de déroulement (`run`) et export vers `docs/data/deploiement.json` (`export`) |
 | `chrono_validation.py` | Validation croisée avec Project Chrono (PyChrono 10) |
 | `make_web_data.py` | Export des résultats vers `docs/data/` (séries, trajectoires 3D, validation) |
-| `docs/shared/` | Visualiseur 3D (three.js), vue depuis un hublot (`hublot.js`), graphiques SVG, schémas des configurations |
+| `make_stars.py` | Extrait compact du Bright Star Catalogue (Hoffleit et Warren 1991) pour le ciel de la vue du hublot → `docs/shared/etoiles.js` |
+| `docs/shared/` | Visualiseur 3D (three.js), cabine du pont principal avec expériences de pesanteur (`cabine.js`) et vue par son hublot (`hublot.js`, vrai ciel : `etoiles.js`), graphiques SVG, schémas des configurations |
 | `docs/stage_publish.sh` | Prépare les copies publiables des deux pages |
 
 ## Utilisation
