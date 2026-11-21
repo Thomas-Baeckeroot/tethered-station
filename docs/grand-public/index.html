@@ -59,12 +59,20 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 .wide { width: 100%; display: grid; gap: 14px; }
 
 /* Ouverture */
-.hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 32px; align-items: center; padding-top: 40px; }
+.hero { display: grid; gap: 28px; padding-top: 40px; }
 .hero h1 { font-size: clamp(2.8rem, 7vw, 5rem); font-weight: 700; letter-spacing: -0.005em; }
 .hero .lede { font-size: 1.22rem; color: var(--ink-2); }
 .hero .tech-note { font-size: .95rem; color: var(--ink-2); margin-top: .8rem; }
-.hero-text { display: grid; gap: 18px; min-width: 0; }
-@media (max-width: 820px) { .hero { grid-template-columns: 1fr; } }
+.hero-text { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 18px 32px; align-items: end; min-width: 0; }
+.hero-title { display: grid; gap: 18px; }
+/* La station vue de l'extérieur, et depuis un hublot */
+.hero-views { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .hero-text, .hero-views { grid-template-columns: 1fr; } }
+.viewer.hublot { background: #000; }
+.hublot-frame { position: absolute; inset: 0; pointer-events: none; }
+.hublot-frame::before, .hublot-frame::after { content: ""; position: absolute; inset: 9px; border-radius: 26px; }
+.hublot-frame::before { box-shadow: 0 0 0 60px #1a2029, inset 0 0 0 1.5px #3c4655, inset 0 0 26px 6px rgba(0, 0, 0, .75); }
+.hublot-frame::after { background: linear-gradient(128deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 38%); }
 
 .figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .figures div { padding: 14px 14px 12px 0; display: grid; gap: 2px; }
@@ -197,17 +205,29 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 
 <header class="hero">
   <div class="hero-text">
-    <span class="eyebrow">Étude de faisabilité · simulation numérique</span>
-    <h1>Gravité au bout du fil</h1>
-    <p class="lede">Trois vaisseaux en route vers Mars, reliés par des câbles d'un demi-kilomètre, font un tour par minute. Sur le pont principal, l'équipage pèse ce qu'il pèsera sur Mars, pendant les huit mois et demi du voyage, sans poutre géante : entre deux vaisseaux, trois câbles d'environ 8 cm de diamètre côte à côte, pour qu'un câble cassé ne compromette rien, soit neuf câbles en tout.</p>
-    <p class="tech-note">Pour qui veut les équations, les hypothèses et tous les résultats : le <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi" target="_blank" rel="noopener">carnet de calcul technique</a>.</p>
+    <div class="hero-title">
+      <span class="eyebrow">Étude de faisabilité · simulation numérique</span>
+      <h1>Gravité au bout du fil</h1>
+    </div>
+    <div>
+      <p class="lede">Trois vaisseaux en route vers Mars, reliés par des câbles d'un demi-kilomètre, font un tour par minute. Sur le pont principal, l'équipage pèse ce qu'il pèsera sur Mars, pendant les huit mois et demi du voyage, sans poutre géante : entre deux vaisseaux, trois câbles d'environ 8 cm de diamètre côte à côte, pour qu'un câble cassé ne compromette rien, soit neuf câbles en tout.</p>
+      <p class="tech-note">Pour qui veut les équations, les hypothèses et tous les résultats : le <a href="https://claude.ai/artifact/5dVec5xiSvaZwkLvLzXFMi" target="_blank" rel="noopener">carnet de calcul technique</a>.</p>
+    </div>
   </div>
+  <div class="hero-views">
   <figure class="wide">
     <div class="viewer" id="hero-viewer" data-anim="R_perturbation" data-autostart data-inertial data-speed="1" data-exag="1">
       <div class="poster" data-schema='{"topology":"triangle2","module":"radial","spread":4.8,"bridle":-4,"ship":"starship","radius":4.5,"length":50,"exag":1}'></div>
     </div>
     <figcaption>La station simulée, affichée en temps réel : un tour par minute. Tout est à l'échelle : chaque vaisseau mesure 50 m de haut, et leurs centres de masse sont sur un cercle de 717 m de diamètre ; la règle au centre mesure 200 m. Faites glisser pour tourner autour.</figcaption>
   </figure>
+  <figure class="wide">
+    <div class="viewer hublot" id="hublot" role="img" aria-label="Vue animée depuis un hublot du vaisseau habité : la ferrure du nez et les trois brins du câble filent vers le vaisseau voisin, immobile, pendant que les étoiles défilent, un tour par minute.">
+      <div class="hublot-frame" aria-hidden="true"></div>
+    </div>
+    <figcaption>La même station vue d'un hublot du pont principal, en temps réel. Tout près, la ferrure du nez et sa plaque, d'où partent les trois brins du câble ; à l'autre bout des 580 m, le vaisseau voisin n'est qu'un point brillant. À bord, vaisseaux et câbles sont immobiles : c'est le ciel qui tourne, un tour par minute, autour de l'axe pointé vers le Soleil. Tout est à l'échelle, mais le ciel étoilé est imaginaire.</figcaption>
+  </figure>
+  </div>
 </header>
 
 <section class="wide">
@@ -755,6 +775,7 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
 <script src="shared/soleil.js"></script>
 <script src="shared/allege.js"></script>
 <script src="shared/deploiement.js"></script>
+<script src="shared/hublot.js"></script>
 <script>
 (function () {
   "use strict";
@@ -867,6 +888,11 @@ footer { border-top: 1px solid var(--line); padding-top: 22px; font: 400 0.85rem
     b.addEventListener("click", () => startViewer(box, false));
     box.appendChild(b);
   });
+  /* Vue depuis un hublot (ciel en rotation, station immobile) */
+  const hb = document.getElementById("hublot");
+  if (hb && window.THREE && window.drawPorthole) {
+    try { drawPorthole(hb); } catch (e) { hb.closest("figure").hidden = true; }
+  }
 
   /* Graphiques */
   const fmtDeg = (v) => fr(v, v < 1 ? 2 : 1) + "°";

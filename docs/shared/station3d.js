@@ -16,17 +16,18 @@
   /* Starship (cotes du plan SN8, en mètres) le long de l'axe x du corps,
      pointe en x = −25 : coiffe ogivale, fût, ailerons avant et arrière dans
      le plan (x, y). Les ailerons rendent visible la rotation propre. */
-  function starshipGeometries() {
+  function starshipGeometries(seg = 28) {
     const geos = [];
     const prof = [];
-    for (let i = 0; i <= 16; i++) {
-      const u = i / 16;
+    const np = seg > 28 ? 40 : 16;
+    for (let i = 0; i <= np; i++) {
+      const u = i / np;
       prof.push(new THREE.Vector2(Math.max(4.5 * Math.sqrt(1 - (1 - u) * (1 - u)), 0.01), -25 + 13.8 * u));
     }
-    const nose = new THREE.LatheGeometry(prof, 28);
+    const nose = new THREE.LatheGeometry(prof, seg);
     nose.rotateZ(-Math.PI / 2);
     geos.push(nose);
-    const barrel = new THREE.CylinderGeometry(4.5, 4.5, 36.2, 28, 1, false);
+    const barrel = new THREE.CylinderGeometry(4.5, 4.5, 36.2, seg, 1, false);
     barrel.translate(0, 6.9, 0);
     barrel.rotateZ(-Math.PI / 2);
     geos.push(barrel);
@@ -466,4 +467,5 @@
 
   window.StationViewer = StationViewer;
   window.attachStationControls = attachControls;
+  window.starshipGeometries = starshipGeometries;
 })();
