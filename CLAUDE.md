@@ -56,7 +56,7 @@ Running list of open questions and future work: `TODO.md`. Results summary: `REA
 | `chrono_validation.py` | Cross-validation with Project Chrono (PyChrono 10): generic modules, and the retained Starship solution (slosh bobs on stiff damped rods, lateral wall damping, unilateral cables, cable break and release); outputs in `out/validation/` |
 | `tests/test_rapides.py` | Quick checks (≈ 1 min, `.venv/bin/python -m unittest discover tests`): retained-solution geometry and mass model, energy and angular-momentum conservation, string frequency, pool in one ship, grouped axis pulses. Run after any change to `tether_sim.py` |
 | `make_web_data.py` | Export to `docs/data/` (summary, series incl. sweep curves, 3D animations listed in `ANIMATIONS`) |
-| `docs/grand-public/`, `docs/technique/` | The two pages; `docs/shared/` = three.js viewer, SVG charts, schemas |
+| `docs/grand-public/`, `docs/technique/` | The two pages; `docs/shared/` = three.js viewer, SVG charts, schemas; `hublot.js` = real-time view from a porthole of the crew ship (rotating frame: station still, sky turning at 1 rpm about the Sun axis; to scale, forward flaps folded), shown next to the opening viewer of the grand public page |
 | `docs/stage_publish.sh` | Copies each page + only the data it uses into a publish folder |
 
 ## Environments
