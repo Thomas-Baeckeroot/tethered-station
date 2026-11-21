@@ -30,11 +30,9 @@
 .so-head { fill: var(--accent); } .so-head-m { fill: var(--muted); } .so-head-c { fill: var(--steel, var(--series-1)); } .so-head-i { fill: var(--ink); }
 .so-ring { fill: none; stroke: var(--accent); stroke-width: 1.5; }
 .so-ship { stroke: var(--accent); stroke-width: 6; stroke-linecap: round; }
-.so-ship-back { stroke: var(--accent); stroke-width: 6; stroke-linecap: round; opacity: 0.45; }
 .so-panel { stroke: #1f3b63; stroke-width: 3.2; }
 .so-panel-top { stroke: #e0a100; stroke-width: 1.2; }
-.so-wing { fill: #3a6db0; stroke: #8fb0dd; stroke-width: 0.6; } .so-wing-back { fill: #3a6db0; opacity: 0.45; }
-.so-cable { stroke: var(--ink); stroke-width: 1; }
+.so-wing { fill: #3a6db0; stroke: #8fb0dd; stroke-width: 0.6; }.so-cable { stroke: var(--ink); stroke-width: 1; }
 .so-node { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; }
 .so-puff { stroke: var(--ink); stroke-width: 2; }
 .so-hull-in { fill: color-mix(in srgb, var(--steel, var(--series-1)) 22%, var(--surface)); stroke: var(--steel, var(--series-1)); stroke-width: 1; }
@@ -364,10 +362,11 @@
         el("line", { x1: a[0], y1: a[1], x2: b[0], y2: b[1], class: "so-cable" }, g);
       }
       ph.forEach((p) => {
-        const front = Math.cos(p) > 0;
+        // plus clair au premier plan, plus sombre à l'arrière, variation continue avec la profondeur
+        const opacity = (0.45 + 0.55 * (1 + Math.cos(p)) / 2).toFixed(3);
         const [x0, y0] = P(p, 0.62), [x1, y1] = P(p, 1.0);
-        for (const sg of [-1, 1]) el("polygon", { points: wing(p, sg), class: front ? "so-wing" : "so-wing-back" }, g);
-        el("line", { x1: x0, y1: y0, x2: x1, y2: y1, class: front ? "so-ship" : "so-ship-back" }, g);
+        for (const sg of [-1, 1]) el("polygon", { points: wing(p, sg), class: "so-wing", opacity }, g);
+        el("line", { x1: x0, y1: y0, x2: x1, y2: y1, class: "so-ship", opacity }, g);
         if (opts.pulses) {
           const s = Math.sin(p);
           if (Math.abs(s) > Math.cos(15 * Math.PI / 180)) {
